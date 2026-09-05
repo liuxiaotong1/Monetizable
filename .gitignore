@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.next-prev/
+node_modules-prev/
+.node_modules-prev/
+.vercel/
+*.tsbuildinfo
+.env*
+!.env.example
+.DS_Store
+graphify-out/
+.codex-artifacts/
+outputs/
+supabase/.temp/
+content/geo/
+src/app/*--route-entry.js
+.vercel

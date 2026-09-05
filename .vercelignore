@@ -1,0 +1,10 @@
+.git
+.next
+.next-prev
+node_modules
+.node_modules-prev
+graphify-out
+.env*
+*.tsbuildinfo
+AGENTS.md
+CLAUDE.md
