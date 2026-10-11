@@ -1721,7 +1721,7 @@ summary:focus-visible {
 }
 .sidebar .nav-item.active,
 .side-nav button.active,
-.mobile-nav button.active {
+.english-app .mobile-nav button.active {
   color: #b5b3ff;
   background: #868dff12;
 }
