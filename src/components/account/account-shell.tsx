@@ -1,18 +1,13 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Compass,
-  Swords,
-  Layers3,
-  ArrowRight,
-  X,
   Cloud,
   LogIn,
   LogOut,
   ShieldCheck,
   GraduationCap,
 } from "lucide-react";
-import { useDialogFocus } from "@/components/quest/use-dialog-focus";
+import ProductTour from "./product-tour";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
   setBrowserIdentity,
@@ -35,8 +30,7 @@ export default function AccountShell({
   const zh = !!user?.admin;
   const [ready, setReady] = useState(false),
     [sync, setSync] = useState(""),
-    [tutorial, setTutorial] = useState(false),
-    [step, setStep] = useState(0);
+    [tutorial, setTutorial] = useState(false);
   const revision = useRef(0),
     writing = useRef(false),
     pending = useRef<BrowserRecord | null>(null),
@@ -44,8 +38,6 @@ export default function AccountShell({
     enabled = useRef(false),
     pendingTutorial = useRef(false),
     requestSync = useRef<() => Promise<void>>(async () => {});
-  const dialog = useRef<HTMLElement>(null);
-  useDialogFocus(dialog, tutorial, () => finish());
   const label = (en: string, cn: string) => (zh ? cn : en);
   useEffect(() => {
     let active = true;
@@ -162,66 +154,14 @@ export default function AccountShell({
       window.removeEventListener("quest-progress", change);
     };
   }, [user?.id, zh]);
-  async function finish() {
+  const finish = useCallback(async () => {
     localStorage.setItem(`quest-tutorial:${user?.id || "guest"}:v1`, "done");
     setTutorial(false);
     if (user && enabled.current) {
       pendingTutorial.current = true;
       await requestSync.current();
     }
-  }
-  const steps = zh
-    ? [
-        {
-          icon: Compass,
-          number: "01",
-          title: "先留下判断，再看结果",
-          text: "每日盘前选择方向与信心，写一句理由。开盘后封存；收盘回看原始判断、当时剧本与实际行情。",
-          detail: "经验值来自认真准备和复盘，不来自下单次数或承担风险。",
-        },
-        {
-          icon: Swords,
-          number: "02",
-          title: "把重大事件变成能读懂的 Boss",
-          text: "先看官方时间、前值与公布值，再理解利率、盈利预期与 QQQ 的影响路径。",
-          detail: "周一至周五巴黎 14:15 盘前快报；周日 19:00 一周前瞻。",
-        },
-        {
-          icon: Layers3,
-          number: "03",
-          title: "答一道题，解锁一个新理解",
-          text: "五条学习路线：个股财报、期权、金融史、技术面与经济数据。先选答案，再展开讲解。",
-          detail:
-            "左滑安排下次复习一次，右滑表示掌握。登录后，记录跟随你的账号。",
-        },
-      ]
-    : [
-        {
-          icon: Compass,
-          number: "01",
-          title: "Make your call. Learn from the close.",
-          text: "Choose a direction and confidence before the bell. Add a reason. After the close, compare your original call with the actual market.",
-          detail:
-            "Earn XP for preparation and thoughtful reviews — never for trading more or taking more risk.",
-        },
-        {
-          icon: Swords,
-          number: "02",
-          title: "Meet the next market Boss.",
-          text: "See official event times, previous readings and confirmed releases. Understand the route from economic data to rates, earnings and QQQ.",
-          detail:
-            "Premarket brief: weekdays at 14:15 Paris. Weekly outlook: Sunday at 19:00 Paris. ET times adjust with daylight saving.",
-        },
-        {
-          icon: Layers3,
-          number: "03",
-          title: "A good question is your next power-up.",
-          text: "Explore earnings, options, financial history, technical analysis and economic data. Pick an answer to unlock the explanation.",
-          detail:
-            "Swipe left to review once on your next visit. Swipe right when you understand it. Sign in to carry your progress across devices.",
-        },
-      ];
-  const current = steps[step];
+  }, [user?.id]);
   return (
     <>
       <div className="account-bar">
@@ -262,7 +202,6 @@ export default function AccountShell({
         <nav>
           <button
             onClick={() => {
-              setStep(0);
               setTutorial(true);
             }}
           >
@@ -311,79 +250,7 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
-      {tutorial && (
-        <div className="tutorial-backdrop">
-          <section
-            ref={dialog}
-            className="tutorial-card"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="tutorial-title"
-          >
-            <button
-              className="tutorial-close"
-              onClick={() => void finish()}
-              aria-label={label("Close tutorial", "关闭引导")}
-            >
-              <X size={20} />
-            </button>
-            <div className="tutorial-label">
-              <img
-                src="/brand/monetizable-bull-blue-violet.svg"
-                width="30"
-                height="30"
-                alt=""
-              />{" "}
-              Monetizable <span>{label("QUICK START", "新手引导")}</span>
-            </div>
-            <div className="tutorial-illustration">
-              <span className="orbit-one" />
-              <span className="orbit-two" />
-              <current.icon size={56} />
-              <span className="tutorial-level">LEVEL {current.number}</span>
-              <i>✦</i>
-              <i>✧</i>
-            </div>
-            <span className="eyebrow">
-              {label(
-                "INVESTING, WITH A LITTLE MORE PLAY.",
-                "让投资学习，多一点乐趣。",
-              )}
-            </span>
-            <h2 id="tutorial-title">{current.title}</h2>
-            <p>{current.text}</p>
-            <div className="tutorial-tip">{current.detail}</div>
-            <div className="tutorial-controls">
-              <div className="tutorial-dots">
-                {steps.map((_, i) => (
-                  <button
-                    key={i}
-                    aria-label={label(
-                      `Tour step ${i + 1}`,
-                      `引导第 ${i + 1} 步`,
-                    )}
-                    aria-current={step === i ? "step" : undefined}
-                    onClick={() => setStep(i)}
-                    className={step === i ? "active" : ""}
-                  />
-                ))}
-              </div>
-              <button
-                className="primary"
-                onClick={() => (step === 2 ? void finish() : setStep(step + 1))}
-              >
-                {step === 2
-                  ? label("Start my quest", "开始冒险")
-                  : label("Next", "下一步")}
-                <ArrowRight size={17} />
-              </button>
-            </div>
-            <button className="tutorial-skip" onClick={() => void finish()}>
-              {label("I’ll explore on my own", "我想自己探索")}
-            </button>
-          </section>
-        </div>
-      )}
+      {ready && tutorial && <ProductTour zh={zh} onFinish={finish} />}
     </>
   );
 }

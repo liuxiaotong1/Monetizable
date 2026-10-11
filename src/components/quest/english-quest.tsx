@@ -202,7 +202,7 @@ export default function EnglishQuest() {
         <nav aria-label="Main navigation">
           {navigation.map((n) => (
             <button
-              key={n.id}
+              key={n.id} data-tour-nav={n.id}
               className={`nav-item ${view === n.id ? "active" : ""}`}
               onClick={() => navigate(n.id)}
             >
@@ -292,7 +292,7 @@ export default function EnglishQuest() {
             <div className="journey-stations">
               {navigation.map((n, i) => (
                 <button
-                  key={n.id}
+                  key={n.id} data-tour-nav={n.id}
                   className={`${view === n.id ? "active" : ""} ${complete.includes(n.id) ? "done" : ""}`}
                   onClick={() => navigate(n.id)}
                 >
@@ -334,7 +334,7 @@ export default function EnglishQuest() {
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
           <button
-            key={n.id}
+            key={n.id} data-tour-nav={n.id}
             className={view === n.id ? "active" : ""}
             onClick={() => navigate(n.id)}
           >
@@ -833,7 +833,7 @@ function EventMap({ state }: { state: QuestState }) {
           <p>No verified events in this window. Try another date range.</p>
         )}
       </section>
-      <section className="en-card">
+      <section className="en-card" data-tour="briefs">
         <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
         <h2>Prepare before the next round.</h2>
         <div className="en-scenarios">
