@@ -1821,3 +1821,11 @@ summary:focus-visible {
 .guest-deck-gate { max-width: 760px; margin: 30px auto; text-align: center; }
 .guest-deck-gate p { margin: 14px 0 24px; }
 @media(max-width:560px) { .auth-gate { padding: 30px 24px; } .auth-gate h2 { font-size: 25px; } }
+
+.en-quiz-card, .knowledge-card.quiz-first { transform: translateX(var(--card-drag, 0px)) rotate(var(--card-tilt, 0deg)); transition: transform 160ms ease-out; }
+.en-quiz-card[data-swipe-direction], .knowledge-card[data-swipe-direction] { transition: none; animation: none; }
+.en-quiz-card[data-swipe-direction]::after, .knowledge-card[data-swipe-direction]::after { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); padding: 8px 14px; border-radius: 9px; font-size: 12px; font-weight: 600; pointer-events: none; z-index: 5; white-space: nowrap; }
+.en-quiz-card[data-swipe-direction="master"]::after { content: "✓ Got it"; color: #bdeecb; background: #234636; }
+.en-quiz-card[data-swipe-direction="review"]::after { content: "← Review next visit"; color: #d7c8ff; background: #382c55; }
+.knowledge-card[data-swipe-direction="master"]::after { content: "✓ 已掌握"; color: #bdeecb; background: #234636; }
+.knowledge-card[data-swipe-direction="review"]::after { content: "← 下次复习"; color: #d7c8ff; background: #382c55; }
