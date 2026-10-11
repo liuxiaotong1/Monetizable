@@ -1653,3 +1653,127 @@
     justify-content: center;
   }
 }
+/* Monetizable: the selected blue-violet bull-controller identity. */
+:root {
+  --brand-blue: #63a8ff;
+  --brand-violet: #b18bfa;
+  --brand-ink: #101a32;
+  --brand-gradient: linear-gradient(120deg, #63a8ff, #8e89ff 55%, #b18bfa);
+}
+.sidebar .brand {
+  gap: 10px;
+}
+.sidebar .brand img {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.brand {
+  color: #c5c6ff;
+}
+.brand img {
+  object-fit: contain;
+}
+.account-bar .account-mobile-brand {
+  display: none;
+}
+.primary {
+  background: var(--brand-gradient);
+  color: #10152d;
+  border-color: #8d94ff;
+}
+.primary:hover {
+  filter: brightness(1.08);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline-color: #9e9bff;
+}
+.account-bar .account-login {
+  background: #858dff18;
+  color: #b5bbff;
+}
+.guest-dot,
+.tutorial-dots button.active,
+.nav-indicator {
+  background: #9f9bff;
+}
+.auth-card em,
+.en-hero em,
+.en-page-title em {
+  color: #aaa4ff;
+}
+.tutorial-illustration {
+  color: #a7a1ff;
+}
+.tutorial-illustration:before {
+  background: #858dff0c;
+  border-color: #9995ff50;
+}
+.tutorial-tip {
+  border-left-color: #979aff;
+}
+.xp-track > span {
+  background: var(--brand-gradient);
+}
+.sidebar .nav-item.active,
+.side-nav button.active,
+.mobile-nav button.active {
+  color: #b5b3ff;
+  background: #868dff12;
+}
+.sidebar .nav-item.active > div span,
+.side-nav button.active > div span {
+  color: #9898cb;
+}
+.player-avatar {
+  color: #b5b3ff;
+  border-color: #8a8fff55;
+  background: #202340;
+}
+.journey-stations button.active,
+.journey-stations button.done {
+  border-color: #9b9bff66;
+  color: #c0bdff;
+  background: #858dff0d;
+}
+.daily-journey.complete {
+  border-color: #9b9bff66;
+}
+.en-theme-grid button.selected,
+.en-deck-tabs button.active {
+  border-color: #a1a0ff;
+  color: #c0bdff;
+  background: #858dff0d;
+}
+.en-quiz-card.flipped {
+  border-color: #989aff66;
+}
+.account-success {
+  color: #b1b4ff;
+}
+@media (max-width: 760px) {
+  .account-bar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .account-bar .account-mobile-brand {
+    display: flex;
+    gap: 7px;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .account-mobile-brand img {
+    width: 28px;
+    height: 28px;
+  }
+  .account-bar .account-status {
+    display: none;
+  }
+  .account-bar nav {
+    gap: 12px;
+  }
+}

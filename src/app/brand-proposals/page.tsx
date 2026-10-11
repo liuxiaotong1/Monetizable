@@ -31,10 +31,10 @@ const concepts = [
   {
     name: "Monetizable",
     slug: "monetizable-03",
-    color: "#82DECF",
+    color: "#9A9CFF",
     tag: "BULL + GAMEPAD + MARKET DATA",
-    title: "Bull Controller",
-    cn: "牛市手柄",
+    title: "Bull Controller · Selected",
+    cn: "牛市手柄 · 已选定",
     description:
       "Bull horns extend a controller silhouette. A dollar and stock candles stay inside the mark: playful, bold and unmistakably market-related.",
     zh: "牛角融入手柄外轮廓，美元与 K 线藏在内部。更有角色感、辨识度强，适合做会动的品牌小伙伴。",
@@ -70,7 +70,7 @@ export default async function Page() {
         ← Monetizable
       </a>
       <header className="proposal-heading">
-        <span className="eyebrow">ONE NAME / FIVE LOGO DIRECTIONS</span>
+        <span className="eyebrow">OFFICIAL BRAND / BLUE-VIOLET BULL</span>
         <h1>
           {zh
             ? "Monetizable · 投资，也可以很好玩。"
@@ -78,8 +78,8 @@ export default async function Page() {
         </h1>
         <p>
           {zh
-            ? "名字已定为 Monetizable。这次只选图形：美元符号 × 游戏元素 × 股票行情，五种不同表达。"
-            : "The name is Monetizable. Now choose the mark: a dollar sign, game language and stock-market signals, in five original vector directions."}
+            ? "Monetizable 已选定方案 03：蓝紫色牛市手柄。美元、游戏与股票线索融于同一图形，已应用到网站与 App 图标。"
+            : "Monetizable’s official mark is concept 03: the blue-violet bull controller. Dollar, gaming and stock-market cues come together in the website and app icons."}
         </p>
       </header>
       <div className="proposal-grid">
@@ -112,13 +112,13 @@ export default async function Page() {
       </div>
       <section className="proposal-recommendation">
         {zh
-          ? "首推 01 美元手柄：投资与游戏的结合最直接，小尺寸也容易辨认。偏角色化选 03，偏复古趣味选 02。"
-          : "First pick: 01 Dollar Pad — the clearest investing-meets-gaming mark, with a clean silhouette for small app icons. Choose 03 for more character or 02 for retro charm."}
+          ? "已采用方案 03：蓝紫色牛市手柄。蓝色 #63A8FF → 紫色 #B18BFA，美元符号使用亮蓝色 #87BFFF。"
+          : "Selected: 03 Bull Controller. Blue #63A8FF → violet #B18BFA, with a bright-blue #87BFFF dollar sign."}
       </section>
       <p className="proposal-footer">
         {zh
-          ? "五套均为 Monetizable 的原创图形提案，可下载 SVG。名称已确定；最终图标待你选定后再统一替换。"
-          : "Five original Monetizable logo concepts, available as SVG downloads. The name is fixed; the final app icon will follow your selected direction."}
+          ? "当前正式标识为方案 03 的蓝紫版。其余图形保留为设计过程参考。"
+          : "The blue-violet version of concept 03 is the official mark. Other concepts remain as design references."}
       </p>
     </main>
   );

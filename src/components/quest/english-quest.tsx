@@ -167,7 +167,7 @@ export default function EnglishQuest() {
   if (!state)
     return (
       <main className="loading-screen">
-        <img src="/icon.svg" width="48" height="48" alt="" />
+        <img src="/brand/monetizable-bull-blue-violet.svg" width="48" height="48" alt="" />
         <h1>Monetizable</h1>
         <p>{error || "Unfolding your adventure map…"}</p>
         {error && (
@@ -192,7 +192,7 @@ export default function EnglishQuest() {
     <div className="app-shell english-app">
       <aside className="sidebar">
         <button className="brand" onClick={() => navigate("today")}>
-          <img src="/icon.svg" width="39" height="39" alt="" />
+          <img src="/brand/monetizable-bull-blue-violet.svg" width="39" height="39" alt="" />
           <div>
             Monetizable
             <span>Investing. A little more playful.</span>

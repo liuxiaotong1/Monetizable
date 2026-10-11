@@ -28,7 +28,7 @@ export default function Confirm() {
   return (
     <main className="auth-screen">
       <a className="brand" href="/">
-        <img src="/icon.svg" width="44" height="44" alt="" />
+        <img src="/brand/monetizable-bull-blue-violet.svg" width="44" height="44" alt="" />
         Monetizable
       </a>
       <section className="auth-card">

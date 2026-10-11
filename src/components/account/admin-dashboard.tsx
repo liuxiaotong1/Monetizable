@@ -62,7 +62,7 @@ export default function AdminDashboard() {
     <main className="admin-shell" lang="zh-CN">
       <header className="admin-top">
         <a className="brand" href="/">
-          <img src="/icon.svg" width="38" height="38" alt="" />
+          <img src="/brand/monetizable-bull-blue-violet.svg" width="38" height="38" alt="" />
           Monetizable
         </a>
         <div>

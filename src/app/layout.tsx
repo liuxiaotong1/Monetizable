@@ -13,7 +13,31 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Monetizable",
   },
-  icons: { icon: "/icon.svg", apple: "/icon-192.png" },
+  icons: {
+    icon: [
+      { url: "/brand/favicon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/brand/favicon.ico", sizes: "16x16 32x32 48x48" },
+    ],
+    shortcut: "/brand/favicon.ico",
+    apple: { url: "/brand/apple-touch-icon.png", sizes: "180x180" },
+  },
+  openGraph: {
+    title: "Monetizable",
+    description: "Investing. A little more playful.",
+    images: [
+      {
+        url: "/brand/social-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Monetizable blue-violet bull controller logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Monetizable",
+    images: ["/brand/social-preview.png"],
+  },
   manifest: "/manifest.webmanifest",
 };
 export const viewport: Viewport = {

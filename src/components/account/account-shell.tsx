@@ -226,10 +226,23 @@ export default function AccountShell({
     <>
       <div className="account-bar">
         <div>
+          <a
+            className="account-mobile-brand"
+            href="/"
+            aria-label="Monetizable home"
+          >
+            <img
+              src="/brand/monetizable-bull-blue-violet.svg"
+              width="30"
+              height="30"
+              alt=""
+            />
+            <strong>Monetizable</strong>
+          </a>
           {user ? (
             <>
-              <Cloud size={14} />
-              <span>
+              <Cloud className="account-status" size={14} />
+              <span className="account-status">
                 {sync ||
                   label(
                     "Your account. Your progress.",
@@ -239,8 +252,10 @@ export default function AccountShell({
             </>
           ) : (
             <>
-              <span className="guest-dot" />
-              <span>Explore first. Sign in when you’re ready.</span>
+              <span className="guest-dot account-status" />
+              <span className="account-status">
+                Explore first. Sign in when you’re ready.
+              </span>
             </>
           )}
         </div>
@@ -286,7 +301,12 @@ export default function AccountShell({
         children
       ) : (
         <main className="loading-screen">
-          <img src="/icon.svg" width="48" height="48" alt="" />
+          <img
+            src="/brand/monetizable-bull-blue-violet.svg"
+            width="48"
+            height="48"
+            alt=""
+          />
           <h1>Monetizable</h1>
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
@@ -308,6 +328,12 @@ export default function AccountShell({
               <X size={20} />
             </button>
             <div className="tutorial-label">
+              <img
+                src="/brand/monetizable-bull-blue-violet.svg"
+                width="30"
+                height="30"
+                alt=""
+              />{" "}
               Monetizable <span>{label("QUICK START", "新手引导")}</span>
             </div>
             <div className="tutorial-illustration">
