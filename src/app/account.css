@@ -396,7 +396,8 @@
 }
 .en-hero {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 32px;
   min-height: 455px;
   border: 1px solid #899ab026;
   border-radius: 24px;
@@ -428,27 +429,8 @@
 }
 .en-hero-character {
   min-width: 0;
-  padding: 26px 18px 0;
+  padding: 28px 24px 24px 0;
   position: relative;
-}
-.en-yelan-name {
-  display: block;
-  font-size: 17px;
-  letter-spacing: 3px;
-  color: #c8ddef;
-}
-.en-yelan-name small {
-  display: block;
-  font-size: 8px;
-  letter-spacing: 2px;
-  margin-top: 7px;
-  color: #83a9bf;
-}
-.en-hero .yelan-character {
-  margin-top: 10px;
-}
-.en-hero .yelan-stage {
-  height: 330px;
 }
 .en-card {
   padding: 30px;
@@ -1291,10 +1273,7 @@
     font-size: 13px;
   }
   .en-hero-character {
-    padding: 15px 25px 0;
-  }
-  .en-hero .yelan-stage {
-    height: 310px;
+    padding: 12px 25px 24px;
   }
   .en-card {
     padding: 22px 18px;

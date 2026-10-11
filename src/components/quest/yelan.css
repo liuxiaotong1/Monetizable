@@ -38,3 +38,56 @@
 @media(prefers-reduced-motion:reduce){.yelan-loading>svg,.yelan-speech{animation:none}.yelan-toolbar button{transition:none}}
 
 .yelan-hydro-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}.yelan-hydro-burst i{position:absolute;width:160px;height:160px;border:2px solid #8ae4ff;border-radius:50%;left:calc(50% - 80px);top:35%;box-shadow:0 0 28px #61cafa60,inset 0 0 28px #61cafa30;animation:hydro-victory-ring 2.4s ease-out both}.yelan-hydro-burst i:nth-child(2){animation-delay:.2s}.yelan-hydro-burst i:nth-child(3){animation-delay:.4s}.yelan-hydro-burst span{position:absolute;color:#b9f2ff;font-size:30px;left:15%;top:45%;animation:hydro-victory-star 2.5s ease-out both;text-shadow:0 0 18px #46cfff}.yelan-hydro-burst span:nth-of-type(2){left:78%;top:25%;animation-delay:.15s}.yelan-hydro-burst span:nth-of-type(3){left:70%;top:65%;animation-delay:.3s}.yelan-hydro-burst span:nth-of-type(4){left:25%;top:18%;animation-delay:.2s}.yelan-victory .yelan-stars{color:#fff1b8;text-shadow:0 0 10px #ffe7a2}.hero-report{border:1px solid #75cce12e;border-radius:16px;overflow:hidden;background:#172536}.hero-report .hero{border:0;border-radius:0;margin:0}.hero-report.verified{border-color:#80d7eb55}.hero-report .hero-copy h1{font-size:35px;line-height:1.4;margin:22px 0 14px}.hero-report .hero-copy h1 span{display:block;color:#a5e8f8}.hero-report .hero-copy .eyebrow{display:flex;align-items:center;gap:8px;letter-spacing:1px;color:#bdd9e5}.hero-close-quote{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;margin:17px 0}.hero-close-quote strong{font-size:29px;color:#e8f3f9}.hero-close-quote span{font-size:17px;color:#c3d3df}.hero-close-quote small{font-size:10px;color:#91aabd}.hero-report .hero-copy .hero-yelan-line{color:#9edbed;font-size:12px}.hero-report-facts{padding:25px 32px 30px;border-top:1px solid #7dcae225}.hero-report-facts .report-story{padding:0;background:none;border:0}.hero-report-facts h4{font-size:15px;margin:25px 0 10px;color:#c9e4ee}.hero-report-facts p{font-size:13px;line-height:1.9;color:#b3c1d1}.hero-report-facts small{color:#8aa1b6;line-height:1.8}.hero-report-facts>.secondary{margin-top:20px;display:flex;gap:8px;align-items:center}.hero-report-facts .report-stats{padding:16px 0}.hero-report-facts .report-stats strong{font-size:21px}.hero-report-facts .report-stats span{font-size:11px;color:#91aabd}@keyframes hydro-victory-ring{0%{opacity:0;transform:scale(.2) rotateX(35deg)}20%{opacity:.8}100%{opacity:0;transform:scale(2.2) rotateX(35deg)}}@keyframes hydro-victory-star{0%{opacity:0;transform:translateY(25px) scale(.3)}25%{opacity:1}100%{opacity:0;transform:translateY(-85px) scale(1.2) rotate(70deg)}}@media(max-width:760px){.hero-report .hero-copy h1{font-size:31px;margin-top:18px}.hero-report-facts{padding:23px 20px}.hero-report .yelan-stage{height:390px}.hero-report-facts p{font-size:12px}.hero-close-quote strong{font-size:27px}}@media(prefers-reduced-motion:reduce){.yelan-hydro-burst{display:none}.hero-report .review-facts{animation:none}}
+
+/* Character pixels and all copy occupy separate layout rows. */
+.hero.hero-yelan {
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  gap:32px;
+  padding-right:32px;
+}
+.hero-yelan .hero-copy { min-width:0; align-self:center; }
+.yelan-stage,
+.en-hero .yelan-stage,
+.hero-report .yelan-stage {
+  position:relative;
+  inset:auto;
+  width:100%;
+  max-width:none;
+  height:auto;
+  min-width:0;
+  margin:0;
+  gap:12px;
+}
+.yelan-label {
+  position:relative;
+  inset:auto;
+  height:auto;
+  min-height:40px;
+  flex-shrink:0;
+  padding:0 12px;
+}
+.yelan-viewport {
+  flex:none;
+  height:340px;
+  min-height:0;
+  overflow:hidden;
+}
+.yelan-dialogue { min-height:56px; }
+.yelan-speech {
+  position:relative;
+  inset:auto;
+  margin:0;
+  font-size:11px;
+}
+.yelan-toolbar { flex-wrap:wrap; }
+.yelan-hint,.yelan-credit { margin-top:0; }
+@media(max-width:760px) {
+  .hero.hero-yelan { grid-template-columns:minmax(0,1fr); padding:25px 23px 20px; gap:28px; }
+  .en-hero { gap:28px; }
+  .yelan-viewport { height:350px; }
+}
+@media(max-width:400px) {
+  .hero.hero-yelan { padding:23px 19px 20px; }
+  .yelan-viewport { height:320px; }
+}

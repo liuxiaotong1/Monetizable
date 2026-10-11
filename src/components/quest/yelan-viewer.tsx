@@ -287,6 +287,8 @@ export default function YelanViewer({
             }}
           />
         )}
+      </div>
+      <div className="yelan-dialogue">
         {(message || (celebrate && status === "ready")) && (
           <div key={castCount} className="yelan-speech" role="status">
             {celebrate
@@ -365,7 +367,7 @@ export default function YelanViewer({
       </span>
       <div className="yelan-credit">
         <a href={YELAN_SOURCE} target="_blank" rel="noreferrer">
-          {label("夜兰 · HoYoverse / 观海", "Yelan · HoYoverse / Guanhai")}
+          {label("夜兰 · HoYoverse / 观海", "Model · HoYoverse / Guanhai")}
         </a>
       </div>
     </div>

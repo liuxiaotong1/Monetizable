@@ -451,9 +451,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </button>
         </div>
         <div className="en-hero-character">
-          <span className="en-yelan-name">
-            ✦ YELAN <small>YOUR QUEST COMPANION</small>
-          </span>
           <YelanViewer
             locale="en"
             celebrate={celebrate}
