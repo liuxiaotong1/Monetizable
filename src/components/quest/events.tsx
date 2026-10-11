@@ -39,6 +39,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
   const acquired = coverage.ready.map(source => source.lastSuccess).filter(Boolean).sort().at(-1);
   return <>
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
+    <AgentReports demo={state.mode==="demo"} now={state.now}/>
     <section className="boss-hero">
       <div className="boss-hero-icon"><Swords size={44} /><span className="orbit orbit-one" /><span className="orbit orbit-two" /></div>
       <div className="boss-hero-copy"><span className="eyebrow">NEXT BOSS</span><h2>{next?.title || "下一场事件，等待官方确认"}</h2><p>{next ? next.description : "目前未取得接下来的可靠日程，请查看下方日历同步状态。"}</p><div className="boss-hero-meta"><span><CalendarDays size={14} />{next ? `${eventDate(next.at)} · ${dualTime(next.at)}` : "来源：官方发布日历"}</span><span><Bell size={14} />提前 30 分钟提醒</span></div></div>
@@ -61,7 +62,6 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
     </details>}
     {state.mode==="live"&&<section className="event-sync"><div><strong>事件数据 · {connected.length} 类历史已连接</strong><p>免费官方历史数据，每次同步保留取得时间。公布值只在官方结果核实后显示。</p><details><summary>查看数据连接状态</summary>{historySources.map(source=><p key={source.name}>{source.name} · {source.status==="ready"?"已同步":source.message}</p>)}<p>ISM、PPI 与文字报告暂不提供历史数值曲线；日程与官方链接仍保留。</p></details></div><button className="secondary" disabled={busy||!refreshData} onClick={()=>void refreshData?.()}><RefreshCw size={15}/>{busy?"同步中…":"同步事件数据"}</button></section>}
     <section className="event-learning"><div><Sparkles size={22} /><h3>数字不只是数字。</h3><p>不懂 CPI、就业或利率？用一张卡牌补上背景。</p></div><button className="secondary" onClick={() => navigate("learn")}>去点亮技能 <ArrowRight size={15} /></button></section>
-    <AgentReports demo={state.mode==="demo"}/>
     <details className="panel event-information-sources"><summary>事件信息来源 · 预测、解读与市场情绪 <ChevronRight size={16}/></summary><EventIntelligencePanel now={state.now}/></details>
     {selected && <EventDialog event={selected} now={state.now} mode={state.mode} onClose={() => setSelectedId(null)} />}
   </>;

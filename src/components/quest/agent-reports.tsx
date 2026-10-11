@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState, type ReactNode} from "react";
-import {CalendarDays,Radio,ChevronRight} from "lucide-react";
+import {ChevronRight} from "lucide-react";
 import type {AgentReport} from "@/lib/quest/agent-report";
 import {dualTime} from "./shared";
 import "./agent-reports.css";
@@ -31,7 +31,7 @@ export function ReportBody({body}:{body:string}) {
   return <div className="agent-report-body">{blocks}</div>;
 }
 type ReportsResponse={reports:AgentReport[];schedule:{date:string;weekStart:string}};
-export default function AgentReports({demo}:{demo:boolean}) {
+export default function AgentReports({demo,now}:{demo:boolean;now:string}) {
   const [data,setData]=useState<ReportsResponse>(),[error,setError]=useState(false);
   useEffect(()=>{
     if(demo)return;
@@ -43,10 +43,11 @@ export default function AgentReports({demo}:{demo:boolean}) {
   },[demo]);
   if(demo)return null;
   const weekly=data?.reports.find(r=>r.kind==="weekly"),daily=data?.reports.find(r=>r.kind==="daily");
+  const isSunday=new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Paris",weekday:"short"}).format(new Date(now))==="Sun";
   return <section className="agent-hub" aria-label="交易情报与一周前瞻">
-    <div className="agent-hub-heading"><div><span className="eyebrow">TRADING DESK</span><h2>先看情报，再出发</h2></div><span className="badge purple">巴黎时间</span></div>
-    <div className="agent-report-grid">{([{kind:"weekly",report:weekly,title:"一周前瞻",icon:<CalendarDays size={20}/>,time:"周日 19:00",fresh:weekly?.weekStart===data?.schedule.weekStart},{kind:"daily",report:daily,title:"盘前快报",icon:<Radio size={20}/>,time:"周一至周五 14:15",fresh:daily?.date===data?.schedule.date}] as const).map(item=><article className="panel agent-report-card" key={item.kind}>
-      <div className="panel-top"><span className="small-icon">{item.icon}</span><span className={`badge ${item.report?item.fresh?"green":"gold":"purple"}`}>{item.report?item.fresh?"本期报告":"最近一期 · 非今日":"等待首份报告"}</span></div>
+    <div className="agent-hub-heading"><div><span className="eyebrow">TRADING DESK</span><h2>{isSunday?"🔮 下一周的冒险，从这里开始":"☀️ 盘前补给，准备出发"}</h2></div><span className="badge purple">巴黎时间</span></div>
+    <div className="agent-report-grid">{([{kind:"weekly",report:weekly,title:"一周前瞻",icon:<span aria-hidden="true">🔮 🗺️</span>,time:"周日 19:00",fresh:weekly?.weekStart===data?.schedule.weekStart},{kind:"daily",report:daily,title:"盘前快报",icon:<span aria-hidden="true">☀️ 🎮</span>,time:"周一至周五 14:15",fresh:daily?.date===data?.schedule.date}] as const).toSorted((a,b)=>a.kind===b.kind?0:a.kind===(isSunday?"weekly":"daily")?-1:1).map(item=><article className="panel agent-report-card" key={item.kind}>
+      <div className="panel-top"><span className="brief-emoji">{item.icon}</span><span className={`badge ${item.report?item.fresh?"green":"gold":"purple"}`}>{item.report?item.fresh?"本期报告":"最近一期 · 非今日":"等待首份报告"}</span></div>
       <h3>{item.title}</h3><p className="agent-cadence">{item.time} · Europe/Paris</p>
       {item.report?<><p className="agent-report-summary">{displayText(item.report.summary)}</p><p className="data-caption">{item.report.date}{item.report.weekStart?` · 展望 ${item.report.weekStart} 起的一周`:""} · v{item.report.version}<br/>生成 {dualTime(item.report.generatedAt)} · {item.report.origin==="cloud-backup"?"云端补充报告":item.report.origin==="trading-agent"?"盘前原报告":"周度冒险情报"}{item.report.status==="partial"?" · 部分资料待核实":""}</p><details><summary>展开完整报告 <ChevronRight size={14}/></summary><h4>{displayText(item.report.title)}</h4><ReportBody body={item.report.body}/><div className="agent-sources">{item.report.sources.map(source=><a href={source.url} target="_blank" rel="noopener noreferrer" key={source.url}>{source.title} ↗</a>)}</div></details></>:<p className="muted">{error?"暂时无法读取，稍后自动重试。已有报告会继续保留。":item.kind==="weekly"?"周日晚上整理下周重大数据、财报、周末风险，以及 QQQ 的确认与失效条件。":"同步盘前机会 Highlight、跨资产快照、风险时间、情景与来源。"}</p>}
     </article>)}</div>

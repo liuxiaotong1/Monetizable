@@ -782,6 +782,48 @@ function EventMap({ state }: { state: QuestState }) {
   const next = state.events
     .filter((e) => Date.parse(e.at) > Date.parse(state.now))
     .sort((a, b) => a.at.localeCompare(b.at))[0];
+  const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
+  const dailyBrief = <article key="daily" className="brief-card brief-daily">
+            <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
+            <span className="eyebrow">BEFORE THE BELL</span>
+            <h3>Premarket brief</h3>
+            <strong>Weekdays · 14:15 Paris</strong>
+            <p>
+              Check the latest close, support and resistance, and the day’s
+              official releases before the bell. Data remains timestamped; a
+              stale feed pauses scoring.
+            </p>
+            <p>
+              Today:{" "}
+              {state.session.isTradingDay ? "Trading session" : "Market closed"}
+              . The next session is {state.session.nextDate}.
+            </p>
+          </article>;
+  const weeklyBrief = <article key="weekly" className="brief-card brief-weekly">
+            <span className="brief-emoji" aria-hidden="true">🔮 🗺️</span>
+            <span className="eyebrow">YOUR NEXT WEEK’S QUEST</span>
+            <h3>Weekly outlook</h3>
+            <strong>Sunday · 19:00 Paris</strong>
+            <p>
+              Preview the next week’s releases and the verified QQQ price
+              structure. Sunday evening refreshes the shared source report.
+            </p>
+            <ul>
+              {state.events
+                .filter(
+                  (e) =>
+                    Date.parse(e.at) > Date.parse(state.now) &&
+                    Date.parse(e.at) < Date.parse(state.now) + 7 * 86400000,
+                )
+                .sort((a, b) => a.at.localeCompare(b.at))
+                .slice(0, 5)
+                .map((e) => (
+                  <li key={e.id}>
+                    {eventText(e).title} · {e.at.slice(0, 10)}
+                  </li>
+                ))}
+            </ul>
+          </article>;
   return (
     <>
       <header className="en-page-title">
@@ -796,6 +838,13 @@ function EventMap({ state }: { state: QuestState }) {
           picture.
         </p>
       </header>
+      <section className="en-card event-brief-hub" data-tour="briefs">
+        <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
+        <h2>{isSunday ? "🔮 Map your next week’s adventure." : "☀️ Your premarket power-up."}</h2>
+        <div className="en-scenarios event-brief-grid">
+          {isSunday ? [weeklyBrief, dailyBrief] : [dailyBrief, weeklyBrief]}
+        </div>
+      </section>
       {next && (
         <section className="en-next-boss">
           <Swords size={38} />
@@ -852,54 +901,6 @@ function EventMap({ state }: { state: QuestState }) {
         {!events.length && (
           <p>No verified events in this window. Try another date range.</p>
         )}
-      </section>
-      <section className="en-card" data-tour="briefs">
-        <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
-        <h2>Prepare before the next round.</h2>
-        <div className="en-scenarios">
-          <article>
-            <h3>Premarket brief</h3>
-            <strong>Weekdays · 14:15 Paris</strong>
-            <p>
-              Check the latest close, support and resistance, and the day’s
-              official releases before the bell. Data remains timestamped; a
-              stale feed pauses scoring.
-            </p>
-            <p>
-              Today:{" "}
-              {state.session.isTradingDay ? "Trading session" : "Market closed"}
-              . The next session is {state.session.nextDate}.
-            </p>
-          </article>
-          <article>
-            <h3>Weekly outlook</h3>
-            <strong>Sunday · 19:00 Paris</strong>
-            <p>
-              Preview the next week’s releases and the verified QQQ price
-              structure. Sunday evening refreshes the shared source report.
-            </p>
-            <ul>
-              {state.events
-                .filter(
-                  (e) =>
-                    Date.parse(e.at) > Date.parse(state.now) &&
-                    Date.parse(e.at) < Date.parse(state.now) + 7 * 86400000,
-                )
-                .sort((a, b) => a.at.localeCompare(b.at))
-                .slice(0, 5)
-                .map((e) => (
-                  <li key={e.id}>
-                    {eventText(e).title} · {e.at.slice(0, 10)}
-                  </li>
-                ))}
-            </ul>
-          </article>
-        </div>
-        <p className="muted small-text">
-          These English preparation prompts use the verified shared calendar and
-          daily prices. Full source-report prose is not yet translated; these
-          prompts are not presented as a translation of it.
-        </p>
       </section>
       <details className="en-card">
         <summary>Information sources · forecasts, analysis & sentiment</summary>

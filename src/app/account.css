@@ -1808,3 +1808,15 @@ summary:focus-visible {
 .en-quiz-card[data-swipe-direction="review"]::after { content: "← Review next visit"; color: #d7c8ff; background: #382c55; }
 .knowledge-card[data-swipe-direction="master"]::after { content: "✓ 已掌握"; color: #bdeecb; background: #234636; }
 .knowledge-card[data-swipe-direction="review"]::after { content: "← 下次复习"; color: #d7c8ff; background: #382c55; }
+
+/* Daily preparation leads the event map; Sundays lead with the week ahead. */
+.event-brief-hub { border-color: #8c88ed55; background: linear-gradient(135deg, #18283d, #24213c); }
+.event-brief-grid .brief-card { padding: 24px; border-radius: 18px; border: 1px solid #ffffff18; min-width: 0; }
+.event-brief-grid .brief-daily { background: linear-gradient(145deg, #3b80aa22, #191d31); }
+.event-brief-grid .brief-weekly { background: linear-gradient(145deg, #9062d329, #191d31); }
+.brief-emoji { display: block; font-size: 34px; line-height: 1.4; margin-bottom: 12px; }
+.event-brief-grid .eyebrow { display: block; margin: 12px 0; font-size: 10px; }
+.event-brief-grid h3 { margin: 10px 0 14px; font-size: 22px; }
+
+.event-brief-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 760px) { .event-brief-grid { grid-template-columns: minmax(0, 1fr); } .event-brief-grid .brief-card { padding: 20px; } }
