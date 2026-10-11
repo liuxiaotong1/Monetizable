@@ -235,7 +235,7 @@ export default function EnglishQuest() {
           </div>
         </div>
       </aside>
-      <div className="workspace">
+      <div className="main-shell workspace">
         <header className="topbar">
           <span>
             <Compass size={16} /> Adventure map <ChevronRight size={14} />{" "}
