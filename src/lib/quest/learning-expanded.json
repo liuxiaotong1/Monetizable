@@ -1,0 +1,2182 @@
+[
+  {
+    "id": "expanded-technical-02",
+    "category": "technical",
+    "title": "EMA：给新消息更大的麦克风",
+    "question": "同为 20 周期，EMA 与 SMA 的主要计算区别是什么？",
+    "analogy": "会议上每个人都发言，EMA 把最新发言的音量调大。",
+    "explanation": "EMA 对较近价格赋予较高权重，通常比同周期 SMA 对新变化更敏感。更敏感也可能带来更多来回波动。",
+    "example": "假设价格突然跳涨，20 周期 EMA 通常比 20 周期 SMA 更快靠近新价格。",
+    "choices": [
+      "SMA 完全不使用历史价格",
+      "EMA 对较近价格给更高权重",
+      "EMA 只看下一天预测价格"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "差别在权重，EMA 仍由已发生的价格计算。",
+    "sources": [
+      {
+        "title": "Fidelity · 指数移动平均 EMA",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/ema"
+      }
+    ],
+    "tags": [
+      "EMA",
+      "均线",
+      "权重"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-03",
+    "category": "technical",
+    "title": "20 周期：不一定是 20 天",
+    "question": "在 5 分钟图上添加 MA20，通常取多少段价格？",
+    "analogy": "同样 20 格积木，每格的宽度由图表周期决定。",
+    "explanation": "指标的周期数通常以图表柱数计。5 分钟 MA20 与日线 MA20 覆盖的时间范围不同，交易时段设置还会影响柱序列。",
+    "example": "假设连续 20 根 5 分钟柱，覆盖约 100 分钟；这不是 20 个交易日。",
+    "choices": [
+      "20 个交易日",
+      "20 周",
+      "20 根 5 分钟柱"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "先看一根柱代表多久，再读指标的周期数。",
+    "sources": [
+      {
+        "title": "Schwab · 图表周期和聚合区间",
+        "url": "https://international.schwab.com/story/getting-started-with-thinkorswim-charts"
+      }
+    ],
+    "tags": [
+      "均线",
+      "多周期",
+      "5分钟"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-04",
+    "category": "technical",
+    "title": "金叉：慢镜头也会来回晃",
+    "question": "短均线上穿长均线后，为什么仍可能反复出现相反交叉？",
+    "analogy": "平均分比单次成绩平稳，但成绩围绕原地波动时也会来回穿线。",
+    "explanation": "均线从历史数据计算，存在滞后。在震荡区间，短长均线可能不断交叉；交叉本身不保证价格继续沿同一方向运动。",
+    "example": "假设价格在 99–101 间来回摆动，短均线可能多次穿过长均线。",
+    "choices": [
+      "震荡市场可能产生反复交叉",
+      "每次金叉都保证涨到新高",
+      "均线已经知道下次财报结果"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "交叉是一项历史关系变化，需要结合趋势环境和失效条件解释。",
+    "sources": [
+      {
+        "title": "Fidelity · 指数移动平均 EMA",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/ema"
+      }
+    ],
+    "tags": [
+      "均线交叉",
+      "震荡",
+      "滞后"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-05",
+    "category": "technical",
+    "title": "真实波幅：把跳空也算进来",
+    "question": "假设昨收 100、今日最高 106、最低 103，今日 TR 是多少？",
+    "analogy": "今天屋内只走了 3 米，昨天到今天还跨过了一段楼梯。",
+    "explanation": "真实波幅 TR 取当日高低差、最高价与昨收差的绝对值、最低价与昨收差的绝对值三者最大值。它包含隔夜缺口的影响。",
+    "example": "假设三项为 3、6、3，因此 TR = 6。",
+    "choices": [
+      "9",
+      "6",
+      "3"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "不能只用今日高低差 3，否则会漏掉从昨收到今日价格区间的跳空。",
+    "sources": [
+      {
+        "title": "Fidelity · 平均真实波幅 ATR",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atr"
+      }
+    ],
+    "tags": [
+      "TR",
+      "ATR",
+      "缺口",
+      "计算"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-06",
+    "category": "technical",
+    "title": "ATR：测风浪，不测航向",
+    "question": "ATR 从 2 升到 4，最直接说明什么？",
+    "analogy": "浪高仪知道海面更颠簸，不知道船一定向北还是向南。",
+    "explanation": "ATR 衡量价格波幅，其数值没有多空方向。上涨和下跌都可能伴随 ATR 升高；计算周期与平滑方法要保持一致。",
+    "example": "假设此前常见日波幅约 2 美元，近期约 4 美元；仍需另看价格走势判断方向。",
+    "choices": [
+      "下一交易日一定上涨 4 美元",
+      "公司利润翻倍",
+      "最近价格波动范围扩大"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "波幅与方向是两个维度；ATR 不能直接充当涨跌预报。",
+    "sources": [
+      {
+        "title": "Fidelity · 平均真实波幅 ATR",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atr"
+      }
+    ],
+    "tags": [
+      "ATR",
+      "波动",
+      "方向"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-07",
+    "category": "technical",
+    "title": "ATR%：先把不同身高放到同一比例尺",
+    "question": "假设 A 股价 100、ATR 2；B 股价 400、ATR 4，谁的相对波幅更大？",
+    "analogy": "同样高一厘米，对小杯子和大水桶不是同一个比例。",
+    "explanation": "ATRP = ATR ÷ 收盘价 × 100%。比较不同价格的标的时，相对波幅通常比绝对美元波幅更有解释力。",
+    "example": "假设 A 的 ATRP 为 2%，B 为 1%；虽然 B 的美元 ATR 更大，A 的相对波幅更大。",
+    "choices": [
+      "A：2% 大于 B 的 1%",
+      "B：4 美元必定比 2 美元更危险",
+      "两者一定相同"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "分母不同，不能直接用美元波幅跨标的比较。",
+    "sources": [
+      {
+        "title": "Fidelity · ATR 百分比",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atrp"
+      }
+    ],
+    "tags": [
+      "ATRP",
+      "相对波动",
+      "计算"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-08",
+    "category": "technical",
+    "title": "RSI：比较最近的推力与拉力",
+    "question": "RSI 主要使用哪类输入？",
+    "analogy": "拔河计分器比较近期两边拉动的力量。",
+    "explanation": "RSI 用近期上涨与下跌变化的相对大小衡量动量，通常显示在 0–100 区间。它不是股价美元数，也不是未来上涨概率。",
+    "example": "假设 RSI 为 65，不能把它读成股价 65 美元或上涨概率 65%。",
+    "choices": [
+      "未来上涨概率",
+      "近期价格上涨与下跌变化",
+      "下季度精确净利润"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "RSI 是动量指标，刻度不能直接解释成胜率。",
+    "sources": [
+      {
+        "title": "Fidelity · 相对强弱指标 RSI",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/RSI"
+      }
+    ],
+    "tags": [
+      "RSI",
+      "动量",
+      "口径"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-09",
+    "category": "technical",
+    "title": "超买：计分牌不会自动反转",
+    "question": "RSI 高于 70，哪种解释更准确？",
+    "analogy": "跑得快的人可能继续跑；速度很快不代表下一秒一定掉头。",
+    "explanation": "70 常被当作 RSI 的超买参考阈值，但强趋势中 RSI 可能在较高区域停留。阈值提示动量状态，不保证立即反转。",
+    "example": "假设价格持续创新高，RSI 连续几天超过 70；这本身不能确定哪天转跌。",
+    "choices": [
+      "下一根 K 线必定大跌",
+      "当天必须把所有持仓卖掉",
+      "动量偏强，仍需确认是否发生转弱"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "超买不是倒计时，趋势和后续价格确认同样重要。",
+    "sources": [
+      {
+        "title": "Fidelity · 相对强弱指标 RSI",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/RSI"
+      }
+    ],
+    "tags": [
+      "RSI",
+      "超买",
+      "趋势"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-10",
+    "category": "technical",
+    "title": "MACD：两条均线之间的距离",
+    "question": "常见 MACD 设置下，MACD 线主要怎样计算？",
+    "analogy": "快车和慢车之间的距离，比两辆车各自的位置更有意义。",
+    "explanation": "常见 MACD 线为 12 周期 EMA 减去 26 周期 EMA；信号线常取 MACD 的 9 周期 EMA。平台允许修改参数。",
+    "example": "假设 EMA12 = 103、EMA26 = 100，则 MACD 线为 3。",
+    "choices": [
+      "短期 EMA 减去长期 EMA",
+      "最高价加最低价",
+      "股价除以成交量"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "它测量两条 EMA 的差，不是把股价改成一个固定胜率。",
+    "sources": [
+      {
+        "title": "Fidelity · MACD",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/macd"
+      }
+    ],
+    "tags": [
+      "MACD",
+      "EMA",
+      "计算"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-11",
+    "category": "technical",
+    "title": "柱子转负：先问比较的是谁",
+    "question": "假设 MACD 线 2、信号线 3，柱状图为 −1，代表什么？",
+    "analogy": "你仍在山坡上方，但已经落在陪跑者后面。",
+    "explanation": "MACD 柱状图通常等于 MACD 线减信号线。柱子为负代表 MACD 低于信号线，不等于 MACD 自身低于零。",
+    "example": "假设 2 − 3 = −1；MACD 线仍为正 2。",
+    "choices": [
+      "股价必定为负",
+      "MACD 低于信号线，但仍可能高于零",
+      "MACD 线必定低于零"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "零轴比较和信号线比较是两种不同关系。",
+    "sources": [
+      {
+        "title": "Fidelity · MACD",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/macd"
+      }
+    ],
+    "tags": [
+      "MACD",
+      "柱状图",
+      "零轴"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-12",
+    "category": "technical",
+    "title": "VWAP：按成交份数分配票重",
+    "question": "假设成交 10 股于 100、30 股于 104，成交级 VWAP 是多少？",
+    "analogy": "食堂每桌人数不同，平均饭价要按实际买饭人数加权。",
+    "explanation": "成交级 VWAP 是成交金额除以成交量。图表常用每根柱的代表价格近似计算，可能与逐笔成交口径不同。",
+    "example": "假设成交级 VWAP = (10 × 100 + 30 × 104) ÷ 40 = 103。",
+    "choices": [
+      "102",
+      "204",
+      "103"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "104 附近成交更多，所以加权均价更接近 104。",
+    "sources": [
+      {
+        "title": "TradingView · VWAP 计算与重置",
+        "url": "https://www.tradingview.com/support/solutions/43000502018-volume-weighted-average-price-vwap/"
+      }
+    ],
+    "tags": [
+      "VWAP",
+      "成交量",
+      "计算"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-13",
+    "category": "technical",
+    "title": "锚定 VWAP：从哪一站开始计程",
+    "question": "普通日内 VWAP 与从财报日锚定的 VWAP，为什么可能不同？",
+    "analogy": "一个里程表每天归零，另一个从上次出发点继续计程。",
+    "explanation": "VWAP 的起点和重置设置决定纳入哪些成交。锚定 VWAP 从用户指定时点累计，不能在不确认起点时直接比较两条线。",
+    "example": "假设一条从今天开盘计算，另一条从上周财报后计算，纳入的交易样本不同。",
+    "choices": [
+      "累计成交的起点不同",
+      "锚定 VWAP 会使用未来成交",
+      "两个名称不同但任何时刻都必定相同"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "相同加权逻辑配上不同起点，会得到不同的参照值。",
+    "sources": [
+      {
+        "title": "TradingView · 锚定 VWAP",
+        "url": "https://www.tradingview.com/support/solutions/43000669764-anchored-vwap-drawing-tool/"
+      }
+    ],
+    "tags": [
+      "VWAP",
+      "锚点",
+      "财报"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-14",
+    "category": "technical",
+    "title": "放量：把今天与自己的平常比较",
+    "question": "假设今日成交 300 万股，20 日平均 100 万股，相对这段均量是多少？",
+    "analogy": "比较一个餐馆今天有多忙，应先看它平时接待多少客人。",
+    "explanation": "把当前成交量与同一标的的可比历史均量比较，能描述交易活跃度。还应确认完整日与盘中部分日是否可比。",
+    "example": "假设均量口径都是完整交易日，300 ÷ 100 = 3 倍。",
+    "choices": [
+      "足以证明所有成交都是主动买单",
+      "3 倍",
+      "多出了 300%"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "活跃度为均量的 3 倍，增加幅度是 200%；量大不等于只存在买方。",
+    "sources": [
+      {
+        "title": "Fidelity · 平均成交量",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/average-volume"
+      }
+    ],
+    "tags": [
+      "成交量",
+      "相对量",
+      "计算"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-15",
+    "category": "technical",
+    "title": "OBV：粗线条账本，不是资金流原件",
+    "question": "OBV 通常怎样处理收盘价上涨的一根柱？",
+    "analogy": "看当天比分方向，把整天的比赛人数记到同一边。",
+    "explanation": "OBV 在收盘上涨时加上该柱成交量、下跌时减去；它是量价构造指标，不能直接证明真实资金净流入金额。",
+    "example": "假设昨日 OBV 为 1,000，今日收盘上涨且成交量 200，新的 OBV 为 1,200。",
+    "choices": [
+      "把每一笔成交都判为机构买入",
+      "直接等于当日现金净流入美元数",
+      "把该柱成交量加到累计值"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "这是基于收盘方向的简化累计，不能替代逐笔订单分析。",
+    "sources": [
+      {
+        "title": "Fidelity · 能量潮 OBV",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/obv"
+      }
+    ],
+    "tags": [
+      "OBV",
+      "量价",
+      "资金流"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-16",
+    "category": "technical",
+    "title": "上升趋势：台阶要看高点和低点",
+    "question": "哪组摆动高低点更符合上升趋势的常见定义？",
+    "analogy": "上楼梯不要求脚每秒都往上，但落脚台阶整体抬高。",
+    "explanation": "常见上升趋势由更高的摆动高点和更高的摆动低点构成。单根上涨柱不能独自建立完整趋势。",
+    "example": "假设高点 105→110、低点 100→103，两个序列都上移。",
+    "choices": [
+      "高点与低点都逐步抬高",
+      "只有一根柱是红色",
+      "高点下降、低点也下降"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "看结构序列，比看一根柱的颜色更完整。",
+    "sources": [
+      {
+        "title": "Fidelity · 趋势的基本概念",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/basic-concepts-trend"
+      }
+    ],
+    "tags": [
+      "趋势",
+      "高点",
+      "低点"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-17",
+    "category": "technical",
+    "title": "下降趋势：反弹也可能仍在下楼",
+    "question": "假设高点 110→106，低点 100→96，期间有反弹，怎么描述结构？",
+    "analogy": "下楼时也会抬脚，抬脚不等于已经改为上楼。",
+    "explanation": "更低的摆动高点和更低的摆动低点是常见下降趋势特征。局部反弹与较大周期下降趋势可以同时存在。",
+    "example": "假设价格从 96 反弹到 103，仍没有超过上个高点 106。",
+    "choices": [
+      "因为最低价 96 大于零，所以必定上升",
+      "下降结构中出现局部反弹",
+      "每次反弹都代表趋势已反转"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "趋势取决于可比摆动点关系，不能只看最近一小段涨幅。",
+    "sources": [
+      {
+        "title": "Fidelity · 趋势的基本概念",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/basic-concepts-trend"
+      }
+    ],
+    "tags": [
+      "下降趋势",
+      "反弹",
+      "多周期"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-18",
+    "category": "technical",
+    "title": "支撑：一片交战地带",
+    "question": "价格过去多次在 99–101 附近止跌，更合理的描述是什么？",
+    "analogy": "一条防线往往有宽度，不是一根不会被穿过的铁丝。",
+    "explanation": "支撑描述历史上买盘较可能出现的价格区域。它会受新信息和订单变化影响，并不保证每次触及都反弹。",
+    "example": "假设几次低点分布在 99.2、100.4、100.8，区域表述比只认 100.00 更符合这些样本。",
+    "choices": [
+      "100.00 永远不能跌破",
+      "触及就能确定下一小时盈利",
+      "99–101 是历史支撑区域，仍可能失效"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "区域来自观察，未来是否守住仍需要验证。",
+    "sources": [
+      {
+        "title": "Fidelity · 支撑与阻力",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/support-and-resistance"
+      }
+    ],
+    "tags": [
+      "支撑",
+      "区间",
+      "失效"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-19",
+    "category": "technical",
+    "title": "阻力变支撑：角色会换位",
+    "question": "原阻力被突破后回踩时，为什么有人会继续观察同一区域？",
+    "analogy": "曾经挡住你的城门，跨过去后可能变成身后的防线。",
+    "explanation": "技术分析中常观察支撑与阻力的角色转换，但这只是待确认的价格行为。回踩是否守住、成交量和事件背景会影响解读。",
+    "example": "假设原阻力 105 被突破，随后回到 105 附近；要看后续是否重新站稳。",
+    "choices": [
+      "原阻力可能成为支撑，但需要后续确认",
+      "一旦突破就永远不会回落",
+      "所有历史价格从此都无意义"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "角色转换是一种观察框架，不能由一次穿越自动确认为成功。",
+    "sources": [
+      {
+        "title": "Fidelity · 支撑与阻力",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/support-and-resistance"
+      }
+    ],
+    "tags": [
+      "阻力",
+      "回踩",
+      "支撑"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-20",
+    "category": "technical",
+    "title": "假突破：跨线后又回到原地",
+    "question": "价格短暂越过阻力后回到原区间，哪种描述最合适？",
+    "analogy": "刚冲过城门又退回来，攻城是否成功还没定论。",
+    "explanation": "假突破通常指价格越过某个水平后又返回原侧或原区间。要预先说明确认规则，不能事后随意移动水平让结果看起来正确。",
+    "example": "假设阻力 100，盘中到 101、收盘回 99.5；这与站稳 100 上方是不同情形。",
+    "choices": [
+      "以后价格绝不可能再超过 100",
+      "可能是假突破，需要按预设规则评估",
+      "突破已保证成功，因为碰过 101"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "短暂穿越不等于持续接受新价格区域。",
+    "sources": [
+      {
+        "title": "Fidelity · 形态、突破与假突破",
+        "url": "https://media.fidelity.com/assets/Fidelity.com_VMS/904/347/TA_Session_3_Identifying_Chart_Patterns.pdf"
+      }
+    ],
+    "tags": [
+      "假突破",
+      "阻力",
+      "确认"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-21",
+    "category": "technical",
+    "title": "收盘确认：它确认的是规则",
+    "question": "盘中触及 101 但收于 99；规则要求收盘高于 100，条件成立吗？",
+    "analogy": "闯关要求到终点仍持有旗帜，途中碰过旗帜不算通关。",
+    "explanation": "盘中触及和收盘站上是两种不同条件。使用收盘规则会等待更多信息，但不保证所有假信号都消失。",
+    "example": "假设收盘确认阈值为 100，最终收于 99，因此本次条件未成立。",
+    "choices": [
+      "只要最高价超过 100 就成立",
+      "可以事后把规则改成触及即成立",
+      "没有成立"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "必须用判断前保存的确认口径回看，而不是为了结果更改规则。",
+    "sources": [
+      {
+        "title": "Fidelity · 形态、突破与假突破",
+        "url": "https://media.fidelity.com/assets/Fidelity.com_VMS/904/347/TA_Session_3_Identifying_Chart_Patterns.pdf"
+      }
+    ],
+    "tags": [
+      "收盘确认",
+      "突破",
+      "复盘"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-22",
+    "category": "technical",
+    "title": "缺口：图上空白不是还款合同",
+    "question": "出现向上缺口后，能确定它什么时候被回补吗？",
+    "analogy": "地图上的空白路段不会主动发来必须回头的命令。",
+    "explanation": "缺口来自相邻交易区间之间没有重叠成交的价格区域。它可能被回补，也可能较长时间保留；图形本身没有确定的回补期限。",
+    "example": "假设昨日最高 100、今日最低 103，形成 100–103 的缺口区域；未来路径仍未确定。",
+    "choices": [
+      "不能仅凭缺口确定回补时间",
+      "必定在当日收盘前回补",
+      "缺口证明数据永远不会有错误"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "先确认时段与数据口径，再观察缺口后价格行为。",
+    "sources": [
+      {
+        "title": "Fidelity · 图表显示与 K 线",
+        "url": "https://www.fidelity.com/quick-content/etf/help/research/learn_er_quotes.shtml"
+      }
+    ],
+    "tags": [
+      "缺口",
+      "交易区间",
+      "确认"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-23",
+    "category": "technical",
+    "title": "K 线实体：开始与结束之间",
+    "question": "一根 K 线的实体通常连接哪两个价位？",
+    "analogy": "整天走过很多地方，实体只画起点到终点。",
+    "explanation": "常见蜡烛图实体连接开盘价与收盘价，上下影线表示最高和最低。红绿颜色规则可能因平台与地区设置不同。",
+    "example": "假设开盘 100、收盘 103、最高 105、最低 99，实体为 100–103。",
+    "choices": [
+      "昨天收盘价与今天最高价",
+      "开盘价与收盘价",
+      "当天最高价与最低价"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "实体与影线承载不同信息，颜色也要先确认平台设置。",
+    "sources": [
+      {
+        "title": "Fidelity · 图表显示与 K 线",
+        "url": "https://www.fidelity.com/quick-content/etf/help/research/learn_er_quotes.shtml"
+      }
+    ],
+    "tags": [
+      "K线",
+      "OHLC",
+      "实体"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-24",
+    "category": "technical",
+    "title": "十字形：犹豫不能单独判胜负",
+    "question": "开盘价与收盘价很接近，最稳妥能读出什么？",
+    "analogy": "拔河结束时绳子回到中间，不知道下一局哪边赢。",
+    "explanation": "实体很小提示该柱开收接近，但不能单独确定反转。所处趋势、上下影线、成交量和后续走势会改变其意义。",
+    "example": "假设开盘 100、收盘 100.1、最高 102、最低 98；期间仍有明显波动。",
+    "choices": [
+      "下一根必定反转",
+      "当天完全没有波动",
+      "该柱开收接近，未来方向仍需更多证据"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "小实体不代表小区间，也不自动预告下一柱涨跌。",
+    "sources": [
+      {
+        "title": "Fidelity · 图表设置与多周期",
+        "url": "https://www.fidelity.com/viewpoints/active-investor/how-to-set-up-your-charts"
+      }
+    ],
+    "tags": [
+      "K线",
+      "十字",
+      "确认"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-25",
+    "category": "technical",
+    "title": "布林带变窄：安静不代表选择了方向",
+    "question": "布林带宽度明显缩小时，最直接表示什么？",
+    "analogy": "两侧护栏靠近，告诉你路变窄，不告诉你出口向左还是向右。",
+    "explanation": "布林带由均线及基于标准差的上下带构成。带宽收窄描述相对波动降低，本身不确定后续突破方向。",
+    "example": "假设均线附近价格摆幅逐渐减小，上下带距离缩短。",
+    "choices": [
+      "这段样本的相对波动缩小",
+      "下一交易日必定向上突破",
+      "公司营收下降到零"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "波动压缩与方向预测必须分开解释。",
+    "sources": [
+      {
+        "title": "Fidelity · 布林带宽度",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/bollinger-band-width"
+      }
+    ],
+    "tags": [
+      "布林带",
+      "带宽",
+      "波动"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-26",
+    "category": "technical",
+    "title": "触碰上轨：位置不是卖出倒计时",
+    "question": "价格触及布林带上轨，能单独确定马上下跌吗？",
+    "analogy": "走到跑道外沿的人，可能继续沿着外沿前进。",
+    "explanation": "触及上轨说明价格相对近期均线处于较高位置。在趋势中价格可能沿上轨运行；还需要动量、趋势和失效条件等信息。",
+    "example": "假设上涨趋势中连续几根收盘都接近上轨，不能只因第一次触轨认定顶部。",
+    "choices": [
+      "可以，布林带读取了未来订单",
+      "不能，强趋势中可能沿上轨运行",
+      "可以，上轨是保证不能越过的最高价"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "带是描述相对位置的参照，并非价格必须反转的边界。",
+    "sources": [
+      {
+        "title": "Fidelity · 布林带",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/bollinger-bands"
+      }
+    ],
+    "tags": [
+      "布林带",
+      "趋势",
+      "上轨"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-27",
+    "category": "technical",
+    "title": "拆股：先排除比例尺变化",
+    "question": "假设一拆二，理论上股价由 100 变 50，能直接记作持有人亏 50% 吗？",
+    "analogy": "一张大饼切成两份，单份变小不代表整张饼少了一半。",
+    "explanation": "拆股会改变股份数量与每股价格的尺度。比较历史价格前，要确认是否进行了拆股调整，避免把制度变化误认成市场跌幅。",
+    "example": "假设原持有 1 股值 100，拆后 2 股各 50，总额仍为 100，忽略市场变化与费用。",
+    "choices": [
+      "能，股数不可能改变",
+      "一拆二保证财富翻倍",
+      "不能，持股数量同时增加"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "先统一股份与价格尺度，再判断实际投资价值变化。",
+    "sources": [
+      {
+        "title": "TradingView · 拆股定义",
+        "url": "https://www.tradingview.com/support/solutions/43000629794-splits/"
+      }
+    ],
+    "tags": [
+      "拆股",
+      "复权",
+      "价格口径"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-28",
+    "category": "technical",
+    "title": "分红调整：价格图与总回报图",
+    "question": "比较两个长期图表时，一张含分红调整、一张不含，先检查什么？",
+    "analogy": "只记车厢还剩多少钱，与把沿途收到的零钱也记上，是两本账。",
+    "explanation": "未含分红的价格变化与含分红的总回报不是同一口径。除息可能造成价格台阶，复权图又会调整历史参照。",
+    "example": "假设股价从 100 变 98、期间收到 2 的现金分红，仅看价格会漏掉已分配现金，未计税费。",
+    "choices": [
+      "是否把分红纳入图表口径",
+      "哪张图线条颜色更亮",
+      "哪个网站保证以后赚钱"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "统一调整设置后再比较，别把口径差异当成行情矛盾。",
+    "sources": [
+      {
+        "title": "TradingView · 分红调整图表",
+        "url": "https://www.tradingview.com/support/solutions/43000590597-how-to-adjust-data-for-dividends/"
+      }
+    ],
+    "tags": [
+      "分红",
+      "复权",
+      "总回报"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-technical-29",
+    "category": "technical",
+    "title": "多周期：周线和 5 分钟可以同时说真话",
+    "question": "周线趋势向上、5 分钟结构向下，二者一定矛盾吗？",
+    "analogy": "整座山往上延伸，脚下仍可能有一小段下坡。",
+    "explanation": "不同周期概括不同时间范围。周交易看较大结构，日内准备看局部路径；较小周期回落可能属于较大周期的回撤。",
+    "example": "假设本周总体上涨，但开盘后 30 分钟下跌，两个观察可以同时成立。",
+    "choices": [
+      "只要周线上涨，每个 5 分钟都应上涨",
+      "不矛盾，它们观察的时间范围不同",
+      "必有一张图使用假数据"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "先匹配交易时间尺度，再解释趋势关系。",
+    "sources": [
+      {
+        "title": "Fidelity · 图表设置与多周期",
+        "url": "https://www.fidelity.com/viewpoints/active-investor/how-to-set-up-your-charts"
+      }
+    ],
+    "tags": [
+      "多周期",
+      "周交易",
+      "日内"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-technical-30",
+    "category": "technical",
+    "title": "一根日线：它丢掉了行走顺序",
+    "question": "只有当日 O/H/L/C，能确定先碰到最高价还是最低价吗？",
+    "analogy": "一天旅行的出发点、终点和南北边界，不等于完整路线。",
+    "explanation": "日线保存开、高、低、收，未保存全部盘中顺序。同一组 OHLC 可以对应不同路径；判断触发顺序需要更细行情。",
+    "example": "假设开 100、高 105、低 95、收 102，先到 105 和先到 95 的路径都可能符合这些值。",
+    "choices": [
+      "能，K 线颜色决定先高后低",
+      "能，只要知道交易日日期",
+      "不能，日线不包含完整触发顺序"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "复盘区间可以核对，但依赖先后顺序的策略不能只用日线自动判定。",
+    "sources": [
+      {
+        "title": "Schwab · 图表周期和聚合区间",
+        "url": "https://international.schwab.com/story/getting-started-with-thinkorswim-charts"
+      }
+    ],
+    "tags": [
+      "OHLC",
+      "日线",
+      "复盘",
+      "触发顺序"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-02",
+    "category": "options",
+    "title": "组合 Delta：先把每个队友的推力相加",
+    "question": "假设买 2 张 Delta 0.50 的 Call 和 1 张 Delta −0.40 的 Put，乘数均为 100，净 Delta 约多少股？",
+    "analogy": "两个人推车向前，一个人往后拉，净推力要带上人数。",
+    "explanation": "组合 Delta 要乘持仓数量与合约乘数后相加，买卖方向也要计入正负。它只描述局部价格敏感度，并会变化。",
+    "example": "假设 2 × 0.50 × 100 − 0.40 × 100 = 60 股等效 Delta。",
+    "choices": [
+      "约 +0.10 股",
+      "约 +60 股",
+      "约 +140 股"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Put 的负 Delta 抵消部分 Call 推力；报价口径和持仓方向都不能漏。",
+    "sources": [
+      {
+        "title": "OCC / OIC · Delta 与持仓方向",
+        "url": "https://www.optionseducation.org/advancedconcepts/delta"
+      }
+    ],
+    "tags": [
+      "组合Delta",
+      "乘数",
+      "持仓"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-03",
+    "category": "options",
+    "title": "Delta 中性：推力抵消后还会弯",
+    "question": "把组合 Delta 对冲到 0，是否已消除所有期权风险？",
+    "analogy": "车此刻不往前冲，下一段路坡度仍可能改变推力。",
+    "explanation": "Delta 中性只是在当前点减小对标的小幅变化的一阶敏感度。Gamma 会改变 Delta，IV 和时间变化也仍可能影响组合。",
+    "example": "假设此刻净 Delta 为 0，标的大幅移动后 Delta 可能偏离 0，需要重新测量。",
+    "choices": [
+      "有，组合保证每天不亏",
+      "有，财报后 IV 无法再变化",
+      "没有，Gamma、Vega 和时间等风险仍可能存在"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "中性是某一风险维度在某一时刻的状态，不是所有风险归零。",
+    "sources": [
+      {
+        "title": "OCC / OIC · Gamma 与动态对冲",
+        "url": "https://www.optionseducation.org/advancedconcepts/gamma"
+      }
+    ],
+    "tags": [
+      "Delta中性",
+      "Gamma",
+      "对冲"
+    ],
+    "difficulty": 3
+  },
+  {
+    "id": "expanded-options-04",
+    "category": "options",
+    "title": "卖方 Delta：仓位方向也要乘进去",
+    "question": "假设 Put 的 Delta 为 −0.30，你卖出 1 张、乘数 100，当前仓位 Delta 约为多少股？",
+    "analogy": "拉车的绳子原本向后，站到合约另一侧后受力方向反过来。",
+    "explanation": "期权链一般展示单份合约的敏感度。计算自己的仓位时，要乘带正负号的持仓数量和合约乘数；短 Put 的仓位 Delta 通常为正。",
+    "example": "假设卖出数量为 −1：−1 × (−0.30) × 100 = +30 股等效 Delta。",
+    "choices": [
+      "约 +30 股",
+      "约 −30 股",
+      "约 +300 股"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "合约的负 Delta 乘卖出仓位的负数量得到正值；其大小会随行情改变。",
+    "sources": [
+      {
+        "title": "OCC / OIC · Delta 与持仓方向",
+        "url": "https://www.optionseducation.org/advancedconcepts/delta"
+      }
+    ],
+    "tags": [
+      "Put",
+      "卖方Delta",
+      "持仓符号",
+      "Greeks"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-05",
+    "category": "options",
+    "title": "IV 与 HV：期待和录像不同",
+    "question": "隐含波动率 IV 与历史波动率 HV 的关键区别是什么？",
+    "analogy": "天气预报描述期待，过去一周的雨量记录描述已发生的天气。",
+    "explanation": "HV 从已经实现的价格变动统计；IV 从期权价格结合模型反推，反映市场定价中的波动假设。两者可以不同。",
+    "example": "假设过去一月较平静，但明天有重大公告，期权定价的 IV 仍可能偏高。",
+    "choices": [
+      "IV 高就代表股价必定上涨",
+      "HV 看历史变动，IV 来自当前期权定价",
+      "两者永远相等"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "波动描述幅度而非确定方向，期待也不保证实现。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 历史波动与隐含波动",
+        "url": "https://www.optionseducation.org/advancedconcepts/volatility-the-greeks"
+      }
+    ],
+    "tags": [
+      "IV",
+      "HV",
+      "波动"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-options-06",
+    "category": "options",
+    "title": "偏斜：同一到期日也不只一个 IV",
+    "question": "同一标的、同一到期日的不同执行价，IV 必须相同吗？",
+    "analogy": "同一场演唱会，不同座位的保险需求可能不同。",
+    "explanation": "波动率偏斜描述 IV 随执行价的差异。供需、尾部保护需求和定价结构会让不同执行价呈现不同 IV。",
+    "example": "假设同到期平值 IV 为 25%、较低执行价 Put 的 IV 为 32%，不必因此判定数据错误。",
+    "choices": [
+      "必须相同，否则没有期权市场",
+      "较低执行价的 IV 一定永远为零",
+      "不必须，IV 可随执行价不同"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "先看执行价维度，再比较 IV；一个平值数字不能代表整条链。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 波动率偏斜与期限结构",
+        "url": "https://www.optionseducation.org/news/april-webinar-key-takeaways-understanding-volatility-and-options-skew"
+      }
+    ],
+    "tags": [
+      "IV",
+      "偏斜",
+      "执行价"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-07",
+    "category": "options",
+    "title": "期限结构：事件可能挤在一周内",
+    "question": "下周到期的 IV 高于下月，可能怎样解释？",
+    "analogy": "本周有台风预警，月底天气保险不一定更贵。",
+    "explanation": "IV 的期限结构描述不同到期日的定价差异。特定日期的事件可能使覆盖该事件的期限出现局部高点，不能只按期限长短排序。",
+    "example": "假设重大公告在下周，短期 IV 较高；仍需比较同类执行价与事件日。",
+    "choices": [
+      "覆盖特定事件的短期限可能有额外波动定价",
+      "期权期限越短 IV 必定越低",
+      "只有期限更长的合约能经历新闻"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "时间维度与执行价维度要分别看；高 IV 也不是确定的实际波动。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 波动率偏斜与期限结构",
+        "url": "https://www.optionseducation.org/news/april-webinar-key-takeaways-understanding-volatility-and-options-skew"
+      }
+    ],
+    "tags": [
+      "期限结构",
+      "IV",
+      "事件"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-08",
+    "category": "options",
+    "title": "未平仓量：库存与今日客流",
+    "question": "期权链的未平仓合约量与当日成交量，主要区别是什么？",
+    "analogy": "仓库还存多少箱，和今天搬了多少箱，是两个数字。",
+    "explanation": "未平仓合约量表示尚未平掉或结清的合约数量；成交量统计期间交易数。成交可能开仓也可能平仓，不能直接相加成库存。",
+    "example": "假设同一合约当天反复换手，多次成交可以发生而未平仓量不按相同幅度增加。",
+    "choices": [
+      "未平仓量等于看涨投资者人数",
+      "未平仓量是存量，成交量是期间流量",
+      "当天成交都必定是新开仓"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "两类数字补充流动性观察，却不能单独确定所有交易者的方向。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 未平仓合约量术语",
+        "url": "https://www.optionseducation.org/referencelibrary/optionsglossary?filter=O"
+      }
+    ],
+    "tags": [
+      "OpenInterest",
+      "成交量",
+      "期权链"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-options-09",
+    "category": "options",
+    "title": "中间价：地图上的报价不是成交承诺",
+    "question": "Bid 1.00 / Ask 1.20，界面显示 1.10，能保证按 1.10 立即成交吗？",
+    "analogy": "菜单写的参考均价，不等于店员已经接受你的订单。",
+    "explanation": "中间价或理论标记价是估值参考，不是保证存在的可成交订单。实际成交还取决于报价数量、流动性及订单条件。",
+    "example": "假设限价 1.10 的买单可能等候、部分成交或不成交；这里未计费用。",
+    "choices": [
+      "能，所有中间价都存在无限数量卖单",
+      "能，标记价等于最新成交承诺",
+      "不能，参考价不保证成交"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "显示的持仓估值与现在能平掉的实际价格可能不同。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 理论标记价与可成交价",
+        "url": "https://www.optionseducation.org/news/mark-to-market-where-every-option-finds-its-true-value"
+      }
+    ],
+    "tags": [
+      "中间价",
+      "流动性",
+      "执行"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-options-10",
+    "category": "options",
+    "title": "Put 的门槛：先扣保险费",
+    "question": "假设买 100 Put 支付每股 4，到期不计费用，盈亏平衡标的价是多少？",
+    "analogy": "保险赔偿先补回你交过的保费，之后才是净收益。",
+    "explanation": "买 Put 到期的每股净损益为 max(执行价 − 标的价, 0) − 权利金。盈亏平衡在执行价减权利金。",
+    "example": "假设 100 − 4 = 96；到期 98 时内在价值 2，净损益为 −2。",
+    "choices": [
+      "96",
+      "100",
+      "104"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "价内不等于盈利，必须把初始权利金一起计入。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 买入 Put",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/long-put"
+      }
+    ],
+    "tags": [
+      "Put",
+      "盈亏平衡",
+      "到期"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-options-11",
+    "category": "options",
+    "title": "裸卖 Call：保险赔偿可能没有天花板",
+    "question": "没有持股或保护腿时卖 Call，理论最大亏损是什么？",
+    "analogy": "收了一小笔固定保费，却承诺补偿没有上限的上涨。",
+    "explanation": "裸卖 Call 的权利金收益有限，标的上涨带来的理论亏损没有上限。保证金是履约安排，不等于最大损失。",
+    "example": "假设执行价 100、收每股 2，标的到期升至 130，理论每股净损失 28，忽略费用。",
+    "choices": [
+      "最多只损失初始保证金",
+      "理论上没有上限",
+      "最多只损失收到的权利金"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "股票价格的上涨理论上无上限，不能把初始账户要求当成风险封顶。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 裸卖 Call",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/naked-call-uncovered-call-short-call"
+      }
+    ],
+    "tags": [
+      "裸卖Call",
+      "保证金",
+      "最大亏损"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-12",
+    "category": "options",
+    "title": "现金担保 Put：接货账单也要算",
+    "question": "假设卖 100 Put 收每股 3，后来被指派买股，不计费用，有效成本是多少？",
+    "analogy": "领了 3 元优惠券，但仍要按约定价格接货。",
+    "explanation": "现金担保 Put 预留买股资金。被指派时按执行价买入，收到的权利金降低有效成本，但股价继续下跌的风险仍存在。",
+    "example": "假设执行价 100、权利金 3，有效每股成本 97；市场跌至 80 并不取消接货义务。",
+    "choices": [
+      "3",
+      "只要跌到 80 就自动不用履约",
+      "97"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "执行价减收到的权利金得到简化有效成本；它不保证买入后盈利。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 现金担保 Put",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/cash-secured-put"
+      }
+    ],
+    "tags": [
+      "现金担保Put",
+      "指派",
+      "成本"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-13",
+    "category": "options",
+    "title": "保护性 Put：地板也有租金",
+    "question": "假设以 100 买股，再花每股 3 买 95 Put，同数量同到期，不计费用，到期理论最大亏损是多少？",
+    "analogy": "给房间加一层安全地板，要把安装费也算进去。",
+    "explanation": "持股加买 Put，在保护期内给到期损益设置下限。理论最大每股损失等于股票成本减执行价，再加 Put 权利金。",
+    "example": "假设 (100 − 95) + 3 = 8；到期跌到 80 时，Put 价值 15 抵消更多跌幅。",
+    "choices": [
+      "每股 8",
+      "每股 3",
+      "每股 5"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "保护不是免费，执行价下的地板与保险成本要一起计算。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 保护性 Put",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/protective-put-married-put"
+      }
+    ],
+    "tags": [
+      "ProtectivePut",
+      "对冲",
+      "最大亏损"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-14",
+    "category": "options",
+    "title": "领口组合：地板加上天花板",
+    "question": "持股、买较低执行价 Put、卖较高执行价 Call，主要换来了什么？",
+    "analogy": "用装天花板的材料费来支付地板工程。",
+    "explanation": "保护性领口组合用短 Call 的权利金帮助支付 Put，同时通常限制股价上涨时的获利空间。保护与上行机会需要一同评估。",
+    "example": "假设持股 100、买 95 Put、卖 110 Call：保护区与上行封顶都由合约决定，仍要计净权利金。",
+    "choices": [
+      "不再承担任何合约义务",
+      "下行保护与受限制的上行空间",
+      "完全无成本且永远无限获利"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "卖 Call 带来义务和上行限制，不能只关注收到的权利金。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 保护性领口组合",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/collar-protective-collar"
+      }
+    ],
+    "tags": [
+      "Collar",
+      "保护",
+      "上行限制"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-15",
+    "category": "options",
+    "title": "熊市 Put 价差：把利润空间画出来",
+    "question": "假设买 100 Put、卖同到期 95 Put，净付每股 2，到期理论最大利润是多少？",
+    "analogy": "下楼只有五层可领积分，先扣两层的入场费。",
+    "explanation": "等数量熊市 Put 价差的到期价值上限为执行价宽度，理论最大利润为宽度减净支出。下面假设双腿正确按组合处理。",
+    "example": "假设宽度 5、净支出 2，最大利润每股 3；标准乘数 100 时一组为 300，未计费用。",
+    "choices": [
+      "每股 5",
+      "每股利润无上限",
+      "每股 3"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "卖出的低执行价 Put 限制了低价处的额外收益。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 熊市 Put 价差",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/bear-put-spread"
+      }
+    ],
+    "tags": [
+      "BearPutSpread",
+      "价差",
+      "损益"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-16",
+    "category": "options",
+    "title": "信用价差：收到的钱不是全部保障",
+    "question": "假设卖 100 Put、买同到期 95 Put，净收每股 1.5，到期理论最大亏损是多少？",
+    "analogy": "先领了押金，最坏赔偿仍要扣掉这笔已领的钱再算。",
+    "explanation": "等数量牛市 Put 信用价差理论最大到期亏损为执行价宽度减净收权利金。实际还要管理指派、到期和双腿处理。",
+    "example": "假设宽度 5 − 净收 1.5 = 每股 3.5；标准乘数 100 时为 350，未计费用。",
+    "choices": [
+      "每股 3.5",
+      "每股 1.5",
+      "零，因为开仓收钱"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "净收是最大理论收益的一部分，风险仍取决于执行价宽度。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 牛市 Put 信用价差",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/bull-put-spread-credit-put-spread"
+      }
+    ],
+    "tags": [
+      "BullPutSpread",
+      "信用价差",
+      "最大亏损"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-17",
+    "category": "options",
+    "title": "熊市 Call 价差：先认清卖的是哪一腿",
+    "question": "同到期熊市 Call 信用价差的典型构成是什么？",
+    "analogy": "先售出靠近门口的通行权，再买一张更远处的保护票。",
+    "explanation": "典型等数量熊市 Call 价差卖较低执行价 Call、买较高执行价 Call。长腿限制组合的理论到期风险，但仍有执行和指派问题。",
+    "example": "假设卖 100 Call、买 105 Call，净收权利金；标的高于 105 时组合到期价值为负宽度。",
+    "choices": [
+      "只买同一张 Call 两次",
+      "卖低执行价 Call，买高执行价 Call",
+      "买低执行价 Call，卖高执行价 Call"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "短 Call 提供信用，较高执行价长 Call 是保护腿；结构方向不能反过来。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 熊市 Call 信用价差",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/bear-call-spread-credit-call-spread"
+      }
+    ],
+    "tags": [
+      "BearCallSpread",
+      "信用价差",
+      "结构"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-18",
+    "category": "options",
+    "title": "跨式：猜幅度也要跨过两份票价",
+    "question": "假设买同到期 100 Call 和 100 Put，共付每股 8，到期盈亏平衡价是？",
+    "analogy": "向左向右都买票，但必须走够远才能挣回两张票钱。",
+    "explanation": "买跨式的到期损益为标的与执行价的绝对距离减总权利金。两个盈亏平衡点分别是执行价减、加总权利金。",
+    "example": "假设执行价 100、总权利金 8，到期盈亏平衡为 92 与 108，未计费用。",
+    "choices": [
+      "100 和 108",
+      "任何不等于 100 的价格都盈利",
+      "92 和 108"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "两条腿的总成本都要收回，方向发生变化本身不等于净盈利。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 买入跨式",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/long-straddle"
+      }
+    ],
+    "tags": [
+      "Straddle",
+      "幅度",
+      "盈亏平衡"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-19",
+    "category": "options",
+    "title": "宽跨式：门票便宜，出口更远",
+    "question": "同到期买入虚值 Call 与虚值 Put 的宽跨式，与同执行价跨式相比，通常有什么取舍？",
+    "analogy": "门票可能更便宜，但要先走到更远的门口才开始积累赔付。",
+    "explanation": "宽跨式用不同执行价，通常减少相近条件下的初始支出，却需要足够幅度越过执行价及总成本。不能只比较票价。",
+    "example": "假设买 105 Call 与 95 Put，总付每股 4，到期盈亏平衡为 109 和 91，未计费用。",
+    "choices": [
+      "通常成本较低，但盈利所需移动幅度仍要核算",
+      "只要股价有一分钱波动就必定赚钱",
+      "两腿都虚值时到期也能固定获利"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "读懂各执行价和总权利金后，才能比较盈亏平衡区间。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 买入宽跨式",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/long-strangle-long-combination"
+      }
+    ],
+    "tags": [
+      "Strangle",
+      "虚值",
+      "幅度"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-options-20",
+    "category": "options",
+    "title": "日历价差：短票和长票不是一回事",
+    "question": "买远月、卖近月同执行价 Call，能直接用执行价宽度减净支出算近月到期利润上限吗？",
+    "analogy": "两张停车票的终止日期不同，不能把它们当同一时刻一起作废。",
+    "explanation": "日历价差两腿到期不同。近月到期时远月仍有时间价值，结果依赖当时标的与各期限 IV 等因素；不能套同到期垂直价差公式。",
+    "example": "假设近月今天到期、远月还剩一月，远月价值并不只等于内在价值。",
+    "choices": [
+      "能，只需把所有 Greeks 设为零",
+      "不能，远月仍未到期且剩余价值需要估算",
+      "能，因为执行价相同，所以利润永远为零"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "期限差使估值和指派管理更复杂，应分别检查两腿剩余期限。",
+    "sources": [
+      {
+        "title": "OCC / OIC · 看涨日历价差",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/long-call-calendar-spread-call-horizontal"
+      }
+    ],
+    "tags": [
+      "日历价差",
+      "期限",
+      "时间价值"
+    ],
+    "difficulty": 3
+  },
+  {
+    "id": "expanded-history-02",
+    "category": "history",
+    "title": "储贷危机：资产慢，资金成本快",
+    "question": "1980 年代储贷机构持有长期固定利率房贷时，利率大幅上升会带来什么压力？",
+    "analogy": "餐馆承诺多年固定菜价，房租却能很快上涨。",
+    "explanation": "长期固定利率资产与较快变化的融资成本造成期限和利率风险。1980 年代储贷危机还涉及监管、经营和信用等问题，不能归为单一原因。",
+    "example": "假设房贷收入固定为 5%，续借资金成本升至 8%，利差承压；这是简化例子。",
+    "choices": [
+      "固定利率贷款从来没有价格风险",
+      "资产收益与融资成本调整速度不一致",
+      "借款成本上升会自动让旧房贷收入同步上升"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "利率不只影响股票估值，也影响金融机构资产与负债两边。",
+    "sources": [
+      {
+        "title": "美联储历史 · 储贷危机",
+        "url": "https://www.federalreservehistory.org/essays/savings-and-loan-crisis"
+      }
+    ],
+    "tags": [
+      "储贷危机",
+      "利率风险",
+      "期限错配"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-03",
+    "category": "history",
+    "title": "1997：借美元，收本币",
+    "question": "亚洲金融危机中，外币借债而本币收入为什么是一个脆弱点？",
+    "analogy": "你收的是游戏铜币，欠的却是现实美元；兑换率变了，账单也变大。",
+    "explanation": "1997 年亚洲金融危机中，部分企业与银行承担外币和短期债务。汇率贬值会抬高外币债务的本币价值，融资撤离可能进一步加剧压力。",
+    "example": "假设欠 100 美元，本币从每美元 5 贬至 8，偿还本金所需本币由 500 增至 800。",
+    "choices": [
+      "只要本币贬值，美元本金自动归零",
+      "本币收入能保证任何汇率下债务负担不变",
+      "贬值可能抬高外币债务的本币偿还负担"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "货币与期限错配可以让原本看似可控的借款突然更难偿还。",
+    "sources": [
+      {
+        "title": "美联储历史 · 亚洲金融危机",
+        "url": "https://www.federalreservehistory.org/essays/asian-financial-crisis"
+      }
+    ],
+    "tags": [
+      "1997",
+      "汇率",
+      "外币债务"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-04",
+    "category": "history",
+    "title": "次贷证券化：混装并不等于消除风险",
+    "question": "把很多房贷打包后，是否自动消除了房价共同下跌的风险？",
+    "analogy": "把同一暴雨区的雨伞放进不同箱子，箱子再多也仍受同一场暴雨影响。",
+    "explanation": "证券化改变现金流与风险的分配方式；若底层贷款受到共同因素影响，打包不能自动消除相关损失。危机时期理解底层资产与共同暴露尤其重要。",
+    "example": "假设一个池子里的贷款都依赖同一区域房价，区域下跌可能同时影响多笔贷款。",
+    "choices": [
+      "没有，共同风险仍可能同时冲击多笔贷款",
+      "有，任何资产装进证券都变得无风险",
+      "有，只要证券名字足够复杂"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "分散独立风险与承受同一个系统冲击是不同问题。",
+    "sources": [
+      {
+        "title": "美联储历史 · 次贷危机",
+        "url": "https://www.federalreservehistory.org/essays/subprime-mortgage-crisis"
+      }
+    ],
+    "tags": [
+      "2007",
+      "证券化",
+      "相关性",
+      "房贷"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-05",
+    "category": "history",
+    "title": "低月供：别只看入场的那一张账单",
+    "question": "2007–09 危机的房贷案例提醒我们，研究可调利率贷款时还要看什么？",
+    "analogy": "游乐园第一小时免费，之后收费才是完整门票价格。",
+    "explanation": "可调利率房贷的未来支付可能随约定条件改变。分析偿还能力要考虑重定价、收入与再融资条件；初始月供不足以概括全期限压力。",
+    "example": "假设初期月供 800，调整后升至 1,200，而收入未变，家庭预算会明显承压。",
+    "choices": [
+      "房价过去上涨保证以后随时能再融资",
+      "未来利率调整与支付压力",
+      "只看第一次月供即可"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "贷款风险取决于整个支付路径，不是只看起点是否付得起。",
+    "sources": [
+      {
+        "title": "美联储历史 · 次贷危机",
+        "url": "https://www.federalreservehistory.org/essays/subprime-mortgage-crisis"
+      }
+    ],
+    "tags": [
+      "次贷",
+      "可调利率",
+      "再融资"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-06",
+    "category": "history",
+    "title": "AIG：账面承诺也会要求今日交现金",
+    "question": "2008 年 AIG 为何说明风险合同的抵押品要求很重要？",
+    "analogy": "你答应以后赔钱，合同可能要求今天先补上保证金。",
+    "explanation": "AIG 通过信用违约掉期承担了信用风险。2008 年市场变化触发抵押品压力，现金需求成为危机的一部分；长期账面判断与短期履约能力要分开看。",
+    "example": "假设合同要求评级下降后补交抵押品，即便最终损失尚未确定，也可能立即需要现金。",
+    "choices": [
+      "保险公司永远不用交抵押品",
+      "签订衍生品合同后完全没有对手方责任",
+      "合同可能在最终损失确定前产生抵押品现金需求"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "分析衍生品不能只看最终损益，还要看现金和合同触发条件。",
+    "sources": [
+      {
+        "title": "美联储历史 · 特定机构支持与 AIG",
+        "url": "https://www.federalreservehistory.org/essays/support-for-specific-institutions"
+      }
+    ],
+    "tags": [
+      "2008",
+      "AIG",
+      "CDS",
+      "抵押品"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-07",
+    "category": "history",
+    "title": "CPFF：企业的短期账单卡住了",
+    "question": "2008 年商业票据融资工具 CPFF 主要针对哪个渠道？",
+    "analogy": "大型工厂的原料账单快到期，续办短期信用卡却突然没人愿意接。",
+    "explanation": "商业票据是企业等发行人的短期融资工具。危机中该市场受阻，美联储推出 CPFF 支持特定商业票据融资渠道，目标并非承诺股价上涨。",
+    "example": "假设企业用短期票据滚动支付日常支出，无法续发时可能不得不削减现金支出。",
+    "choices": [
+      "商业票据市场的短期融资",
+      "直接替所有股票投资者补回亏损",
+      "让全部长期债务自动变成赠款"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "政策瞄准的是融资渠道，不是给每一项资产收益兜底。",
+    "sources": [
+      {
+        "title": "美联储历史 · 危机时期信用工具",
+        "url": "https://www.federalreservehistory.org/essays/fed-credit-programs"
+      }
+    ],
+    "tags": [
+      "2008",
+      "CPFF",
+      "商业票据",
+      "融资"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-08",
+    "category": "history",
+    "title": "TAF：借钱也有面子成本",
+    "question": "2007 年推出 TAF 时，拍卖式定期信贷相对贴现窗口还想缓解什么？",
+    "analogy": "大家都能排队抽号的窗口，有时比单独走进急救室更不容易引发猜测。",
+    "explanation": "TAF 向符合条件的存款机构通过拍卖提供定期资金，也旨在缓解使用贴现窗口的污名顾虑。获得资金不等于资本问题已经全部解决。",
+    "example": "假设银行担心单独求援被误读，用共同拍卖安排获取资金可能改变这种顾虑。",
+    "choices": [
+      "所有银行的坏账当天自动消失",
+      "融资方式相关的污名与定期资金需求",
+      "银行贷款从此无需抵押或资格检查"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "工具设计除了利率，也包含市场如何理解求援行为。",
+    "sources": [
+      {
+        "title": "美联储 · 定期拍卖工具 TAF",
+        "url": "https://www.federalreserve.gov/newsevents/reform_taf.htm"
+      }
+    ],
+    "tags": [
+      "2007",
+      "TAF",
+      "贴现窗口",
+      "融资"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-09",
+    "category": "history",
+    "title": "TALF：信用修复也能走证券化这条路",
+    "question": "2009 年 TALF 支持的 ABS 与家庭、企业有什么联系？",
+    "analogy": "给打包的贷款运输车恢复通行，让新贷款更容易送到终点。",
+    "explanation": "TALF 支持符合条件的资产支持证券融资，包括汽车、信用卡、学生和小企业贷款等。支持证券化渠道能影响实体信用供给，但不是替所有借款人免债。",
+    "example": "假设汽车贷款可通过 ABS 融资，相关市场中断会影响放贷机构获得资金的能力。",
+    "choices": [
+      "它只负责每天买卖科技股",
+      "它取消了所有信用卡欠款",
+      "ABS 融资渠道与实体贷款供给相连"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "看政策买入或支持的资产，还要追踪背后的借款人与信用渠道。",
+    "sources": [
+      {
+        "title": "美联储 · 2009 年 TALF 条款",
+        "url": "https://www.federalreserve.gov/monetarypolicy/20090206a.htm"
+      }
+    ],
+    "tags": [
+      "2009",
+      "TALF",
+      "ABS",
+      "信贷"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-10",
+    "category": "history",
+    "title": "TARP 注资：补资本不是借一杯水",
+    "question": "2008 年资本购买计划与临时流动性贷款，主要解决的问题相同吗？",
+    "analogy": "借一桶水能先维持运转，修复破损的水箱还需要材料。",
+    "explanation": "TARP 资本购买计划通过投资金融机构资本支持稳定金融体系。资本吸收损失，流动性帮助及时付款；两者相关但不能互相完全替代。",
+    "example": "假设银行损失侵蚀自有资本，仅借到短期资金仍不能直接补回已损失的资本。",
+    "choices": [
+      "不完全相同，资本缓冲和短期付款能力是不同维度",
+      "完全相同，借款必定增加等额股东资本",
+      "注资保证每个旧股东都不受稀释或损失"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "读救助安排时要分清贷款、担保与资本投资。",
+    "sources": [
+      {
+        "title": "美国财政部 · TARP 资本购买计划",
+        "url": "https://home.treasury.gov/news/press-releases/hp1314"
+      }
+    ],
+    "tags": [
+      "2008",
+      "TARP",
+      "银行资本",
+      "流动性"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-11",
+    "category": "history",
+    "title": "2009 压力测试：用更坏的剧本查氧气",
+    "question": "SCAP 为什么使用比基准更不利的经济情景？",
+    "analogy": "登山前先估算遇到恶劣天气时，氧气瓶还够不够用。",
+    "explanation": "2009 年 SCAP 检查大型银行在不利经济情景下的潜在损失与资本缓冲。压力情景是评估工具，不是监管者已经知道未来会怎样。",
+    "example": "假设较高失业率使贷款损失扩大，测试会比较潜在损失与可吸收损失的资本资源。",
+    "choices": [
+      "证明未来绝不会有银行失败",
+      "评估不利情景下资本是否足够承受损失",
+      "准确承诺接下来每个月 GDP"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "压力测试回答的是条件性承受能力，不是确定性预测。",
+    "sources": [
+      {
+        "title": "美联储 · 2009 年压力测试结果",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20090507a.htm"
+      }
+    ],
+    "tags": [
+      "2009",
+      "SCAP",
+      "压力测试",
+      "资本"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-12",
+    "category": "history",
+    "title": "1934 存款保险：保护的对象要认清",
+    "question": "美国全国存款保险开始运行后，保护存款人的政策目的之一是什么？",
+    "analogy": "给合规储物柜加上赔付安排，让人不用一听风声就一起抢着搬走。",
+    "explanation": "FDIC 于 1933 年建立，存款保险于 1934 年开始运行，旨在支持存款人信心与银行系统稳定。保险范围有规则，不是任何金融产品都算存款。",
+    "example": "假设一笔资金存放在符合保险条件的账户，与买入同一家银行股票并不是同一种保障对象。",
+    "choices": [
+      "保证全部银行股票永远上涨",
+      "把所有基金份额都变成受保存款",
+      "增强符合条件的存款保障与公众信心"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "制度保护对象与投资者持有的产品需要对应，不能只看机构名字。",
+    "sources": [
+      {
+        "title": "FDIC · 存款保险历史时间线",
+        "url": "https://www.fdic.gov/90years"
+      }
+    ],
+    "tags": [
+      "1934",
+      "FDIC",
+      "存款保险"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-history-13",
+    "category": "history",
+    "title": "同一家银行：存款和股票两种票",
+    "question": "金融史里的存款保障，是否也自动保障银行股东的本金？",
+    "analogy": "你在酒店寄存的行李，与买了酒店的股份，是两份不同合同。",
+    "explanation": "受保银行中的符合条件存款与银行股票是不同法律和风险对象。FDIC 存款保险不承保股票、债券和基金等投资产品。",
+    "example": "假设同一人既有符合条件的存款，又有该银行股票，股票损失不能因存款受保而直接要求同样赔付。",
+    "choices": [
+      "不会，存款保险与股票投资保障不同",
+      "会，只要银行名字一样就全部受保",
+      "会，股票交易账户也是普通银行存款"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "危机中辨认自己到底持有什么，比把所有银行相关资产混为一类更重要。",
+    "sources": [
+      {
+        "title": "FDIC · 存款保险范围",
+        "url": "https://www.fdic.gov/resources/deposit-insurance/understanding-deposit-insurance"
+      }
+    ],
+    "tags": [
+      "FDIC",
+      "银行股",
+      "保险范围"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-history-14",
+    "category": "history",
+    "title": "1944：固定但可调整的货币地图",
+    "question": "布雷顿森林体系的典型汇率安排是什么？",
+    "analogy": "给各国货币设定地图坐标，但在规定条件下仍能调整坐标。",
+    "explanation": "1944 年会议建立新的国际货币框架，之后各国货币与美元实行固定但可调整的汇率安排，美元则与黄金挂钩。它与今天普遍的浮动汇率不是同一制度。",
+    "example": "假设分析一段战后汇率历史，需先确认当时是否受到固定汇率承诺约束。",
+    "choices": [
+      "所有国家直接使用同一张美元纸币",
+      "固定但可调整的汇率框架，以美元为重要锚",
+      "每个国家从此完全自由浮动且没有制度约束"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "历史价格行为需要放回当时制度；今天的规则不能直接套回过去。",
+    "sources": [
+      {
+        "title": "美联储历史 · 布雷顿森林体系建立",
+        "url": "https://www.federalreservehistory.org/essays/bretton-woods-created"
+      }
+    ],
+    "tags": [
+      "1944",
+      "布雷顿森林",
+      "汇率制度"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-history-15",
+    "category": "history",
+    "title": "1951：财政融资与货币目标分开",
+    "question": "1951 年财政部与美联储协议，最重要的制度含义之一是什么？",
+    "analogy": "借钱建城的队长与控制水量的管理员，不能永远只使用同一个目标。",
+    "explanation": "协议推动政府债务管理与货币政策分开，为现代美联储独立性奠定基础。央行目标与政府融资成本之间可能存在张力。",
+    "example": "假设政府希望持续低借款成本，而通胀要求收紧金融条件，两项目标未必总一致。",
+    "choices": [
+      "永久禁止财政部发行国债",
+      "承诺国债收益率永远不变",
+      "增强货币政策相对政府债务管理的独立性"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "制度安排影响政策如何权衡目标，不是把某个利率永久冻结。",
+    "sources": [
+      {
+        "title": "美联储历史 · 1951 年财政部与美联储协议",
+        "url": "https://www.federalreservehistory.org/essays/treasury-fed-accord"
+      }
+    ],
+    "tags": [
+      "1951",
+      "财政部美联储协议",
+      "央行独立"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-earnings-01",
+    "category": "earnings",
+    "title": "增长率：把分母带回考场",
+    "question": "假设本期营收 120、上年同期 100，营收同比增速是多少？",
+    "analogy": "今年多拿了 20 枚金币，要先看去年背包里有多少。",
+    "explanation": "同比增长率 = (本期 − 上年同期) ÷ 上年同期。同比与环比的比较基准不同；读财报需先核对期间和币种。",
+    "example": "假设 (120 − 100) ÷ 100 = 20%；数字为教学假设，不是任何公司的实际营收。",
+    "choices": [
+      "20%",
+      "120%",
+      "16.7%"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "分母是比较基期的 100，不是本期的 120。",
+    "sources": [
+      {
+        "title": "SEC Investor.gov · 阅读 10-K",
+        "url": "https://www.investor.gov/introduction-investing/getting-started/researching-investments/how-read-10-k"
+      }
+    ],
+    "tags": [
+      "财报",
+      "营收",
+      "同比",
+      "计算"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-earnings-02",
+    "category": "earnings",
+    "title": "营业利润率：主业还剩多少空间",
+    "question": "假设营收 100、营业利润 18，营业利润率是多少？",
+    "analogy": "卖出食物后，还要支付厨房日常运转，剩下的是这一层利润。",
+    "explanation": "营业利润率通常为营业利润 ÷ 营收。它与毛利率、净利率不同；应先确认公司具体会计分类和比较口径。",
+    "example": "假设 18 ÷ 100 = 18%；利息和所得税等项目可能还会影响最终净利润。",
+    "choices": [
+      "营业利润率必定等于毛利率",
+      "18%",
+      "82%"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "必须对准利润表层级，不能把中间利润和最终净利润混用。",
+    "sources": [
+      {
+        "title": "SEC · 财务报表入门",
+        "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+      }
+    ],
+    "tags": [
+      "财报",
+      "营业利润率",
+      "利润表"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-earnings-03",
+    "category": "earnings",
+    "title": "10-K / 10-Q：先认清是哪一段录像",
+    "question": "美国上市公司的 10-K 与 10-Q 通常有什么区别？",
+    "analogy": "年度整季回放和季度阶段回放，包含的时间长度不同。",
+    "explanation": "10-K 通常是年度报告，10-Q 通常是季度报告。读其中某张表还要看具体列名与涵盖期间，不能把累计金额当单季度金额。",
+    "example": "假设现金流表写的是截至第三季度的 9 个月，要与同样 9 个月口径比较，而非直接与单季度比。",
+    "choices": [
+      "分别是股价 10 元和 10 亿元的代码",
+      "10-Q 只能展示下一季度预测",
+      "通常分别是年度报告与季度报告"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "文件名称和表格列名一起决定时间口径；季度文件不代表每张表都只含三个月。",
+    "sources": [
+      {
+        "title": "SEC Investor.gov · 阅读 10-K / 10-Q",
+        "url": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/how-read"
+      }
+    ],
+    "tags": [
+      "10K",
+      "10Q",
+      "累计口径",
+      "财报"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-earnings-04",
+    "category": "earnings",
+    "title": "非 GAAP：先看两座桥如何连接",
+    "question": "公司同时公布 GAAP EPS 和调整后 EPS，最应先检查什么？",
+    "analogy": "一个背包按全部物品称重，另一个先拿掉某些物品，要知道拿掉了什么。",
+    "explanation": "非 GAAP 指标通过特定调整补充 GAAP。要看调节表、排除项目、重复发生的费用和历期一致性；调整后较高不等于经济上一定更好。",
+    "example": "假设 GAAP EPS 1.00、调整后 1.40，先检查那 0.40 对应哪些项目，而不只挑更大的数。",
+    "choices": [
+      "查看与 GAAP 的调节表和调整项目",
+      "只要调整后更高就一定更可靠",
+      "两项不同证明报表必定造假"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "不同口径能提供不同信息，但必须能追溯到原报表和调整理由。",
+    "sources": [
+      {
+        "title": "SEC · 非 GAAP 指标解释与调节表",
+        "url": "https://www.sec.gov/rules-regulations/staff-guidance/corporation-finance-interpretations/non-gaap-financial-measures"
+      }
+    ],
+    "tags": [
+      "GAAP",
+      "非GAAP",
+      "EPS",
+      "调节表"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-earnings-05",
+    "category": "earnings",
+    "title": "股权薪酬：不付现金也可能有成本",
+    "question": "股权薪酬是非现金费用，是否就代表股东无需考虑其影响？",
+    "analogy": "用新发的蛋糕兑换券付工资，今天没付现金，未来分蛋糕的人仍可能变多。",
+    "explanation": "股权薪酬有会计费用，也可能通过新增股份等方式影响股东。是否、何时产生稀释取决于具体安排，不能只因非现金就视为无成本。",
+    "example": "假设企业给员工股份奖励，普通股股数可能增加；要一起看薪酬费用、股份变化与回购资金。",
+    "choices": [
+      "是，股份奖励永远不会影响所有权",
+      "不是，还需看会计费用和潜在稀释等影响",
+      "是，任何非现金费用都等于零经济成本"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "现金支付、费用确认和股份稀释是不同维度，需结合条款逐一判断。",
+    "sources": [
+      {
+        "title": "SEC · 股份支付与非 GAAP 披露",
+        "url": "https://www.sec.gov/rules-regulations/staff-guidance/staff-accounting-bulletins/staff-accounting-bulletin-no-107"
+      }
+    ],
+    "tags": [
+      "股权薪酬",
+      "SBC",
+      "稀释",
+      "财报"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-earnings-06",
+    "category": "earnings",
+    "title": "FCF：自由现金流先看说明书",
+    "question": "假设公司定义 FCF = 经营现金流 − 资本开支，分别为 80 和 50，FCF 是多少？",
+    "analogy": "营业背包收到的钱，先留下修建新厨房的钱，再看还余多少。",
+    "explanation": "自由现金流属于需要确认具体定义的补充指标。常见口径扣除资本开支，但公司可能有额外调整；比较前要读公式与调节表。",
+    "example": "假设按题中定义 80 − 50 = 30；这些是教学数值，不是实际财报。",
+    "choices": [
+      "130",
+      "每股净利润的另一种名字",
+      "30"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "本题只按已给定义计算；不同公司不能仅凭 FCF 名称就认定完全可比。",
+    "sources": [
+      {
+        "title": "SEC · 非 GAAP 指标解释与调节表",
+        "url": "https://www.sec.gov/rules-regulations/staff-guidance/corporation-finance-interpretations/non-gaap-financial-measures"
+      }
+    ],
+    "tags": [
+      "FCF",
+      "现金流",
+      "资本开支",
+      "口径"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-earnings-07",
+    "category": "earnings",
+    "title": "经营 KPI：同名数字也要查边界",
+    "question": "两家公司都说活跃用户增长 10%，能直接认定业务变化相同吗？",
+    "analogy": "两家健身房都说来客更多，一家数付费会员，另一家数进门次数。",
+    "explanation": "经营 KPI 需要了解定义、计算方式、涵盖人群和期间。定义变化会影响可比性；KPI 增长还需联系收入、成本与业务模式。",
+    "example": "假设一家按月活跃账号、另一家按每日付费用户统计，同为 10% 增长也不是同一群体。",
+    "choices": [
+      "不能，先核对指标定义、范围和期间",
+      "能，任何叫活跃用户的指标完全一样",
+      "能，用户增长率必定等于利润增长率"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "自定义指标只有在边界清楚且口径一致时，比较才有意义。",
+    "sources": [
+      {
+        "title": "SEC · MD&A 中关键经营指标的披露",
+        "url": "https://www.sec.gov/files/rules/interp/2020/33-10751.pdf"
+      }
+    ],
+    "tags": [
+      "KPI",
+      "用户",
+      "财报",
+      "可比性"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-earnings-08",
+    "category": "earnings",
+    "title": "GPU 工厂：现金账单与折旧分开",
+    "question": "企业买设备的现金支出，与以后报表里的折旧，通常是同一时点发生吗？",
+    "analogy": "今天一次买下烤箱，会计账本把烤箱的使用成本分摊到以后营业期。",
+    "explanation": "资本开支与折旧反映不同层面的时间口径。买设备影响投资现金流，符合资本化条件的资产则通常在使用期内逐步计提折旧。",
+    "example": "假设设备成本 100、无残值、简化直线折旧 5 年，每年折旧 20；现金可能已在购买时支付。",
+    "choices": [
+      "折旧每年都代表再次支付同样设备款",
+      "通常不同，现金购买与使用期内费用分摊要分开看",
+      "买设备时所有公司都完全不用付现金"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "分析 AI 投入要同时观察投资现金支出、资产使用期和后续费用，不能只看一张表。",
+    "sources": [
+      {
+        "title": "SEC · 财务报表入门",
+        "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+      }
+    ],
+    "tags": [
+      "资本开支",
+      "折旧",
+      "AI投入",
+      "现金流"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-events-01",
+    "category": "events",
+    "title": "CPI 季调：先把节日的背景音关小",
+    "question": "比较相邻月份的 CPI 动量时，为什么常使用季节性调整数据？",
+    "analogy": "春节前后客流有规律变化，先剥离惯常季节节奏再看新变化。",
+    "explanation": "季调尝试剔除规律性的季节波动，便于观察短期变化。季调与未季调都有用途，不能把两种口径的单月变化随意混用。",
+    "example": "假设某类商品每年相似月份都有促销，季调会尝试减少这种重复节奏对短期比较的干扰。",
+    "choices": [
+      "减少规律性季节变化对短期比较的影响",
+      "删除所有真实价格变化",
+      "保证每月 CPI 恰好一样"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "季调是统计处理，不是删掉坏消息，也不取代记录原始数据和修订。",
+    "sources": [
+      {
+        "title": "BLS · CPI 季节性调整",
+        "url": "https://www.bls.gov/cpi/seasonal-adjustment/"
+      }
+    ],
+    "tags": [
+      "CPI",
+      "季调",
+      "环比",
+      "事件"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-events-02",
+    "category": "events",
+    "title": "初请四周均值：把单周的尖峰磨平",
+    "question": "初请失业金的四周移动平均，主要帮助观察什么？",
+    "analogy": "一周餐馆客流可能受暴雨干扰，四周均值能少听一点单次噪声。",
+    "explanation": "四周平均平滑每周波动，补充单周初请的趋势观察。它仍受样本、季调和修订影响，初请也不等于全部失业人数。",
+    "example": "假设四周为 20、22、21、25 万，平均 22 万；数字仅作教学假设。",
+    "choices": [
+      "下一份非农的准确公布值",
+      "较平滑的近期初请变化趋势",
+      "精确等于美国全部失业人数"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "平滑后的流量指标提供趋势线索，不是把它变成另一项统计的确定预测。",
+    "sources": [
+      {
+        "title": "美国劳工部 · 初请与四周移动平均的报告口径",
+        "url": "https://www.dol.gov/ui/data.pdf"
+      }
+    ],
+    "tags": [
+      "CLAIMS",
+      "初请",
+      "就业",
+      "四周均值"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-events-03",
+    "category": "events",
+    "title": "JOLTS：空位快照与入职流水",
+    "question": "JOLTS 的职位空缺与雇佣人数，能直接当同一类数字比较吗？",
+    "analogy": "月底还有多少空座位，与整个月坐进来多少人，是库存和流水之别。",
+    "explanation": "职位空缺通常是月末时点的存量；雇佣和离职是整个月期间的流量。空缺下降不等于每个空缺都已变成一次雇佣。",
+    "example": "假设月末空缺 800 万、当月雇佣 500 万，不能简单认为还剩 300 万未招到。",
+    "choices": [
+      "能，两者一减就是精准招聘缺口",
+      "能，职位空缺等于已在岗员工人数",
+      "不能，空缺是时点存量，雇佣是期间流量"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "要先对齐参考时点与统计对象，再解释就业供需。",
+    "sources": [
+      {
+        "title": "BLS · JOLTS 存量、流量与时间口径",
+        "url": "https://www.bls.gov/jlt/jltfaq.htm"
+      }
+    ],
+    "tags": [
+      "JOLTS",
+      "职位空缺",
+      "雇佣",
+      "就业"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "expanded-events-04",
+    "category": "events",
+    "title": "PMI：减速不等于倒车",
+    "question": "假设服务业 PMI 从 55 降到 52，按 50 的分界怎么读？",
+    "analogy": "车还在向前，只是可能没有之前那么快。",
+    "explanation": "服务业 PMI 通常以 50 作为该调查行业扩张与收缩的分界。低于前月但仍高于 50，可以同时意味着扩张且较前月放缓；它不是 GDP 增长百分比。",
+    "example": "假设 55→52，52 仍高于 50；不能读成服务业总产值必定下跌 3%。",
+    "choices": [
+      "仍处于调查意义上的扩张区，但扩张读数减弱",
+      "已经证明服务业产值下降 3%",
+      "等于美国 GDP 增长 52%"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "变化方向与所处水平必须一起读，分界只适用于相应调查口径。",
+    "sources": [
+      {
+        "title": "ISM · 服务业 PMI 方法与扩张阈值",
+        "url": "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/services/april/"
+      }
+    ],
+    "tags": [
+      "ISM",
+      "PMI",
+      "服务业",
+      "增长"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-events-05",
+    "category": "events",
+    "title": "名义 GDP：蛋糕变大还是标价变高",
+    "question": "名义 GDP 上升时，为什么还要看实际 GDP？",
+    "analogy": "面包店营业额增加，可能因为面包更多，也可能只是每个面包更贵。",
+    "explanation": "名义 GDP 按当期价格衡量；实际 GDP 尝试去除价格变化，侧重产出数量的变化。增长解读需要分清数量与价格。",
+    "example": "假设产出数量未变但价格普遍上涨，名义金额仍可能增加；这不是该期实际公布值。",
+    "choices": [
+      "名义 GDP 上升保证每家公司都更赚钱",
+      "区分产出数量变化与价格变化",
+      "因为实际 GDP 只统计股市成交量"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "先看通胀调整口径，再把总量指标连到具体行业和盈利。",
+    "sources": [
+      {
+        "title": "BEA · 实际与名义 GDP",
+        "url": "https://www.bea.gov/resources/learning-center/what-to-know-gdp"
+      }
+    ],
+    "tags": [
+      "GDP",
+      "名义",
+      "实际",
+      "通胀"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-events-06",
+    "category": "events",
+    "title": "FOMC 纪要：过去会议的放大镜",
+    "question": "FOMC 纪要与当日会议声明，最应区分什么？",
+    "analogy": "新闻发布会先给结论，随后整理的会议记录补充当时讨论过程。",
+    "explanation": "纪要更详细地呈现此前会议讨论，通常在会议后发布。它不是在纪要公布当日又举行了一次新的利率表决；期间还可能出现新经济数据。",
+    "example": "假设上月会议的纪要今天公开，要把其中观点与此后已公布数据的时间顺序分开。",
+    "choices": [
+      "纪要一发布就必须立即改变政策利率",
+      "纪要内容已包含未来所有数据",
+      "纪要补充此前会议讨论，不等于新一次利率决定"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "先确认讨论发生日与文件公布日，再判断它对当前预期的新增信息。",
+    "sources": [
+      {
+        "title": "美联储 · FOMC 声明、纪要与会议日历",
+        "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      }
+    ],
+    "tags": [
+      "MINUTES",
+      "FOMC",
+      "纪要",
+      "时间口径"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "expanded-events-07",
+    "category": "events",
+    "title": "百分点：两种百分号别混在一起",
+    "question": "假设通胀率由 3.0% 降为 2.7%，下降多少个百分点？",
+    "analogy": "温度从 30 刻度到 27，刻度差和相对原刻度的比例是两回事。",
+    "explanation": "两个百分率相减得到百分点变化；相对变化则还要除以原值。通胀率下降也不直接意味着总体价格水平下降。",
+    "example": "假设 3.0% − 2.7% = 0.3 个百分点；相对原通胀率下降 10%，都不是价格水平下跌 10%。",
+    "choices": [
+      "0.3 个百分点",
+      "10 个百分点",
+      "总体价格水平一定下降 0.3%"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "单位决定含义；百分点差、比率的相对变化、价格水平变化不能互换。",
+    "sources": [
+      {
+        "title": "BLS · 百分比变化计算",
+        "url": "https://www.bls.gov/cpi/factsheets/calculating-percent-changes.htm"
+      }
+    ],
+    "tags": [
+      "CPI",
+      "PCE",
+      "百分点",
+      "单位"
+    ],
+    "difficulty": 1
+  }
+]
