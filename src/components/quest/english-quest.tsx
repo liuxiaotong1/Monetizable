@@ -1,4 +1,5 @@
 "use client";
+import InvestmentStyle from "./investment-style";
 import {
   useCallback,
   useEffect,
@@ -1127,6 +1128,7 @@ function Deck({
           visit; right when you’ve got it.
         </p>
       </header>
+      <InvestmentStyle locale="en" />
       <div className="en-theme-grid">
         {(Object.keys(themes) as Category[]).map((t) => (
           <button

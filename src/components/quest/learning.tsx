@@ -1,4 +1,5 @@
 "use client";
+import InvestmentStyle from "./investment-style";
 import { useCardSwipe } from "./use-card-swipe";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, BookOpen, Bookmark, Check, Sparkles, Layers3, RotateCcw, Brain, Landmark, ScrollText, Lightbulb, CheckCircle2, ChartNoAxesCombined, CalendarDays } from "lucide-react";
@@ -35,6 +36,7 @@ export default function Learning({state,run,busy}:ViewProps){
  }
  return <>
   <div className="page-intro learning-intro"><span className="eyebrow">FIVE PATHS · ONE CURIOUS MIND</span><h1>先问一个好问题，<span>再解锁新理解。</span></h1><p>五条学习路线。先选答案，再翻面看解释；左滑，下次回来复习一次，右滑标记掌握。</p></div>
+  <InvestmentStyle locale="zh"/>
   <div className="learning-topic-grid">{learningThemes.map(category=>{const Icon=categoryIcons[category],all=state.cards.filter(c=>c.category===category),count=all.filter(c=>mastered.has(conceptKey(c))).length;return <button key={category} className={`learning-topic theme-${category} ${theme===category?"active":""}`} aria-pressed={theme===category} onClick={()=>{setTheme(theme===category?"all":category);setActiveId(undefined);}}><Icon size={23}/><strong>{categoryNames[category]}</strong><span>{all.length} 道题 · {count} 已掌握</span><div className="xp-track"><span style={{width:`${all.length?count/all.length*100:0}%`}}/></div></button>;})}</div>
   <section className="learning-update panel"><div><span className="eyebrow">TODAY’S WATCH & LEARN</span><h3>今日五股 · 财报学习篮子</h3></div>{update?<><div className="learning-stocks">{update.stocks.map(stock=><a key={stock.symbol} href={stock.sourceUrl} title={stock.reason} target="_blank" rel="noreferrer"><strong>{stock.symbol}</strong><span>{stock.name}</span></a>)}</div><p className="muted">{update.selectionBasis}</p><small className={update.status==="stale"?"learning-stale":"muted"}>{update.status==="ready"?"今日新题已入库":"保留上次成功题库，等待今日更新"} · {update.date} 美东 · 新增批次 {update.count} 题</small></>:<p className="muted">基础题库已就绪，等待首次每日新题同步。五股按 QQQ 相关性与近期财报关注度选取，并附选择依据。</p>}</section>
   <div className="learning-nav"><div className="segmented">{([["daily","今日练习"],["library","全部题库"],["collection","我的收藏"],["mastered","已掌握"]] as [Tab,string][]).map(([value,label])=><button key={value} className={tab===value?"active":""} onClick={()=>switchTab(value)}>{label}</button>)}</div><span className="learning-total"><BookOpen size={15}/>{state.cards.length} 道题 · {mastered.size} 个概念已掌握</span></div>
