@@ -1,4 +1,5 @@
 "use client";
+import { shuffledIndices } from "@/lib/quest/shuffle";
 import InvestmentStyle from "./investment-style";
 import {
   useCallback,
@@ -1097,6 +1098,7 @@ function Deck({
       !!progress?.lastAnswerAt &&
       progress.lastAnswerVisitId === state.learningVisitId &&
       progress.lastDispositionVisitId !== state.learningVisitId;
+  const choiceOrder = card ? shuffledIndices(card.choices.length, `${state.learningVisitId || state.session.date}:${card.id}:choices`) : [];
   const selected = progress?.lastAnswerIndex;
   const blocked = !signedIn && !!card && !trialAllows(trialCards, card.id);
   useEffect(() => { if (blocked) requireAccount("cards"); }, [blocked, requireAccount]);
@@ -1262,7 +1264,7 @@ function Deck({
             <>
               <p className="en-question">{card.question}</p>
               <div className="en-choices">
-                {card.choices.map((choice, i) => (
+                {choiceOrder.map((originalIndex, i) => (
                   <button
                     key={i}
                     disabled={busy}
@@ -1271,13 +1273,13 @@ function Deck({
                         type: "card",
                         cardId: card.id,
                         action: "answer",
-                        answerIndex: i,
+                        answerIndex: originalIndex,
                       });
-                      if (result && i === card.answerIndex) setCelebrate(true);
+                      if (result && originalIndex === card.answerIndex) setCelebrate(true);
                     }}
                   >
                     <span>{String.fromCharCode(65 + i)}</span>
-                    {choice}
+                    {card.choices[originalIndex]}
                   </button>
                 ))}
               </div>
@@ -1295,7 +1297,7 @@ function Deck({
                   : "A new understanding unlocked."}
               </span>
               <h3>
-                Correct answer: {String.fromCharCode(65 + card.answerIndex)} ·{" "}
+                Correct answer: {String.fromCharCode(65 + choiceOrder.indexOf(card.answerIndex))} ·{" "}
                 {card.choices[card.answerIndex]}
               </h3>
               <p>{card.answerExplanation}</p>

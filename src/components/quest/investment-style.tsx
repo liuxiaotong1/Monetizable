@@ -2,12 +2,17 @@
 import { useState } from 'react';
 import { investorStyles, styleOrder, styleQuestions, styleResult } from '@/lib/quest/investment-style';
 import './investment-style.css';
+import { shuffledIndices } from '@/lib/quest/shuffle';
 export default function InvestmentStyle({ locale }: { locale: 'en' | 'zh' }) {
   const [started, setStarted] = useState(false), [answers, setAnswers] = useState<number[]>([]), [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
-  const en = locale === 'en', result = completed ? styleResult(answers) : null, question = styleQuestions[step];
+  const [seed, setSeed] = useState('');
+  const questionOrder = shuffledIndices(styleQuestions.length, seed);
+  const questionIndex = questionOrder[step];
+  const optionOrder = shuffledIndices(4, `${seed}:question:${questionIndex}`);
+  const en = locale === 'en', result = completed ? styleResult(answers) : null, question = styleQuestions[questionIndex];
   const text = (zh: string, english: string) => en ? english : zh;
-  function restart() { setAnswers([]); setStep(0); setCompleted(false); setStarted(true); }
+  function restart() { setSeed(crypto.randomUUID()); setAnswers([]); setStep(0); setCompleted(false); setStarted(true); }
   return <section className="style-quiz" aria-label={text('投资风格自测', 'Investing style quiz')}>
     <div className="style-quiz-heading"><span className="style-mascot" aria-hidden="true">🧬 🎮</span><div><span className="eyebrow">DISCOVER YOUR INVESTOR DNA</span><h2>{text('你的投资风格是什么？', 'What’s your investing style?')}</h2><p>{text('10 道偏好题，没有标准答案。认识自己的思考习惯，找到更合拍的学习路线。', '10 preference questions. No right answers. Explore how you think and discover a learning path that fits.')}</p></div></div>
     {!started ? <button className="primary" onClick={restart}>{text('开始自测 · 约 2 分钟', 'Take the quiz · about 2 minutes')} →</button> : result ? <div className="style-result" aria-live="polite">
@@ -20,7 +25,7 @@ export default function InvestmentStyle({ locale }: { locale: 'en' | 'zh' }) {
     </div> : <div className="style-question">
       <div className="style-question-progress"><span>{text('探索进度', 'Discovery progress')} · {step + 1} / 10</span><progress max={10} value={step} aria-label={text('自测进度', 'Quiz progress')}/></div>
       <h3>{question.question[locale]}</h3>
-      <div className="style-options">{question.choices.map((choice, index) => <button key={index} className={answers[step] === index ? 'selected' : ''} aria-pressed={answers[step] === index} onClick={() => setAnswers(previous => [...previous.slice(0, step), index, ...previous.slice(step + 1)])}><span>{String.fromCharCode(65 + index)}</span>{choice[locale]}</button>)}</div>
+      <div className="style-options">{optionOrder.map((originalIndex, index) => <button key={originalIndex} className={answers[step] === originalIndex ? 'selected' : ''} aria-pressed={answers[step] === originalIndex} onClick={() => setAnswers(previous => [...previous.slice(0, step), originalIndex, ...previous.slice(step + 1)])}><span>{String.fromCharCode(65 + index)}</span>{question.choices[originalIndex][locale]}</button>)}</div>
       <div className="style-actions"><button className="secondary" disabled={step === 0} onClick={() => setStep(value => value - 1)}>← {text('上一题', 'Back')}</button><button className="primary" disabled={answers[step] === undefined} onClick={() => { if (step < 9) setStep(value => value + 1); else setCompleted(true); }}>{step === 9 ? text('查看画像', 'See my profile') : text('下一题', 'Next')} →</button></div>
     </div>}
   </section>;

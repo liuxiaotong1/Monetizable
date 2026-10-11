@@ -1,3 +1,4 @@
+import { shuffleRank } from "./shuffle";
 import type { LearningCard, CardProgress, Category } from "./types";
 export const learningThemes: Category[] = ["earnings", "options", "history", "technical", "events"];
 export const conceptKey = (card: Pick<LearningCard, "id" | "conceptId">) => card.conceptId || card.id;
@@ -33,12 +34,20 @@ export function learningQueue(cards:LearningCard[],progress:CardProgress[],date:
  const byId=new Map(cards.map(c=>[c.id,c])),byProgress=new Map(progress.map(p=>[p.cardId,p]));
  const source=assignedIds?assignedIds.flatMap(id=>byId.has(id)?[byId.get(id)!]:[]):cards;
  const concepts=new Set<string>(),questions=new Set<string>();
- return source.filter(card=>{
+ const eligible = source.filter(card=>{
   const p=byProgress.get(card.id),key=conceptKey(card),q=questionKey(card);
   const current=!!visitId && (p?.reviewVisitId===visitId || p?.lastAnswerVisitId===visitId) && p?.lastDispositionVisitId!==visitId && !p?.reviewPending;
   if(mastered.has(card) || (learned.has(card) && !current) || p?.reviewPending || concepts.has(key) || questions.has(q) || (theme && theme!==card.category))return false;
   concepts.add(key);questions.add(q);return true;
  });
+ if (!visitId) return eligible;
+ // Stable per-card ranks survive classification, filtering and daily additions.
+ const rank = new Map(eligible.map(card => [card.id, shuffleRank(`${visitId}:deck:${card.id}`)]));
+ const priority = (card:LearningCard) => {
+  const p=byProgress.get(card.id);
+  return p?.lastAnswerVisitId===visitId && p.lastDispositionVisitId!==visitId ? 2 : p?.reviewVisitId===visitId ? 1 : 0;
+ };
+ return eligible.sort((a,b)=>priority(b)-priority(a)||(rank.get(a.id)??0)-(rank.get(b.id)??0));
 }
 export function assignDaily(cards:LearningCard[],progress:CardProgress[],date:string,existingIds:string[]=[],relevance:(card:LearningCard)=>number=()=>0,visitId?:string) {
  const byId=new Map(cards.map(c=>[c.id,c]));
