@@ -1,0 +1,1682 @@
+[
+  {
+    "id": "en:earnings:01",
+    "conceptId": "en:earnings:eps",
+    "category": "earnings",
+    "title": "EPS: each share’s slice",
+    "question": "A company earns $100m and has 50m weighted-average shares. Basic EPS is…",
+    "choices": [
+      "2 dollars",
+      "50 dollars",
+      "100 dollars",
+      "0.5 dollars"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Divide profit attributable to common shareholders by weighted-average common shares. EPS is a slice of profit, not cash paid to you.",
+    "explanation": "Divide profit attributable to common shareholders by weighted-average common shares. EPS is a slice of profit, not cash paid to you.",
+    "analogy": "A pizza cut into shares: a bigger slice may come from more pizza or fewer slices.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:earnings:02",
+    "conceptId": "en:earnings:dilution",
+    "category": "earnings",
+    "title": "Dilution: more slices",
+    "question": "If net income stays the same but diluted share count increases, diluted EPS usually…",
+    "choices": [
+      "Rises",
+      "Stays fixed",
+      "Becomes revenue",
+      "Falls"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "More potential shares spread the same earnings over a larger denominator. Convertible securities and stock awards can matter.",
+    "explanation": "More potential shares spread the same earnings over a larger denominator. Convertible securities and stock awards can matter.",
+    "analogy": "The same pizza, shared with more guests.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:earnings:03",
+    "conceptId": "en:earnings:revenue is not profit",
+    "category": "earnings",
+    "title": "Revenue is not profit",
+    "question": "A business has $100 of sales and $70 of cost of sales. Gross profit is…",
+    "choices": [
+      "$100",
+      "$170",
+      "$30",
+      "$70"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Gross profit is revenue minus cost of sales. Operating expenses, interest and taxes still need to be considered.",
+    "explanation": "Gross profit is revenue minus cost of sales. Operating expenses, interest and taxes still need to be considered.",
+    "analogy": "Sales fill the bucket; production costs are the first drain.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:earnings:04",
+    "conceptId": "en:earnings:margin vs dollars",
+    "category": "earnings",
+    "title": "Margin vs dollars",
+    "question": "Revenue rises from $100 to $120 while gross margin falls from 50% to 45%. Gross profit…",
+    "choices": [
+      "Cannot be calculated",
+      "Rises from $50 to $54",
+      "Falls to $45",
+      "Stays at $50"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Multiply revenue by margin. A lower percentage can coexist with higher dollar profit. Figures are hypothetical.",
+    "explanation": "Multiply revenue by margin. A lower percentage can coexist with higher dollar profit. Figures are hypothetical.",
+    "analogy": "A smaller share of a bigger pie can still be more pie.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:earnings:05",
+    "conceptId": "en:earnings:cash flow vs earnings",
+    "category": "earnings",
+    "title": "Cash flow vs earnings",
+    "question": "Why can operating cash flow differ from net income?",
+    "choices": [
+      "Non-cash items and working capital",
+      "Cash flow always equals earnings",
+      "Revenue is always cash collected",
+      "EPS includes every bank transfer"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Depreciation is non-cash; receivables, inventory and payables affect timing. Read the cash flow statement alongside the income statement.",
+    "explanation": "Depreciation is non-cash; receivables, inventory and payables affect timing. Read the cash flow statement alongside the income statement.",
+    "analogy": "The scoreboard and the cash register measure different things.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:06",
+    "conceptId": "en:earnings:free cash flow",
+    "category": "earnings",
+    "title": "Free cash flow",
+    "question": "A common starting definition of free cash flow is…",
+    "choices": [
+      "Revenue minus dividends",
+      "Net income plus share price",
+      "Cash plus debt",
+      "Operating cash flow minus capital spending"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Definitions vary by company. Check the reconciliation and treatment of leases before comparing businesses.",
+    "explanation": "Definitions vary by company. Check the reconciliation and treatment of leases before comparing businesses.",
+    "analogy": "Money left after keeping the factory running and buying equipment.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:07",
+    "conceptId": "en:earnings:guidance",
+    "category": "earnings",
+    "title": "Guidance: the next level",
+    "question": "Why can shares fall after earnings beat estimates?",
+    "choices": [
+      "EPS is always meaningless",
+      "Prices only react to past revenue",
+      "Forward guidance may disappoint",
+      "A beat guarantees a rally"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Prices reflect expectations. Guidance, margins, cash flow and what was already priced in can outweigh a backward-looking beat.",
+    "explanation": "Prices reflect expectations. Guidance, margins, cash flow and what was already priced in can outweigh a backward-looking beat.",
+    "analogy": "Winning this round does not guarantee an easier next level.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:08",
+    "conceptId": "en:earnings:gaap vs adjusted",
+    "category": "earnings",
+    "title": "GAAP vs adjusted",
+    "question": "What should you check before comparing adjusted EPS?",
+    "choices": [
+      "That all firms exclude identical costs",
+      "Which costs were excluded and why",
+      "Only the biggest number",
+      "That adjusted means audited"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Adjusted measures are company-defined. Reconcile them to GAAP and watch recurring costs described as unusual.",
+    "explanation": "Adjusted measures are company-defined. Reconcile them to GAAP and watch recurring costs described as unusual.",
+    "analogy": "Check which weights were removed before judging the lift.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:09",
+    "conceptId": "en:earnings:nvidia",
+    "category": "earnings",
+    "title": "NVIDIA: demand vs inventory",
+    "question": "Rising chip inventory by itself proves…",
+    "choices": [
+      "Neither stronger nor weaker demand",
+      "Guaranteed demand growth",
+      "Guaranteed collapse",
+      "A stock buy signal"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Inventory can reflect a launch, supply buffers or slower sales. Compare turns, revenue, backlog quality and management explanation.",
+    "explanation": "Inventory can reflect a launch, supply buffers or slower sales. Compare turns, revenue, backlog quality and management explanation.",
+    "analogy": "A full warehouse can mean preparation or unsold boxes.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:10",
+    "conceptId": "en:earnings:microsoft",
+    "category": "earnings",
+    "title": "Microsoft: cloud margins",
+    "question": "Cloud revenue grows quickly. What still needs checking?",
+    "choices": [
+      "Only revenue growth",
+      "Only the company logo",
+      "That cloud is cost-free",
+      "Margins and capital expenditure"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Growth can require heavy infrastructure spending. Revenue, operating profit and cash conversion tell different parts of the story.",
+    "explanation": "Growth can require heavy infrastructure spending. Revenue, operating profit and cash conversion tell different parts of the story.",
+    "analogy": "A busy restaurant still pays rent, wages and equipment bills.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:11",
+    "conceptId": "en:earnings:amazon",
+    "category": "earnings",
+    "title": "Amazon: segment vs group",
+    "question": "Can one segment’s profit be treated as the entire group’s profit?",
+    "choices": [
+      "Only if revenue is rising",
+      "Only for technology firms",
+      "No; reconcile all segments and corporate costs",
+      "Yes, always"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Segment disclosures and consolidated results use different scopes. Account for other operations and corporate adjustments.",
+    "explanation": "Segment disclosures and consolidated results use different scopes. Account for other operations and corporate adjustments.",
+    "analogy": "One winning player is not the whole team’s score.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:earnings:12",
+    "conceptId": "en:earnings:apple",
+    "category": "earnings",
+    "title": "Apple: buybacks and EPS",
+    "question": "EPS rises while net income stays flat. One possible reason is…",
+    "choices": [
+      "Dividends are added to income",
+      "A lower weighted-average share count",
+      "A higher share count",
+      "Higher revenue is mathematically required"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Buybacks can reduce the denominator. Check income growth separately so you do not confuse financial structure with business growth.",
+    "explanation": "Buybacks can reduce the denominator. Check income growth separately so you do not confuse financial structure with business growth.",
+    "analogy": "The same cake divided into fewer slices.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "SEC investor education",
+        "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "earnings"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:01",
+    "conceptId": "en:options:delta",
+    "category": "options",
+    "title": "Delta: first gear",
+    "question": "A call has delta 0.50. A small $1 stock increase suggests roughly…",
+    "choices": [
+      "A $0.50 option-price increase, other things equal",
+      "A $50 premium increase per share",
+      "A guaranteed 50% profit",
+      "No price change"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Delta is a local sensitivity, not a promise. For a standard 100-share contract, $0.50 per share is about $50 per contract.",
+    "explanation": "Delta is a local sensitivity, not a promise. For a standard 100-share contract, $0.50 per share is about $50 per contract.",
+    "analogy": "A speedometer at this instant, not a map of the whole trip.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:options:02",
+    "conceptId": "en:options:gamma",
+    "category": "options",
+    "title": "Gamma: changing gears",
+    "question": "Gamma measures the change in…",
+    "choices": [
+      "Days until expiry",
+      "The risk-free rate itself",
+      "The number of contracts",
+      "Delta as the underlying moves"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Delta changes with price. Gamma helps explain why an option’s sensitivity can accelerate, especially near expiry and near the strike.",
+    "explanation": "Delta changes with price. Gamma helps explain why an option’s sensitivity can accelerate, especially near expiry and near the strike.",
+    "analogy": "The accelerator changes your speedometer reading.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:options:03",
+    "conceptId": "en:options:theta",
+    "category": "options",
+    "title": "Theta: the melting clock",
+    "question": "All else equal, time passing generally hurts…",
+    "choices": [
+      "The stock’s share count",
+      "Only profitable options",
+      "A long option’s time value",
+      "Every short option equally"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Theta describes time sensitivity. Its sign and size depend on the position and conditions; it is not a fixed daily invoice.",
+    "explanation": "Theta describes time sensitivity. Its sign and size depend on the position and conditions; it is not a fixed daily invoice.",
+    "analogy": "An ice cube tends to melt, but the room temperature matters.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:options:04",
+    "conceptId": "en:options:iv crush",
+    "category": "options",
+    "title": "IV crush",
+    "question": "An option loses money after a correctly predicted stock move. Why?",
+    "choices": [
+      "Options have no time value",
+      "Implied volatility fell enough to offset the move",
+      "Direction guarantees profit",
+      "Delta was a probability guarantee"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Premium depends on more than direction. Earnings can remove uncertainty and sharply lower implied volatility.",
+    "explanation": "Premium depends on more than direction. Earnings can remove uncertainty and sharply lower implied volatility.",
+    "analogy": "You paid for a storm; clear skies made the umbrella less valuable.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:options:05",
+    "conceptId": "en:options:vega",
+    "category": "options",
+    "title": "Vega: the uncertainty dial",
+    "question": "Vega measures sensitivity to…",
+    "choices": [
+      "Implied volatility",
+      "Trading volume alone",
+      "Dividend payout alone",
+      "The bid-ask spread alone"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Vega estimates how premium changes with implied volatility, with other inputs held fixed.",
+    "explanation": "Vega estimates how premium changes with implied volatility, with other inputs held fixed.",
+    "analogy": "Turning the uncertainty dial changes the price of insurance.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:06",
+    "conceptId": "en:options:bid-ask spread",
+    "category": "options",
+    "title": "Bid-ask spread",
+    "question": "Buying at $2.10 and immediately selling at $1.90 creates…",
+    "choices": [
+      "A guaranteed profit",
+      "No cost",
+      "A $0.20 dividend",
+      "A $0.20-per-share loss before fees"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Quoted mid-prices are not guaranteed execution prices. Spread and liquidity affect actual trading cost.",
+    "explanation": "Quoted mid-prices are not guaranteed execution prices. Spread and liquidity affect actual trading cost.",
+    "analogy": "The exchange booth sells currency dearer than it buys it.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:07",
+    "conceptId": "en:options:long call",
+    "category": "options",
+    "title": "Long call: defined risk",
+    "question": "Ignoring fees, a long call buyer can generally lose at most…",
+    "choices": [
+      "The strike price times every share owned",
+      "Nothing",
+      "The premium paid",
+      "Unlimited money"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "A long option can expire worthless. Defined maximum loss does not mean small loss probability.",
+    "explanation": "A long option can expire worthless. Defined maximum loss does not mean small loss probability.",
+    "analogy": "A ticket can cost you its full price even if the ride never starts.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:08",
+    "conceptId": "en:options:exercise vs profit",
+    "category": "options",
+    "title": "Exercise vs profit",
+    "question": "A call is in the money at expiry. Does that guarantee profit?",
+    "choices": [
+      "Only if volume is high",
+      "No; account for premium and fees",
+      "Yes, always",
+      "Only if delta is positive"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Moneyness compares stock price with strike. Profit also includes what you paid. A $100 strike call bought for $5 has a $105 expiry breakeven before fees.",
+    "explanation": "Moneyness compares stock price with strike. Profit also includes what you paid. A $100 strike call bought for $5 has a $105 expiry breakeven before fees.",
+    "analogy": "Having a discount coupon is different from having bought it cheaply.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:09",
+    "conceptId": "en:options:assignment risk",
+    "category": "options",
+    "title": "Assignment risk",
+    "question": "A short American-style option may be assigned…",
+    "choices": [
+      "Before expiry",
+      "Only after you request it",
+      "Never if it is covered",
+      "Only if the market is open"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Exercise can occur before expiry. Dividends, remaining time value and contract rules matter.",
+    "explanation": "Exercise can occur before expiry. Dividends, remaining time value and contract rules matter.",
+    "analogy": "The other player can use their ticket before the final round.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:10",
+    "conceptId": "en:options:contract multiplier",
+    "category": "options",
+    "title": "Contract multiplier",
+    "question": "A standard US equity option quoted at $2 usually costs…",
+    "choices": [
+      "$2 for the entire contract",
+      "$20 always",
+      "$2,000 always",
+      "$200 before fees"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "The usual multiplier is 100 shares. Corporate actions can create non-standard contracts; inspect contract specifications.",
+    "explanation": "The usual multiplier is 100 shares. Corporate actions can create non-standard contracts; inspect contract specifications.",
+    "analogy": "The menu price is per portion; the order contains 100 portions.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:11",
+    "conceptId": "en:options:put-call parity",
+    "category": "options",
+    "title": "Put-call parity",
+    "question": "For European options with matching terms, put-call parity links…",
+    "choices": [
+      "Only chart patterns",
+      "Every option at every expiry without adjustments",
+      "Calls, puts, stock and financing",
+      "Only open interest"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "The relationship depends on matching strikes and expiry and includes financing and dividends. American exercise rights complicate exact equality.",
+    "explanation": "The relationship depends on matching strikes and expiry and includes financing and dividends. American exercise rights complicate exact equality.",
+    "analogy": "Two different shopping baskets should cost the same if their outcomes match.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:options:12",
+    "conceptId": "en:options:position sizing",
+    "category": "options",
+    "title": "Position sizing",
+    "question": "A defined-risk option trade should be sized using…",
+    "choices": [
+      "Yesterday’s winning streak",
+      "Potential loss and your risk budget",
+      "Only how confident you feel",
+      "The cheapest premium"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Compare maximum or scenario loss with a predetermined budget. Learning XP does not reward larger trades.",
+    "explanation": "Compare maximum or scenario loss with a predetermined budget. Learning XP does not reward larger trades.",
+    "analogy": "Choose a backpack you can carry even on the steepest part of the trail.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Options Industry Council",
+        "url": "https://www.optionseducation.org/optionsoverview/options-basics"
+      }
+    ],
+    "tags": [
+      "options"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:01",
+    "conceptId": "en:history:2008",
+    "category": "history",
+    "title": "2008: the chain reaction",
+    "question": "How did housing losses spread through finance?",
+    "choices": [
+      "Leverage, securitization and funding stress",
+      "Only falling house prices mattered",
+      "Every mortgage had the same risk",
+      "Stock charts directly caused bank failures"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Mortgage losses interacted with leverage and short-term funding. Uncertainty about exposures and counterparties magnified the shock.",
+    "explanation": "Mortgage losses interacted with leverage and short-term funding. Uncertainty about exposures and counterparties magnified the shock.",
+    "analogy": "One falling domino hit a tightly connected row.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:history:02",
+    "conceptId": "en:history:2008-liquidity-vs-solvency",
+    "category": "history",
+    "title": "2008: liquidity vs solvency",
+    "question": "A solvent institution facing a liquidity problem…",
+    "choices": [
+      "Must have negative equity",
+      "Has no liabilities",
+      "Can ignore withdrawals",
+      "May lack cash now despite assets exceeding liabilities"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Liquidity is ability to meet near-term obligations. Solvency concerns overall asset value versus liabilities; distress can connect the two.",
+    "explanation": "Liquidity is ability to meet near-term obligations. Solvency concerns overall asset value versus liabilities; distress can connect the two.",
+    "analogy": "Owning a valuable house does not put cash in your pocket tonight.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:history:03",
+    "conceptId": "en:history:1929",
+    "category": "history",
+    "title": "1929: crash vs depression",
+    "question": "The 1929 crash and Great Depression are best understood as…",
+    "choices": [
+      "A one-day loss with no aftermath",
+      "Proof that every crash lasts a decade",
+      "Related events with multiple economic causes",
+      "Exactly the same single event"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Bank failures, policy responses and economic contraction mattered beyond the initial stock-market decline.",
+    "explanation": "Bank failures, policy responses and economic contraction mattered beyond the initial stock-market decline.",
+    "analogy": "The spark and the forest fire are related, but not identical.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:history:04",
+    "conceptId": "en:history:1970s",
+    "category": "history",
+    "title": "1970s: stagflation",
+    "question": "Stagflation combines…",
+    "choices": [
+      "Only low unemployment",
+      "High inflation and weak economic activity",
+      "Falling prices and fast growth",
+      "Only a stock-market rally"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Supply shocks and policy conditions can cause inflation alongside weak growth. Trade-offs become difficult.",
+    "explanation": "Supply shocks and policy conditions can cause inflation alongside weak growth. Trade-offs become difficult.",
+    "analogy": "The engine slows down while its temperature rises.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:history:05",
+    "conceptId": "en:history:dot-com bubble",
+    "category": "history",
+    "title": "Dot-com bubble",
+    "question": "A central lesson of the dot-com bubble is…",
+    "choices": [
+      "A transformative technology does not justify every valuation",
+      "The internet had no economic value",
+      "All technology stocks are bubbles",
+      "Revenue never matters"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "The technology survived while many business models and valuations did not. Separate a useful innovation from the price paid for it.",
+    "explanation": "The technology survived while many business models and valuations did not. Separate a useful innovation from the price paid for it.",
+    "analogy": "A real gold rush still attracts overpriced shovels.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:06",
+    "conceptId": "en:history:1987",
+    "category": "history",
+    "title": "1987: market plumbing",
+    "question": "Why study Black Monday beyond the price drop?",
+    "choices": [
+      "It proves every Monday is dangerous",
+      "It was caused by a single earnings report",
+      "It removed all future crash risk",
+      "Trading structure and feedback loops mattered"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Portfolio insurance and market mechanics contributed to feedback under stress. Historical explanations involve several factors.",
+    "explanation": "Portfolio insurance and market mechanics contributed to feedback under stress. Historical explanations involve several factors.",
+    "analogy": "Crowded exits can turn a small alarm into a stampede.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:07",
+    "conceptId": "en:history:ltcm",
+    "category": "history",
+    "title": "LTCM: correlation under stress",
+    "question": "A risk in leveraged convergence trades is that…",
+    "choices": [
+      "Leverage reduces every risk",
+      "A hedge guarantees liquidity",
+      "Relationships can break while funding disappears",
+      "Historical correlations never change"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "LTCM illustrated model, leverage and liquidity risks. Positions expected to converge can move further apart under stress.",
+    "explanation": "LTCM illustrated model, leverage and liquidity risks. Positions expected to converge can move further apart under stress.",
+    "analogy": "Two paths usually meet, but a flood can close the bridge.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:08",
+    "conceptId": "en:history:gold standard",
+    "category": "history",
+    "title": "Gold standard",
+    "question": "Under a gold standard, currency is typically linked to…",
+    "choices": [
+      "A government’s daily poll",
+      "A specified quantity of gold",
+      "A company’s quarterly earnings",
+      "The S&P 500 price"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Convertibility constrains monetary policy. Historical implementations and suspension rules differed.",
+    "explanation": "Convertibility constrains monetary policy. Historical implementations and suspension rules differed.",
+    "analogy": "A currency ticket promised a fixed amount from the vault.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:09",
+    "conceptId": "en:history:bretton woods",
+    "category": "history",
+    "title": "Bretton Woods",
+    "question": "The postwar Bretton Woods arrangement centered on…",
+    "choices": [
+      "Currencies linked to the dollar, with dollar-gold convertibility",
+      "Every currency freely floating from day one",
+      "A global stock exchange",
+      "One currency for all countries"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "The system used adjustable exchange-rate pegs around the dollar. Its convertibility regime later ended.",
+    "explanation": "The system used adjustable exchange-rate pegs around the dollar. Its convertibility regime later ended.",
+    "analogy": "Many boats tied to one anchor.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:10",
+    "conceptId": "en:history:bank runs",
+    "category": "history",
+    "title": "Bank runs",
+    "question": "Why can a bank run become self-reinforcing?",
+    "choices": [
+      "Deposits never fund loans",
+      "Every bank holds all deposits as cash",
+      "Withdrawals immediately create profits",
+      "Withdrawals can force asset sales and worsen fears"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Banks transform short-term deposits into longer-term assets. Confidence and credible liquidity backstops matter.",
+    "explanation": "Banks transform short-term deposits into longer-term assets. Confidence and credible liquidity backstops matter.",
+    "analogy": "Everyone reaching the pantry at once can empty it before dinner.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:11",
+    "conceptId": "en:history:diversification",
+    "category": "history",
+    "title": "Diversification: a historical lesson",
+    "question": "Diversification primarily reduces…",
+    "choices": [
+      "Only tax bills",
+      "All correlations permanently",
+      "Exposure to individual holdings, not all market risk",
+      "Every possible loss"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Assets can become more correlated in crises. Diversification is useful without being crash-proof.",
+    "explanation": "Assets can become more correlated in crises. Diversification is useful without being crash-proof.",
+    "analogy": "Several ropes help, but they may share the same anchor.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:history:12",
+    "conceptId": "en:history:survivorship bias",
+    "category": "history",
+    "title": "Survivorship bias",
+    "question": "Studying only companies still listed today can…",
+    "choices": [
+      "Guarantee a realistic backtest",
+      "Overstate historical success",
+      "Include all failed businesses automatically",
+      "Remove every data bias"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Delisted and failed companies matter. A study of survivors alone can make strategies look better than they were.",
+    "explanation": "Delisted and failed companies matter. A study of survivors alone can make strategies look better than they were.",
+    "analogy": "Interviewing only race finishers misses everyone who dropped out.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve History",
+        "url": "https://www.federalreservehistory.org/"
+      }
+    ],
+    "tags": [
+      "history"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:01",
+    "conceptId": "en:technical:moving average",
+    "category": "technical",
+    "title": "Moving average: a camp marker",
+    "question": "A 20-day simple moving average uses…",
+    "choices": [
+      "The mean of the last 20 closing prices",
+      "Tomorrow’s closing price",
+      "Only today’s high",
+      "20 calendar months"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "A moving average summarizes past prices and therefore lags. It is a context marker, not guaranteed support.",
+    "explanation": "A moving average summarizes past prices and therefore lags. It is a context marker, not guaranteed support.",
+    "analogy": "A camp marker shows where the group has been, not tomorrow’s weather.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:technical:02",
+    "conceptId": "en:technical:support is a zone",
+    "category": "technical",
+    "title": "Support is a zone",
+    "question": "A support level should be treated as…",
+    "choices": [
+      "A price that cannot break",
+      "A guaranteed buy instruction",
+      "A company’s book value",
+      "A hypothesis to test, not a guaranteed floor"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Repeated buying can create a zone of interest, but new information and liquidity can invalidate it.",
+    "explanation": "Repeated buying can create a zone of interest, but new information and liquidity can invalidate it.",
+    "analogy": "A familiar floorboard may still give way under new weight.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:technical:03",
+    "conceptId": "en:technical:resistance",
+    "category": "technical",
+    "title": "Resistance",
+    "question": "Resistance is often a zone where…",
+    "choices": [
+      "Company earnings become zero",
+      "Volume must vanish",
+      "Selling has previously limited advances",
+      "Prices must stop forever"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Prior selling pressure helps frame scenarios. Breakouts and failed breakouts require context.",
+    "explanation": "Prior selling pressure helps frame scenarios. Breakouts and failed breakouts require context.",
+    "analogy": "A hill slowed the last climb; it is not an unbreakable wall.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:technical:04",
+    "conceptId": "en:technical:rsi",
+    "category": "technical",
+    "title": "RSI: momentum, not fate",
+    "question": "An RSI above 70 means…",
+    "choices": [
+      "A 70% crash probability",
+      "Strong recent momentum by a common convention",
+      "A guaranteed immediate fall",
+      "The stock is worth exactly 70 dollars"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "RSI compares recent gains and losses. Strong trends can remain at elevated RSI levels.",
+    "explanation": "RSI compares recent gains and losses. Strong trends can remain at elevated RSI levels.",
+    "analogy": "A runner breathing hard may keep running.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:technical:05",
+    "conceptId": "en:technical:atr",
+    "category": "technical",
+    "title": "ATR: range, not direction",
+    "question": "Average True Range primarily measures…",
+    "choices": [
+      "Price volatility",
+      "Bullishness",
+      "Fundamental value",
+      "Dividend yield"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "True range accounts for intraday range and gaps. ATR is expressed in price units, so compare percentages across differently priced assets.",
+    "explanation": "True range accounts for intraday range and gaps. ATR is expressed in price units, so compare percentages across differently priced assets.",
+    "analogy": "It measures the size of the waves, not which way the boat goes.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:06",
+    "conceptId": "en:technical:volume confirmation",
+    "category": "technical",
+    "title": "Volume confirmation",
+    "question": "A breakout with higher volume provides…",
+    "choices": [
+      "A guaranteed profit",
+      "Proof of insider trading",
+      "A fixed price target",
+      "Additional context, not certainty"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Volume indicates participation. It cannot by itself prove who traded or why.",
+    "explanation": "Volume indicates participation. It cannot by itself prove who traded or why.",
+    "analogy": "More footsteps at a door suggest activity, not everyone’s destination.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:07",
+    "conceptId": "en:technical:gap risk",
+    "category": "technical",
+    "title": "Gap risk",
+    "question": "A stop order guarantees execution at the stop price…",
+    "choices": [
+      "Only on volatile days",
+      "For every option trade",
+      "False; gaps and order type matter",
+      "Always true"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "A stop-market order can execute far from the trigger. A stop-limit order can fail to execute.",
+    "explanation": "A stop-market order can execute far from the trigger. A stop-limit order can fail to execute.",
+    "analogy": "An emergency exit may open onto a crowded staircase.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:08",
+    "conceptId": "en:technical:candlesticks",
+    "category": "technical",
+    "title": "Candlesticks",
+    "question": "A daily candlestick records…",
+    "choices": [
+      "Tomorrow’s range",
+      "Open, high, low and close",
+      "The order in which high and low occurred",
+      "Every transaction"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Daily OHLC does not establish intraday trigger sequence. Use suitable intraday data for sequence-dependent conclusions.",
+    "explanation": "Daily OHLC does not establish intraday trigger sequence. Use suitable intraday data for sequence-dependent conclusions.",
+    "analogy": "Four landmarks do not tell you the route taken between them.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:09",
+    "conceptId": "en:technical:risk-reward",
+    "category": "technical",
+    "title": "Risk-reward",
+    "question": "A high reward-to-risk ratio guarantees a good strategy…",
+    "choices": [
+      "False; probability and costs also matter",
+      "True for every ratio above 2",
+      "True if the chart looks clean",
+      "True if leverage is high"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Expected value depends on win rate, average wins and losses, costs and execution. Targets are not realized outcomes.",
+    "explanation": "Expected value depends on win rate, average wins and losses, costs and execution. Targets are not realized outcomes.",
+    "analogy": "A large prize is less useful if the ticket almost never wins.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:10",
+    "conceptId": "en:technical:look-ahead bias",
+    "category": "technical",
+    "title": "Look-ahead bias",
+    "question": "Using tomorrow’s close to decide today’s trade is…",
+    "choices": [
+      "Valid historical research",
+      "A moving average",
+      "Normal risk control",
+      "Look-ahead bias"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "A backtest must use information available at the decision time. Revisions and publication timing matter too.",
+    "explanation": "A backtest must use information available at the decision time. Revisions and publication timing matter too.",
+    "analogy": "Reading the final page before pretending to solve the mystery.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:11",
+    "conceptId": "en:technical:overfitting",
+    "category": "technical",
+    "title": "Overfitting",
+    "question": "A strategy tuned to fit every past wiggle may…",
+    "choices": [
+      "Need no validation",
+      "Remove trading costs",
+      "Fail on new data",
+      "Be certain to outperform"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Test outside the tuning sample and account for multiple trials. Simplicity alone does not prove robustness.",
+    "explanation": "Test outside the tuning sample and account for multiple trials. Simplicity alone does not prove robustness.",
+    "analogy": "A key carved for one scratched lock may fit no other door.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:technical:12",
+    "conceptId": "en:technical:trend vs range",
+    "category": "technical",
+    "title": "Trend vs range",
+    "question": "Why should a trading rule account for market regime?",
+    "choices": [
+      "A regime can be known perfectly",
+      "Momentum and mean reversion can behave differently",
+      "Every market is always trending",
+      "Ranges contain no volatility"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Regime classification is uncertain. Define invalidation and test rules under varied conditions.",
+    "explanation": "Regime classification is uncertain. Define invalidation and test rules under varied conditions.",
+    "analogy": "Different terrain calls for different footwear.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "FINRA investor education",
+        "url": "https://www.finra.org/investors/investing/investment-products/stocks"
+      }
+    ],
+    "tags": [
+      "technical"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:01",
+    "conceptId": "en:events:cpi",
+    "category": "events",
+    "title": "CPI: the thermometer",
+    "question": "CPI primarily measures…",
+    "choices": [
+      "Consumer price changes for a defined basket",
+      "Company profit growth",
+      "The unemployment rate",
+      "Stock-market returns"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Basket weights, headline versus core and monthly versus yearly rates matter. CPI is not every household’s personal inflation rate.",
+    "explanation": "Basket weights, headline versus core and monthly versus yearly rates matter. CPI is not every household’s personal inflation rate.",
+    "analogy": "A thermometer for a representative basket, not every room in the house.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:events:02",
+    "conceptId": "en:events:core inflation",
+    "category": "events",
+    "title": "Core inflation",
+    "question": "Core CPI generally excludes…",
+    "choices": [
+      "Housing and wages",
+      "Every rising price",
+      "All services",
+      "Food and energy"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "Core can help examine underlying trends. Headline still matters for household costs. Neither is the single complete measure.",
+    "explanation": "Core can help examine underlying trends. Headline still matters for household costs. Neither is the single complete measure.",
+    "analogy": "Removing two noisy instruments helps hear the tune, but the whole orchestra still matters.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:events:03",
+    "conceptId": "en:events:payrolls",
+    "category": "events",
+    "title": "Payrolls: jobs, not people",
+    "question": "US nonfarm payrolls count…",
+    "choices": [
+      "Only new company registrations",
+      "Only full-time workers",
+      "Jobs on establishment payrolls",
+      "Every employed person worldwide"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "The establishment and household surveys use different methods. A person with multiple jobs can appear differently across measures.",
+    "explanation": "The establishment and household surveys use different methods. A person with multiple jobs can appear differently across measures.",
+    "analogy": "Counting seats filled is different from counting unique passengers.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:events:04",
+    "conceptId": "en:events:unemployment rate",
+    "category": "events",
+    "title": "Unemployment rate",
+    "question": "The unemployment rate is the unemployed as a share of…",
+    "choices": [
+      "All school students",
+      "The labor force",
+      "The entire population",
+      "All retirees"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Participation changes can alter the rate. Look at the numerator and denominator, not only the headline.",
+    "explanation": "Participation changes can alter the rate. Look at the numerator and denominator, not only the headline.",
+    "analogy": "A team statistic changes when players join or leave the roster.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:events:05",
+    "conceptId": "en:events:initial claims",
+    "category": "events",
+    "title": "Initial claims",
+    "question": "One unusually low weekly claims reading proves…",
+    "choices": [
+      "Neither a durable trend nor a market direction",
+      "A recession is impossible",
+      "A guaranteed QQQ rally",
+      "All revisions are irrelevant"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Weekly figures can be noisy and revised. Multi-week averages, seasonal adjustment and broader labor data add context.",
+    "explanation": "Weekly figures can be noisy and revised. Multi-week averages, seasonal adjustment and broader labor data add context.",
+    "analogy": "One dashboard light is a clue, not a complete engine inspection.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:06",
+    "conceptId": "en:events:pce vs cpi",
+    "category": "events",
+    "title": "PCE vs CPI",
+    "question": "Why can PCE inflation differ from CPI inflation?",
+    "choices": [
+      "One measures only share prices",
+      "They must always be identical",
+      "One is corporate earnings",
+      "Different scope, weights and calculation methods"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "PCE covers a broader consumption scope and uses different weighting. The Fed’s inflation objective is expressed in PCE terms.",
+    "explanation": "PCE covers a broader consumption scope and uses different weighting. The Fed’s inflation objective is expressed in PCE terms.",
+    "analogy": "Two thermometers sample different rooms and combine readings differently.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:07",
+    "conceptId": "en:events:gdp",
+    "category": "events",
+    "title": "GDP: level vs growth",
+    "question": "Annualized quarterly GDP growth is…",
+    "choices": [
+      "The size of the entire stock market",
+      "A guaranteed next-quarter outcome",
+      "A quarterly pace expressed as if sustained for a year",
+      "The actual change over the last twelve months"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "Annualized and year-over-year growth are different comparisons. Check real versus nominal and revisions.",
+    "explanation": "Annualized and year-over-year growth are different comparisons. Check real versus nominal and revisions.",
+    "analogy": "A speed reading projected over a year is not the distance already traveled.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:08",
+    "conceptId": "en:events:fomc",
+    "category": "events",
+    "title": "FOMC: the rent of money",
+    "question": "A policy-rate change can affect growth-stock valuations through…",
+    "choices": [
+      "A guaranteed opposite stock move",
+      "Financing costs and discount rates, among other channels",
+      "Only the company logo",
+      "A mechanical fixed stock-price formula"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "The reaction depends on expectations, guidance, growth and risk premiums. A rate cut is not automatically bullish.",
+    "explanation": "The reaction depends on expectations, guidance, growth and risk premiums. A rate cut is not automatically bullish.",
+    "analogy": "Changing the rent on capital changes what projects can afford.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:09",
+    "conceptId": "en:events:minutes vs rate decision",
+    "category": "events",
+    "title": "Minutes vs rate decision",
+    "question": "FOMC minutes publication is…",
+    "choices": [
+      "A record of an earlier meeting, not a new rate vote",
+      "Automatically another rate increase",
+      "A live employment report",
+      "An earnings release"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "Read the meeting date and publication date separately. Minutes add detail about discussion and disagreements.",
+    "explanation": "Read the meeting date and publication date separately. Minutes add detail about discussion and disagreements.",
+    "analogy": "The meeting transcript arrives after the team announced its tactics.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:10",
+    "conceptId": "en:events:surprise vs level",
+    "category": "events",
+    "title": "Surprise vs level",
+    "question": "Market reactions often depend on…",
+    "choices": [
+      "Only whether a number is positive",
+      "Only the previous month",
+      "A universal CPI-to-QQQ formula",
+      "Actual data relative to expectations and positioning"
+    ],
+    "answerIndex": 3,
+    "answerExplanation": "The same data can produce different reactions when consensus and positioning differ. Do not invent an unavailable consensus.",
+    "explanation": "The same data can produce different reactions when consensus and positioning differ. Do not invent an unavailable consensus.",
+    "analogy": "The surprise in a gift depends on what you expected inside.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:11",
+    "conceptId": "en:events:pmi",
+    "category": "events",
+    "title": "PMI: diffusion index",
+    "question": "A PMI around the 50 threshold generally helps distinguish…",
+    "choices": [
+      "Exactly 50 million new jobs",
+      "A company’s profit margin",
+      "Expansion from contraction in the surveyed activity",
+      "A 50% stock-return probability"
+    ],
+    "answerIndex": 2,
+    "answerExplanation": "PMI is a survey diffusion index, not a growth-rate percentage. Different sub-indices measure different conditions.",
+    "explanation": "PMI is a survey diffusion index, not a growth-rate percentage. Different sub-indices measure different conditions.",
+    "analogy": "A survey of how many rooms feel warmer, not a measure of every room’s temperature.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  },
+  {
+    "id": "en:events:12",
+    "conceptId": "en:events:data revisions",
+    "category": "events",
+    "title": "Data revisions",
+    "question": "Why preserve the first release in a market review?",
+    "choices": [
+      "Because all figures are final",
+      "To retain what was knowable at decision time",
+      "Because revisions are always wrong",
+      "To ignore updated information forever"
+    ],
+    "answerIndex": 1,
+    "answerExplanation": "Use original vintages to audit decisions and revised data to improve present understanding. These serve different purposes.",
+    "explanation": "Use original vintages to audit decisions and revised data to improve present understanding. These serve different purposes.",
+    "analogy": "Keep the original map to understand yesterday’s route, even when a better map arrives.",
+    "example": "Practice with the example above, then check the definition in the source. Any example amounts are illustrative, not current company results.",
+    "sources": [
+      {
+        "title": "Federal Reserve economic data",
+        "url": "https://fred.stlouisfed.org/"
+      }
+    ],
+    "tags": [
+      "events"
+    ],
+    "difficulty": 2
+  }
+]

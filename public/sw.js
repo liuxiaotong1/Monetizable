@@ -2,7 +2,7 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener('push', (event) => {
-  let data = { title: 'QQQ Quest', body: '你有一条新提醒', href: '/', id: 'quest' };
+  let data = { title: 'QQQ Quest', body: 'Your next quest is ready', href: '/', id: 'quest' };
   try { if (event.data) data = { ...data, ...event.data.json() }; } catch { /* show fallback */ }
   event.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: '/icon-192.png', badge: '/icon-192.png', tag: data.id || 'quest', data: { href: data.href || '/' } }));
 });

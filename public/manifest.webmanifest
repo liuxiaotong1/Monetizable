@@ -1,12 +1,12 @@
 {
-  "name": "QQQ Quest · 个人交易冒险",
+  "name": "QQQ Quest \u00b7 Investing made playful",
   "short_name": "QQQ Quest",
-  "description": "每日准备、事件解读、复盘与知识卡牌",
+  "description": "Daily market preparation, event insights, reviews and knowledge cards",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c101b",
   "theme_color": "#0c101b",
-  "lang": "zh-CN",
+  "lang": "en",
   "icons": [
     {
       "src": "/icon-192.png",
