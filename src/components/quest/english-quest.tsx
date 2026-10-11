@@ -168,7 +168,7 @@ export default function EnglishQuest() {
     return (
       <main className="loading-screen">
         <img src="/icon.svg" width="48" height="48" alt="" />
-        <h1>QQQ Quest</h1>
+        <h1>Monetizable</h1>
         <p>{error || "Unfolding your adventure map…"}</p>
         {error && (
           <button className="primary" onClick={() => void load()}>
@@ -194,7 +194,7 @@ export default function EnglishQuest() {
         <button className="brand" onClick={() => navigate("today")}>
           <img src="/icon.svg" width="39" height="39" alt="" />
           <div>
-            QQQ <strong>QUEST</strong>
+            Monetizable
             <span>Investing. A little more playful.</span>
           </div>
         </button>
@@ -324,7 +324,7 @@ export default function EnglishQuest() {
             </button>
           </div>
           <footer className="app-footer">
-            ✧ QQQ QUEST · Prepare · Understand · Verify · Grow{" "}
+            ✧ Monetizable · Prepare · Understand · Verify · Grow{" "}
             <span>
               Educational context. Check your broker’s quotes before trading.
             </span>

@@ -10,7 +10,7 @@ export default function Login() {
     <main className="auth-screen">
       <a className="brand" href="/">
         <img src="/icon.svg" width="44" height="44" alt="" />
-        QQQ QUEST
+        Monetizable
       </a>
       <section className="auth-card">
         <span className="eyebrow">YOUR NEXT LEVEL STARTS HERE</span>

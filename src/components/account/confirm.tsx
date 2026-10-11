@@ -29,7 +29,7 @@ export default function Confirm() {
     <main className="auth-screen">
       <a className="brand" href="/">
         <img src="/icon.svg" width="44" height="44" alt="" />
-        QQQ QUEST
+        Monetizable
       </a>
       <section className="auth-card">
         <span className="eyebrow">ONE MORE STEP</span>

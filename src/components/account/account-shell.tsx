@@ -287,7 +287,7 @@ export default function AccountShell({
       ) : (
         <main className="loading-screen">
           <img src="/icon.svg" width="48" height="48" alt="" />
-          <h1>QQQ Quest</h1>
+          <h1>Monetizable</h1>
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
@@ -308,7 +308,7 @@ export default function AccountShell({
               <X size={20} />
             </button>
             <div className="tutorial-label">
-              QQQ QUEST <span>{label("QUICK START", "新手引导")}</span>
+              Monetizable <span>{label("QUICK START", "新手引导")}</span>
             </div>
             <div className="tutorial-illustration">
               <span className="orbit-one" />

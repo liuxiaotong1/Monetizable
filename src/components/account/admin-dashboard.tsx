@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       <header className="admin-top">
         <a className="brand" href="/">
           <img src="/icon.svg" width="38" height="38" alt="" />
-          QQQ QUEST
+          Monetizable
         </a>
         <div>
           <span className="admin-badge">

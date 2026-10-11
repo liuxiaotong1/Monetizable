@@ -59,8 +59,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         from,
         to: [email],
-        subject: "Your QQQ Quest sign-in link",
-        html: `<div style="font-family:Arial;max-width:520px;padding:32px;background:#101522;color:#edf2f8;border-radius:20px"><h1>Welcome, market explorer.</h1><p>Sign in to QQQ Quest to keep your judgments and learning progress with your account.</p><a href="${url.toString()}" style="display:inline-block;padding:16px 24px;background:#b5ee93;color:#101522;border-radius:14px;text-decoration:none;font-weight:700">Continue your quest</a><p style="color:#94a3b8;font-size:13px">This link is single-use. If you did not request it, ignore this email. We will never ask you to send us the link.</p></div>`,
+        subject: "Your Monetizable sign-in link",
+        html: `<div style="font-family:Arial;max-width:520px;padding:32px;background:#101522;color:#edf2f8;border-radius:20px"><h1>Welcome, market explorer.</h1><p>Sign in to Monetizable to keep your judgments and learning progress with your account.</p><a href="${url.toString()}" style="display:inline-block;padding:16px 24px;background:#b5ee93;color:#101522;border-radius:14px;text-decoration:none;font-weight:700">Continue your quest</a><p style="color:#94a3b8;font-size:13px">This link is single-use. If you did not request it, ignore this email. We will never ask you to send us the link.</p></div>`,
       }),
     });
     if (!sent.ok) throw Error("delivery");
