@@ -35,7 +35,7 @@ export default function ProductTour({ zh, onFinish }: { zh: boolean; onFinish: (
     let scrolled = false;
     let navigated = false;
     const locate = () => {
-      if (!navigated) { const nav = visible(`.sidebar [data-tour-nav="${current.view}"], .mobile-nav [data-tour-nav="${current.view}"], .bottom-nav [data-tour-nav="${current.view}"]`); if (nav) { navigated = true; if (!nav.classList.contains("active")) { nav.click(); window.scrollTo({ top: window.scrollY, behavior: "instant" }); } } }
+      if (!navigated) { const nav = visible(`.sidebar [data-tour-nav="${current.view}"], .mobile-nav [data-tour-nav="${current.view}"], .bottom-nav [data-tour-nav="${current.view}"]`); if (nav) { navigated = true; if (!nav.classList.contains("active")) { nav.click(); window.scrollTo({ top: 0, behavior: "instant" }); } } }
       const el = visible(current.navigation ? `.sidebar [data-tour-nav="${current.view}"], .mobile-nav [data-tour-nav="${current.view}"], .bottom-nav [data-tour-nav="${current.view}"]` : current.selector);
       target.current = el || null;
       if (!el) return;
