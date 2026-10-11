@@ -1,5 +1,6 @@
 import "server-only";
 import { database } from "./db";
+import { stripeAmount } from "./money";
 export async function adminMetrics() {
   const [daily, totals, profiles] = await Promise.all([
     database().query(
@@ -46,7 +47,7 @@ export async function paymentMetrics() {
       if (charge.paid && charge.status === "succeeded")
         currencies[charge.currency] =
           (currencies[charge.currency] || 0) +
-          (charge.amount - charge.amount_refunded) / 100;
+          stripeAmount(charge.amount - charge.amount_refunded, charge.currency);
     return {
       status: "ready",
       scope:
@@ -66,8 +67,8 @@ export async function paymentMetrics() {
           receipt_url?: string;
         }) => ({
           id: c.id,
-          amount: c.amount / 100,
-          refunded: c.amount_refunded / 100,
+          amount: stripeAmount(c.amount, c.currency),
+          refunded: stripeAmount(c.amount_refunded, c.currency),
           currency: c.currency.toUpperCase(),
           at: new Date(c.created * 1000).toISOString(),
           status: c.status,
