@@ -1,5 +1,7 @@
 import type { AnimationAction, BufferGeometry, Material, Mesh, Object3D, Skeleton, Texture } from "three";
 
+import { createYelanCastClip, YELAN_CAST_DURATION } from "./yelan-cast-motion";
+
 export const YELAN_SOURCE = "https://wiki.hoyolab.com/pc/genshin/entry/2252?lang=zh-cn";
 export interface YelanScene {
   rotate(degrees: number): void; zoom(factor: number): void; reset(): void;
@@ -99,12 +101,41 @@ export async function mountYelanScene(
   const particles = new THREE.Points(particlesGeometry, new THREE.PointsMaterial({ color: 0x73d9ff, size: 0.018, transparent: true, opacity: 0.55, depthWrite: false }));
   scene.add(particles);
 
+  const trailGeometry = new THREE.BufferGeometry();
+  const trailPositions = new Float32Array(32 * 3);
+  const trailColors = new Float32Array(32 * 3);
+  for (let i = 0; i < 32; i++) {
+    const strength = (i / 31) ** 2;
+    trailColors.set([0.15 * strength, 0.65 * strength, strength], i * 3);
+  }
+  trailGeometry.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
+  trailGeometry.setAttribute("color", new THREE.BufferAttribute(trailColors, 3));
+  const trail = new THREE.Line(trailGeometry, new THREE.LineBasicMaterial({
+    vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending,
+  }));
+  trail.frustumCulled = false;
+  trail.visible = false;
+  scene.add(trail);
+  const pulseMaterial = new THREE.MeshBasicMaterial({ color: 0x8ae5ff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  const pulse = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.012, 8, 64), pulseMaterial);
+  pulse.rotation.x = Math.PI / 2;
+  pulse.position.y = -0.65;
+  pulse.visible = false;
+  pulse.material.userData.outlineParameters = { visible: false };
+  scene.add(pulse);
+
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
   const timer = new THREE.Timer(); timer.connect(document);
   let disposed = false, ready = false, visible = true, paused = false;
   let raf = 0, elapsed = 0, yaw = 0, distance = 6.0, lastRendered = 0;
   let tossAt: number | undefined;
   let model: Object3D | undefined;
+  let hand: Object3D | undefined;
+  const handPoint = new THREE.Vector3();
+  const releasePoint = new THREE.Vector3();
+  let released = false;
+  const flight = new THREE.CubicBezierCurve3(releasePoint,
+    new THREE.Vector3(0.82, 1.25, 0.7), new THREE.Vector3(0.86, 0.8, -0.3), diceOrigin.clone());
   let mixer: InstanceType<typeof THREE.AnimationMixer> | undefined;
   let idle: AnimationAction | undefined, greeting: AnimationAction | undefined;
   const alive = () => !disposed && !signal.aborted;
@@ -145,18 +176,54 @@ export async function mountYelanScene(
     timer.update(now);
     const delta = Math.min(timer.getDelta(), 0.05); elapsed += delta;
     mixer?.update(delta);
-    character.rotation.y = Math.sin(elapsed * 0.55) * 0.028;
+    character.rotation.set(0, Math.sin(elapsed * 0.55) * 0.028, 0);
+    character.position.set(0, 0, 0);
+    dice.scale.setScalar(1);
     dice.position.copy(diceOrigin);
     dice.position.y += Math.sin(elapsed * 1.7) * 0.045;
     dice.rotation.y = 0.3 + elapsed * 0.35;
     dice.rotation.z = 0.25 + Math.sin(elapsed * 0.9) * 0.12;
     if (tossAt !== undefined) {
-      const progress = (elapsed - tossAt) / 1.5;
-      if (progress >= 1) tossAt = undefined;
-      else {
-        dice.position.y += Math.sin(progress * Math.PI) * 0.55;
-        dice.rotation.x = 0.35 + progress * Math.PI * 4;
-        dice.rotation.z += progress * Math.PI * 2;
+      const progress = Math.min(1, (elapsed - tossAt) / YELAN_CAST_DURATION);
+      const windup = Math.sin(Math.min(progress / 0.35, 1) * Math.PI / 2);
+      const followThrough = Math.sin(Math.max(0, (progress - 0.35) / 0.65) * Math.PI);
+      character.rotation.y += -0.16 * windup * (1 - progress) + 0.22 * followThrough;
+      character.rotation.z = -0.025 * Math.sin(progress * Math.PI * 2);
+      character.position.x = 0.045 * Math.sin(progress * Math.PI * 2);
+      character.updateMatrixWorld(true);
+      if (hand) {
+        hand.getWorldPosition(handPoint);
+        handPoint.add(new THREE.Vector3(0, 0.065, 0.045));
+      } else handPoint.set(-0.4, 0.65, 0.35);
+      if (progress < 0.35) {
+        dice.position.copy(diceOrigin).lerp(handPoint, THREE.MathUtils.smoothstep(progress, 0, 0.2));
+        dice.scale.setScalar(0.75);
+      } else {
+        if (!released) { releasePoint.copy(handPoint); released = true; }
+        const throwProgress = THREE.MathUtils.smoothstep(progress, 0.35, 0.92);
+        flight.getPoint(throwProgress, dice.position);
+        dice.scale.setScalar(0.75 + 0.4 * Math.sin(throwProgress * Math.PI));
+      }
+      dice.rotation.set(0.35 + progress * Math.PI * 6, 0.3 + progress * Math.PI * 5, 0.25 + progress * Math.PI * 4);
+      trail.visible = progress > 0.35 && progress < 0.94;
+      trailPositions.copyWithin(0, 3);
+      trailPositions.set(dice.position.toArray(), 29 * 3);
+      // Repeat the newest point at the final two slots for a clean bright trail head.
+      trailPositions.set(dice.position.toArray(), 30 * 3);
+      trailPositions.set(dice.position.toArray(), 31 * 3);
+      trailGeometry.attributes.position.needsUpdate = true;
+      const burst = THREE.MathUtils.smoothstep(progress, 0.35, 0.5);
+      pulse.visible = progress > 0.35 && progress < 0.86;
+      pulse.scale.setScalar(0.5 + burst * 1.2);
+      pulseMaterial.opacity = 0.38 * Math.sin(burst * Math.PI);
+      particles.material.opacity = 0.55 + 0.35 * Math.sin(progress * Math.PI);
+      if (progress >= 1) {
+        tossAt = undefined;
+        trail.visible = pulse.visible = false;
+        particles.material.opacity = 0.55;
+        character.rotation.z = 0;
+        character.position.set(0, 0, 0);
+        dice.scale.setScalar(1);
       }
     } else dice.rotation.x = 0.35;
     particles.rotation.y = elapsed * 0.035;
@@ -178,7 +245,18 @@ export async function mountYelanScene(
   observer.observe(host);
   const resizer = new ResizeObserver(resize); resizer.observe(canvas);
   const visibilityChanged = () => syncAnimation();
-  const motionChanged = () => { tossAt = undefined; syncAnimation(); };
+  const motionChanged = () => {
+    tossAt = undefined;
+    greeting?.stop();
+    idle?.reset().setEffectiveWeight(1).play();
+    mixer?.update(0);
+    trail.visible = pulse.visible = false;
+    particles.material.opacity = 0.55;
+    character.rotation.set(0, 0, 0);
+    character.position.set(0, 0, 0);
+    dice.position.copy(diceOrigin); dice.scale.setScalar(1);
+    syncAnimation();
+  };
   const contextLost = (event: Event) => { event.preventDefault(); ready = false; control.dispose(); callbacks.failed(); };
   document.addEventListener("visibilitychange", visibilityChanged);
   media.addEventListener("change", motionChanged);
@@ -192,10 +270,12 @@ export async function mountYelanScene(
     zoom(factor) { distance = Math.max(3.8, Math.min(7.8, distance * factor)); updateCamera(); draw(); },
     reset() { yaw = 0; distance = 6.0; updateCamera(); draw(); },
     cast() {
-      if (!ready || !alive()) return;
+      if (!ready || !alive() || tossAt !== undefined) return;
       callbacks.cast();
       if (paused || media.matches) return;
       tossAt = elapsed;
+      released = false;
+      for (let i = 0; i < 32; i++) trailPositions.set(dice.position.toArray(), i * 3);
       if (greeting) {
         idle?.fadeOut(0.15);
         greeting.reset().setLoop(THREE.LoopOnce, 1); greeting.clampWhenFinished = true;
@@ -282,7 +362,8 @@ export async function mountYelanScene(
     });
     mixer = new THREE.AnimationMixer(model);
     const idleClip = gltf.animations.find(clip => /idle/i.test(clip.name));
-    const greetingClip = gltf.animations.find(clip => /greet|wave|cast/i.test(clip.name));
+    const greetingClip = createYelanCastClip(THREE, model);
+    hand = model.getObjectByName("右中指１") || model.getObjectByName("右手首");
     if (idleClip) { idle = mixer.clipAction(idleClip); idle.play(); mixer.update(0); }
     if (greetingClip) { greeting = mixer.clipAction(greetingClip); mixer.addEventListener("finished", onGreetingFinished); }
     updateCamera(); resize(); await renderer.compileAsync(scene, camera);
