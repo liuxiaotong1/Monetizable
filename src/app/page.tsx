@@ -10,7 +10,7 @@ export default async function Page() {
     <AccountShell
       user={user ? { id: user.id, email: user.email, admin } : null}
     >
-      {admin ? <QuestApp /> : <EnglishQuest />}
+      {admin ? <QuestApp /> : <EnglishQuest signedIn={!!user} />}
     </AccountShell>
   );
 }

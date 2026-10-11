@@ -82,8 +82,8 @@ export default function Login() {
         </a>
         <p className="small-text muted">
           New here? The same link creates your account after you verify your
-          email. Account records sync across your devices. Guest records stay in
-          the browser.
+          email. Account records sync across your devices. Trial learning carries into your account on this browser when you
+          sign in from the save prompt. Prediction drafts return for you to confirm.
         </p>
       </section>
     </main>

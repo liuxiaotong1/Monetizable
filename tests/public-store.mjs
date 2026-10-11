@@ -31,10 +31,10 @@ const tracking = url(
   ),
 );
 const code = (await compile("browser-store"))
-  .replace("from './domain'", `from '${domain}'`)
-  .replace("from './learning-engine'", `from '${engine}'`)
-  .replace("from './adventure'", `from '${adventure}'`)
-  .replace("from './weekly-tracking'", `from '${tracking}'`);
+  .replace(/from ["']\.\/domain["']/g, `from '${domain}'`)
+  .replace(/from ["']\.\/learning-engine["']/g, `from '${engine}'`)
+  .replace(/from ["']\.\/adventure["']/g, `from '${adventure}'`)
+  .replace(/from ["']\.\/weekly-tracking["']/g, `from '${tracking}'`);
 const {
   emptyBrowserRecord,
   hydrateBrowserState,

@@ -1,4 +1,5 @@
 "use client";
+import { useCardSwipe } from "./use-card-swipe";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, BookOpen, Bookmark, Check, Sparkles, Layers3, RotateCcw, Brain, Landmark, ScrollText, Lightbulb, CheckCircle2, ChartNoAxesCombined, CalendarDays } from "lucide-react";
 import type { Category, LearningCard, QuestState } from "@/lib/quest/types";
@@ -34,7 +35,7 @@ export default function Learning({state,run,busy}:ViewProps){
  }
  return <>
   <div className="page-intro learning-intro"><span className="eyebrow">FIVE PATHS · ONE CURIOUS MIND</span><h1>先问一个好问题，<span>再解锁新理解。</span></h1><p>五条学习路线。先选答案，再翻面看解释；左滑，下次回来复习一次，右滑标记掌握。</p></div>
-  <div className="learning-topic-grid">{learningThemes.map(category=>{const Icon=categoryIcons[category],all=state.cards.filter(c=>c.category===category),count=all.filter(c=>mastered.has(conceptKey(c))).length;return <button key={category} className={`learning-topic ${theme===category?"active":""}`} aria-pressed={theme===category} onClick={()=>{setTheme(theme===category?"all":category);setActiveId(undefined);}}><Icon size={23}/><strong>{categoryNames[category]}</strong><span>{all.length} 道题 · {count} 已掌握</span><div className="xp-track"><span style={{width:`${all.length?count/all.length*100:0}%`}}/></div></button>;})}</div>
+  <div className="learning-topic-grid">{learningThemes.map(category=>{const Icon=categoryIcons[category],all=state.cards.filter(c=>c.category===category),count=all.filter(c=>mastered.has(conceptKey(c))).length;return <button key={category} className={`learning-topic theme-${category} ${theme===category?"active":""}`} aria-pressed={theme===category} onClick={()=>{setTheme(theme===category?"all":category);setActiveId(undefined);}}><Icon size={23}/><strong>{categoryNames[category]}</strong><span>{all.length} 道题 · {count} 已掌握</span><div className="xp-track"><span style={{width:`${all.length?count/all.length*100:0}%`}}/></div></button>;})}</div>
   <section className="learning-update panel"><div><span className="eyebrow">TODAY’S WATCH & LEARN</span><h3>今日五股 · 财报学习篮子</h3></div>{update?<><div className="learning-stocks">{update.stocks.map(stock=><a key={stock.symbol} href={stock.sourceUrl} title={stock.reason} target="_blank" rel="noreferrer"><strong>{stock.symbol}</strong><span>{stock.name}</span></a>)}</div><p className="muted">{update.selectionBasis}</p><small className={update.status==="stale"?"learning-stale":"muted"}>{update.status==="ready"?"今日新题已入库":"保留上次成功题库，等待今日更新"} · {update.date} 美东 · 新增批次 {update.count} 题</small></>:<p className="muted">基础题库已就绪，等待首次每日新题同步。五股按 QQQ 相关性与近期财报关注度选取，并附选择依据。</p>}</section>
   <div className="learning-nav"><div className="segmented">{([["daily","今日练习"],["library","全部题库"],["collection","我的收藏"],["mastered","已掌握"]] as [Tab,string][]).map(([value,label])=><button key={value} className={tab===value?"active":""} onClick={()=>switchTab(value)}>{label}</button>)}</div><span className="learning-total"><BookOpen size={15}/>{state.cards.length} 道题 · {mastered.size} 个概念已掌握</span></div>
   {theme!=="all"&&<button className="text-button" onClick={()=>{setTheme("all");setActiveId(undefined);}}>正在学习：{categoryNames[theme]} · 显示全部方向 ×</button>}
@@ -44,18 +45,19 @@ export default function Learning({state,run,busy}:ViewProps){
  </>;
 }
 function QuizCard({card,state,run,busy,mastered,onClassify}:{card:LearningCard;state:QuestState;run:RunCommand;busy:boolean;mastered:boolean;onClassify:(action:"review"|"master")=>Promise<void>}){
- const down=useRef<{x:number;y:number}|null>(null), answering=useRef(false);
+ const answering=useRef(false);
  const [celebrate,setCelebrate]=useState(false);
  useEffect(()=>{if(!celebrate)return;const timer=setTimeout(()=>setCelebrate(false),1400);return()=>clearTimeout(timer);},[celebrate]);
  const progress=state.progress.find(p=>p.cardId===card.id);
  const answered=progress?.lastAnswerIndex!==undefined && (progress.lastAnswerVisitId===state.learningVisitId || mastered);
  const revealed=answered||mastered,chosen=answered?progress?.lastAnswerIndex:undefined;
+ const swipeHandlers=useCardSwipe(answered&&!mastered&&!busy,action=>void onClassify(action));
  async function answer(index:number){
   if(busy||answering.current)return;answering.current=true;
   try{const saved=await run({type:"card",cardId:card.id,action:"answer",answerIndex:index});if(saved && saved.progress.find(p=>p.cardId===card.id)?.lastAnswerIndex===card.answerIndex)setCelebrate(true);}finally{answering.current=false;}
  }
  const Icon=categoryIcons[card.category];
- return <><article className={`knowledge-card quiz-first ${card.category} ${revealed?"is-flipped":""}`} onPointerDown={e=>{if(!answered||mastered||busy||(e.target as HTMLElement).closest("button,a,input"))return;down.current={x:e.clientX,y:e.clientY};e.currentTarget.setPointerCapture(e.pointerId);}} onPointerCancel={()=>{down.current=null;}} onPointerUp={e=>{if(!down.current)return;const dx=e.clientX-down.current.x,dy=e.clientY-down.current.y;down.current=null;if(Math.abs(dx)>80&&Math.abs(dx)>Math.abs(dy))void onClassify(dx>0?"master":"review");}}>
+ return <><article className={`knowledge-card quiz-first ${card.category} ${revealed?"is-flipped":""}`} {...swipeHandlers}>
   {celebrate&&<div className="quiz-fireworks" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{"--angle":`${i*20}deg`,"--delay":`${i%3*70}ms`} as React.CSSProperties}/>)}</div>}
   <div className="card-header"><span><Icon size={16}/>{categoryNames[card.category]}</span><button className="icon-button" disabled={busy||progress?.bookmarked} aria-label={progress?.bookmarked?"已收藏":"收藏这张卡"} onClick={()=>void run({type:"card",cardId:card.id,action:"bookmark"})}><Bookmark size={17} fill={progress?.bookmarked?"currentColor":"none"}/></button></div>
   <div className="card-emblem"><Icon size={39} strokeWidth={1.2}/><span className="card-emblem-orbit"/></div><span className="card-level">{mastered?"已掌握 · 手动回看":progress?.attempts?"巩固理解":"新知识"} · {card.difficulty===1?"入门":card.difficulty===2?"进阶":"深入"}{card.symbol?` · ${card.symbol}`:""}</span><h2>{card.title}</h2>{card.asOf&&<p className="card-reason">资料日期 {card.asOf}</p>}<p className="card-question">{card.question}</p>

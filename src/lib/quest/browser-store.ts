@@ -61,8 +61,8 @@ export function emptyBrowserRecord(): BrowserRecord {
     readNotices: [],
   };
 }
-export function readBrowserRecord(): BrowserRecord {
-  const raw = localStorage.getItem(key);
+export function readBrowserRecord(storageKey = key): BrowserRecord {
+  const raw = localStorage.getItem(storageKey);
   if (!raw) return emptyBrowserRecord();
   try {
     const value = JSON.parse(raw);

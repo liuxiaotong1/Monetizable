@@ -41,6 +41,10 @@ import {
   sourceHost,
   readableError,
 } from "@/lib/quest/english";
+import { useCardSwipe } from "./use-card-swipe";
+import { draftKey, transferKey, trialKey, trialAllows, readTrialCards, readPredictionDraft, type PredictionDraft } from "@/lib/quest/guest-access";
+import { useDialogFocus } from "./use-dialog-focus";
+import { X, LockKeyhole } from "lucide-react";
 import { learningQueue, masteredConcepts } from "@/lib/quest/learning-engine";
 import { marketContext } from "@/lib/quest/market-context";
 import { LineChart } from "./charts";
@@ -78,12 +82,21 @@ const numbers = (n: number | undefined) =>
   n === undefined
     ? "—"
     : new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }).format(n);
-export default function EnglishQuest() {
+export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean }) {
   const [view, setView] = useState<View>("today"),
     [state, setState] = useState<QuestState>(),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [toast, setToast] = useState("");
+    [toast, setToast] = useState(""),
+    [trialCards, setTrialCards] = useState<string[]>([]),
+    [gate, setGate] = useState<"prediction" | "cards" | null>(null);
+  const gateDialog = useRef<HTMLElement>(null);
+  useDialogFocus(gateDialog, !!gate, () => setGate(null));
+  const requireAccount = useCallback((reason: "prediction" | "cards", draft?: PredictionDraft) => {
+    if (draft) localStorage.setItem(draftKey, JSON.stringify(draft));
+    setGate(reason);
+  }, []);
+  useEffect(() => { setTrialCards(readTrialCards()); }, []);
   const shared = useRef<QuestState | null>(null),
     inFlight = useRef(false);
   const load = useCallback(async () => {
@@ -133,6 +146,8 @@ export default function EnglishQuest() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   const run = useCallback(async (command: QuestCommand) => {
+    if (!signedIn && command.type === "judgment") { setGate("prediction"); return false; }
+    if (!signedIn && command.type === "card" && !trialAllows(readTrialCards(), command.cardId)) { setGate("cards"); return false; }
     if (inFlight.current || !shared.current) return false;
     inFlight.current = true;
     setBusy(true);
@@ -145,6 +160,8 @@ export default function EnglishQuest() {
           new Date().toISOString(),
         );
       saveBrowserRecord(record);
+      if (!signedIn && command.type === "card") { const ids = [...new Set([...readTrialCards(), command.cardId])]; localStorage.setItem(trialKey, JSON.stringify(ids)); setTrialCards(ids); }
+      if (command.type === "judgment") localStorage.removeItem(draftKey);
       setState(next);
       setError("");
       if (command.type !== "learningVisit")
@@ -163,7 +180,7 @@ export default function EnglishQuest() {
       inFlight.current = false;
       setBusy(false);
     }
-  }, []);
+  }, [signedIn]);
   if (!state)
     return (
       <main className="loading-screen">
@@ -303,11 +320,11 @@ export default function EnglishQuest() {
             </div>
           </section>
           {view === "today" ? (
-            <Daily state={state} run={run} busy={busy} navigate={navigate} />
+            <Daily state={state} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount} />
           ) : view === "events" ? (
             <EventMap state={state} />
           ) : (
-            <Deck state={state} run={run} busy={busy} />
+            <Deck state={state} run={run} busy={busy} signedIn={signedIn} trialCards={trialCards} requireAccount={requireAccount} />
           )}
           <div className="journey-footer">
             <div>
@@ -331,6 +348,7 @@ export default function EnglishQuest() {
           </footer>
         </main>
       </div>
+      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Two cards explored. Keep going."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign in or create a free account to unlock more cards and save your learning progress across devices. Your two trial cards are kept in this browser."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>One email link signs you in or creates your account.</small></section></div>}
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
           <button
@@ -356,8 +374,10 @@ interface DailyProps {
   run: (cmd: QuestCommand) => Promise<QuestState | false>;
   busy: boolean;
   navigate: (v: View) => void;
+  signedIn: boolean;
+  requireAccount: (reason: "prediction" | "cards", draft?: PredictionDraft) => void;
 }
-function Daily({ state, run, busy, navigate }: DailyProps) {
+function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
   const [direction, setDirection] = useState<Direction>("bullish"),
     [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
     [reason, setReason] = useState(""),
@@ -371,6 +391,7 @@ function Daily({ state, run, busy, navigate }: DailyProps) {
     previous = bars.at(-2),
     review = state.reviews[0],
     f = state.forecast;
+  useEffect(() => { const draft = readPredictionDraft(); if (draft) { setDirection(draft.direction); setConfidence(draft.confidence); setReason(draft.reason); } }, []);
   const past = useRef("");
   useEffect(() => {
     if (review?.matched && past.current !== review.id) {
@@ -381,7 +402,7 @@ function Daily({ state, run, busy, navigate }: DailyProps) {
   }, [review?.id, review?.matched]);
   const afterOpen = Date.parse(state.now) >= Date.parse(state.session.openAt);
   const locked =
-    !!state.judgment || !state.session.isTradingDay || afterOpen || !f;
+    signedIn && (!!state.judgment || !state.session.isTradingDay || afterOpen || !f);
   const ma20 =
       bars.length >= 20
         ? bars.slice(-20).reduce((n, b) => n + b.close, 0) / 20
@@ -614,7 +635,7 @@ function Daily({ state, run, busy, navigate }: DailyProps) {
             </div>
           </>
         )}
-        {state.judgment ? (
+        {state.judgment && signedIn ? (
           <div className="account-success">
             <strong>Locked: {directions[state.judgment.direction]}</strong>
             <p>{state.judgment.reason}</p>
@@ -626,6 +647,7 @@ function Daily({ state, run, busy, navigate }: DailyProps) {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
+              if (!signedIn) { requireAccount("prediction", { direction, confidence, reason, date: state.session.date, at: new Date().toISOString() }); return; }
               if (f)
                 await run({
                   type: "judgment",
@@ -684,9 +706,10 @@ function Daily({ state, run, busy, navigate }: DailyProps) {
                   : afterOpen
                     ? "Premarket window closed"
                     : "Waiting for a verified premarket scenario"
-                : "Lock my call · +10 XP"}
+                : signedIn ? "Lock my call · +10 XP" : "Save my prediction"}
             </button>
             <p className="muted small-text">
+              {!signedIn && <>Try filling in your call. An account is required when saving. Drafts entered outside the premarket window are not scored.<br/></>}
               The call locks at 09:30 ET. Late entries do not count as premarket
               predictions. No precise probability is claimed.
             </p>
@@ -1035,16 +1058,17 @@ function Deck({
   state,
   run,
   busy,
+  signedIn, trialCards, requireAccount,
 }: {
   state: QuestState;
   run: DailyProps["run"];
   busy: boolean;
+  signedIn: boolean; trialCards: string[]; requireAccount: DailyProps["requireAccount"];
 }) {
   const [theme, setTheme] = useState<Category>(),
     [tab, setTab] = useState<"daily" | "all" | "mastered" | "saved">("daily"),
     [celebrate, setCelebrate] = useState(false);
-  const visit = useRef<string | null>(null),
-    swipe = useRef<{ x: number; y: number } | null>(null);
+  const visit = useRef<string | null>(null);
   useEffect(() => {
     if (!visit.current) visit.current = crypto.randomUUID();
     void run({ type: "learningVisit", visitId: visit.current });
@@ -1075,6 +1099,9 @@ function Deck({
       progress.lastAnswerVisitId === state.learningVisitId &&
       progress.lastDispositionVisitId !== state.learningVisitId;
   const selected = progress?.lastAnswerIndex;
+  const blocked = !signedIn && !!card && !trialAllows(trialCards, card.id);
+  useEffect(() => { if (blocked) requireAccount("cards"); }, [blocked, requireAccount]);
+  const swipeHandlers = useCardSwipe(answered && !busy && !blocked, action => void disposition(action));
   async function disposition(action: "master" | "review") {
     if (card && answered) {
       setCelebrate(false);
@@ -1106,7 +1133,7 @@ function Deck({
         {(Object.keys(themes) as Category[]).map((t) => (
           <button
             key={t}
-            className={theme === t ? "selected" : ""}
+            className={`theme-${t} ${theme === t ? "selected" : ""}`}
             aria-pressed={theme === t}
             onClick={() => setTheme(theme === t ? undefined : t)}
           >
@@ -1192,23 +1219,10 @@ function Deck({
             ))
           )}
         </section>
-      ) : card ? (
+      ) : blocked ? (<section className="en-card guest-deck-gate"><LockKeyhole size={30}/><h2>Your next card is waiting.</h2><p>You’ve explored two trial cards. Create a free account or sign in to continue and save your progress.</p><button className="primary" onClick={() => requireAccount("cards")}>Sign in / Create an account <ArrowRight size={17}/></button></section>) : card ? (
         <section
           className={`en-quiz-card ${answered ? "flipped" : ""}`}
-          onPointerDown={(e) => {
-            if (e.isPrimary) swipe.current = { x: e.clientX, y: e.clientY };
-          }}
-          onPointerUp={(e) => {
-            const p = swipe.current;
-            swipe.current = null;
-            if (
-              p &&
-              Math.abs(e.clientX - p.x) > 75 &&
-              Math.abs(e.clientX - p.x) > Math.abs(e.clientY - p.y) * 1.5 &&
-              answered
-            )
-              void disposition(e.clientX > p.x ? "master" : "review");
-          }}
+          {...swipeHandlers}
         >
           {celebrate && (
             <div className="quiz-fireworks" aria-hidden="true">

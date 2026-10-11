@@ -7,12 +7,14 @@ import {
   ShieldCheck,
   GraduationCap,
 } from "lucide-react";
+import { transferKey } from "@/lib/quest/guest-access";
 import ProductTour from "./product-tour";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
   setBrowserIdentity,
   saveBrowserRecord,
   readBrowserRecord,
+  emptyBrowserRecord,
   type BrowserRecord,
 } from "@/lib/quest/browser-store";
 export interface AccountUser {
@@ -53,10 +55,22 @@ export default function AccountShell({
           if (!active) return;
           revision.current = Number(d.revision);
           enabled.current = true;
-          if (d.record) {
-            const merged = mergeRecords(d.record, readBrowserRecord());
-            last.current = JSON.stringify(d.record);
+          {
+            const cloud = d.record || emptyBrowserRecord();
+            let local = readBrowserRecord();
+            const transfer = localStorage.getItem(transferKey) === "yes";
+            if (transfer) {
+              const guest = readBrowserRecord("qqq-quest-public:v1");
+              // Transfer only explicitly claimed learning; never turn a draft into a locked call.
+              guest.judgments = []; guest.forecasts = []; guest.notes = {}; guest.adventure = undefined; guest.settingsUpdatedAt = undefined; guest.readNotices = [];
+              guest.rewards = guest.rewards.filter(key => key.startsWith("card:"));
+              guest.xp = guest.rewards.length * 5;
+              local = mergeRecords(local, guest);
+            }
+            const merged = mergeRecords(cloud, local);
+            last.current = JSON.stringify(cloud);
             saveBrowserRecord(merged);
+            if (transfer) localStorage.removeItem(transferKey);
           }
           enabled.current = true;
           setTutorial(!d.tutorial_done && !localStorage.getItem(tutorialKey));
