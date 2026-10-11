@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,7 +30,7 @@ export function AgentRadar({ initialStats, locale = "en", startImmediately = fal
   const [error, setError] = useState("");
   const [starting, setStarting] = useState(!initialStats.hasScanned || startImmediately);
   const completedAtRef = useRef(initialStats.lastCompletedAt ?? null);
-  const needsRecovery = stats.hasScanned && stats.marketSignalsScanned === 0;
+  const needsRecovery = stats.hasScanned && (stats.marketSignalsScanned === 0 || (stats.capacityMatches === 0 && Boolean(stats.lastCompletedAt) && Date.now() - Date.parse(stats.lastCompletedAt!) > 15 * 60_000));
   const active = starting || stats.scanning;
 
   const openOpportunities = useCallback((scope: "matches" | "platform" | "email") => {
@@ -90,12 +92,12 @@ export function AgentRadar({ initialStats, locale = "en", startImmediately = fal
   ] as const;
   const foundTitle = stats.capacityMatches > 0
     ? `SuperCharlie found ${compact(stats.capacityMatches)} opportunities for you`
-    : copy.radarWorking;
+    : "Explore more remote opportunities";
   const resultSummary = stats.platformLeads > 0
     ? `${compact(stats.platformLeads)} open on external platforms and require your final submission. SuperCharlie has already ranked the fit—start with the strongest matches and try an application.`
-    : copy.radarBody;
+    : active ? copy.radarBody : "This scan found no confirmed matches for your current direction and requirements. Explore the remote boards below or adjust your direction. Search pages are not counted as matched jobs.";
   const metricColumns = stats.emailLeads > 0 ? "xl:grid-cols-4" : "xl:grid-cols-3";
-  return <section className="mt-8 overflow-hidden rounded-[2rem] border border-black/10 bg-black text-white shadow-[0_28px_80px_rgba(0,0,0,.12)]">
+  return <Localized><section className="mt-8 overflow-hidden rounded-[2rem] border border-black/10 bg-black text-white shadow-[0_28px_80px_rgba(0,0,0,.12)]">
     <div className="grid lg:grid-cols-[.78fr_1.22fr]">
       <div className="relative grid min-h-80 place-items-center overflow-hidden border-white/10 p-8 lg:border-r">
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)", backgroundSize: "36px 36px" }} />
@@ -116,6 +118,7 @@ export function AgentRadar({ initialStats, locale = "en", startImmediately = fal
         <p className="mt-4 max-w-2xl leading-7 text-white/62">{resultSummary}</p>
         {error && <p role="alert" className="mt-3 text-sm text-[var(--gold-bright)]">{error}</p>}
         {stats.capacityMatches > 0 && <button type="button" onClick={() => openOpportunities(stats.platformLeads > 0 ? "platform" : "matches")} className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--gold-bright)] px-6 text-sm font-black text-black transition hover:-translate-y-0.5 hover:bg-white">Review the best opportunities →</button>}
+        {!active && stats.capacityMatches === 0 && <div className="mt-6 flex flex-wrap gap-3">{[["Himalayas", "https://himalayas.app/jobs"], ["Remote OK", "https://remoteok.com"], ["We Work Remotely", "https://weworkremotely.com"]].map(([name, url]) => <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/30 px-5 py-3 text-sm font-bold">Browse {name} ↗</a>)}<a href="/agent?setup=intent" className="rounded-full bg-[var(--gold-bright)] px-5 py-3 text-sm font-black text-black">Review my direction →</a></div>}
         <div className={`mt-8 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2 ${metricColumns}`}>
           <Metric label={copy.signals} value={active && !stats.marketSignalsScanned ? "Scanning…" : compact(stats.marketSignalsScanned)} />
           <Metric label={copy.matches} value={active && !stats.capacityMatches ? "Matching…" : compact(stats.capacityMatches)} onClick={() => openOpportunities("matches")} />
@@ -129,7 +132,7 @@ export function AgentRadar({ initialStats, locale = "en", startImmediately = fal
         <p className="mt-5 text-xs leading-5 text-white/42">Every number comes from this Agent pipeline. One public signal is counted once per scan; filtered or duplicate results never inflate Capacity matches.</p>
       </div>
     </div>
-  </section>;
+  </section></Localized>;
 }
 
 function Metric({ label, value, accent = false, onClick }: { label: string; value: string; accent?: boolean; onClick?: () => void }) {
@@ -139,7 +142,7 @@ function Metric({ label, value, accent = false, onClick }: { label: string; valu
 }
 
 function Breakdown({ title, items }: { title: string; items: ReadonlyArray<readonly [string, number]> }) {
-  return <div className="rounded-2xl border border-white/10 p-5"><div className="text-[.65rem] font-black uppercase tracking-[.16em] text-white/48">{title}</div><div className="mt-4 flex flex-wrap gap-2">{items.map(([label, value]) => <span key={label} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-2 text-xs text-white/68"><strong className="mr-1 text-white">{compact(value)}</strong>{label}</span>)}</div></div>;
+  return <Localized><div className="rounded-2xl border border-white/10 p-5"><div className="text-[.65rem] font-black uppercase tracking-[.16em] text-white/48">{title}</div><div className="mt-4 flex flex-wrap gap-2">{items.map(([label, value]) => <span key={label} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-2 text-xs text-white/68"><strong className="mr-1 text-white">{compact(value)}</strong>{label}</span>)}</div></div></Localized>;
 }
 
 function compact(value: number) {

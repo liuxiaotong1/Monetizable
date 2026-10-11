@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogFooter, BlogHeader } from "@/components/blog-shell";
@@ -28,7 +32,7 @@ const faqs = [
   },
 ] as const;
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Monetizable FAQ: AI Skill Analysis, ChatGPT and Career Change",
   description: "Answers to common questions about Monetizable, AI skill stack analysis, transferable skills, career changes, freelance opportunities, and how it differs from ChatGPT.",
   alternates: { canonical },
@@ -40,7 +44,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const contentLocale = await getRequestLocale();
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -52,8 +57,8 @@ export default function FaqPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }} />
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(faqJsonLd, contentLocale)).replace(/</g, "\\u003c") }} />
       <BlogHeader />
       <section className="shell py-14 md:py-20">
         <header className="max-w-4xl">
@@ -83,6 +88,10 @@ export default function FaqPage() {
         </aside>
       </section>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
@@ -40,9 +42,9 @@ export function CompanyNeedForm() {
     addCustomExpertise();
   }
 
-  if (submitted) return <div className="card p-7 md:p-10" role="status"><div className="gold-surface grid h-12 w-12 place-items-center rounded-full text-xl">✓</div><h2 className="editorial-title mt-6 text-3xl">Your request is saved.</h2><p className="mt-4 max-w-xl text-lg leading-8 text-black/65">We’ll contact you when someone with the right proven capabilities becomes available.</p><div className="mt-7 rounded-2xl border border-[var(--gold)] bg-[var(--gold-soft)] p-5"><h3 className="font-black">Keep this request connected to your company.</h3><p className="mt-2 text-sm leading-6 text-black/65">Create a free account so you can return securely when we contact you about a match.</p><Link href="/auth?mode=signup&next=/for-companies?submitted=1" className="button mt-5">Create company account <span>→</span></Link></div></div>;
+  if (submitted) return <Localized><div className="card p-7 md:p-10" role="status"><div className="gold-surface grid h-12 w-12 place-items-center rounded-full text-xl">✓</div><h2 className="editorial-title mt-6 text-3xl">Your request is saved.</h2><p className="mt-4 max-w-xl text-lg leading-8 text-black/65">We’ll contact you when someone with the right proven capabilities becomes available.</p><div className="mt-7 rounded-2xl border border-[var(--gold)] bg-[var(--gold-soft)] p-5"><h3 className="font-black">Keep this request connected to your company.</h3><p className="mt-2 text-sm leading-6 text-black/65">Create a free account so you can return securely when we contact you about a match.</p><Link href="/auth?mode=signup&next=/for-companies?submitted=1" className="button mt-5">Create company account <span>→</span></Link></div></div></Localized>;
 
-  return <form onSubmit={submit} className="card grid gap-7 p-6 md:p-9">
+  return <Localized><form onSubmit={submit} className="card grid gap-7 p-6 md:p-9">
     <label className="font-black">What do you need done?<textarea name="need" required minLength={20} maxLength={3000} className="field mt-2 min-h-36 resize-y font-normal" placeholder="Describe the task or problem." /></label>
     <label className="font-black">What outcome would make this successful?<textarea name="successOutcome" required minLength={10} maxLength={2000} className="field mt-2 min-h-28 resize-y font-normal" placeholder="Describe the result you want to achieve." /></label>
     <fieldset><legend className="font-black">What expertise do you think this requires?</legend><p className="mt-1 text-sm text-black/55">Choose as many as apply, or add your own.</p><div className="mt-4 flex flex-wrap gap-2">{COMPANY_EXPERTISE.map((item) => { const selected = expertise.includes(item); return <button key={item} type="button" aria-pressed={selected} onClick={() => setExpertise((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-4 py-2 text-sm font-bold ${selected ? "border-black bg-black text-white" : "border-black/15 bg-white"}`}>{item}</button>; })}{customExpertise.map((item) => <button key={item} type="button" aria-label={`Remove ${item}`} onClick={() => setCustomExpertise((current) => current.filter((value) => value !== item))} className="rounded-full border border-[var(--gold)] bg-[var(--gold-soft)] px-4 py-2 text-sm font-bold">{item} <span aria-hidden="true">×</span></button>)}</div><label className="mt-4 block text-sm font-bold">Other expertise</label><div className="mt-2 flex gap-2"><input value={expertiseDraft} onChange={(event) => setExpertiseDraft(event.target.value)} onKeyDown={captureExpertise} onBlur={addCustomExpertise} maxLength={60} className="field font-normal" placeholder="Add another capability or context" /><button type="button" onMouseDown={(event) => event.preventDefault()} onClick={addCustomExpertise} className="rounded-xl border border-black bg-black px-5 text-sm font-black text-white">Add</button></div><p className="mt-2 text-xs text-black/45">Press Enter or comma to add it to the selected group.</p></fieldset>
@@ -52,5 +54,5 @@ export function CompanyNeedForm() {
     <label className="sr-only" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
     {error ? <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p> : null}
     <div><button disabled={busy} className="button w-full md:w-auto">{busy ? "Saving…" : "Find matching capabilities"} <span>→</span></button><p className="mt-3 text-xs leading-5 text-black/50">Free for now. By submitting, you agree that Monetizable may email you about relevant capability matches.</p></div>
-  </form>;
+  </form></Localized>;
 }

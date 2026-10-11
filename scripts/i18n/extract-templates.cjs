@@ -1,0 +1,4 @@
+const fs=require('fs'),path=require('path'),ts=require('typescript');const texts=new Set();
+function walk(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);}
+for(const file of walk('src').filter(f=>/\.(tsx|ts)$/.test(f))){const sf=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true);function visit(n){if(ts.isTemplateExpression(n)){let text=n.head.text+n.templateSpans.map((span,i)=>`{${i}}`+span.literal.text).join('');if(/[A-Z][a-z]{2}/.test(text)&&!/[<>]|https?:|@|var\(--|SELECT|INSERT/.test(text)&&text.length<500)texts.add(text.replace(/\s+/g,' ').trim());}ts.forEachChild(n,visit);}visit(sf);}
+fs.writeFileSync('scripts/i18n/template-strings.json',JSON.stringify([...texts],null,2));console.log(texts.size);

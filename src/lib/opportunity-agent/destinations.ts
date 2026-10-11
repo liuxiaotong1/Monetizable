@@ -1,7 +1,7 @@
 import type { Opportunity } from "@/lib/types";
 import { publicWebFetch } from "@/lib/public-web";
 import { isSafeExternalUrl } from "@/lib/url";
-import { extractPublicContact, isValidProfessionalEmail, prefersDirectOutreach } from "@/lib/opportunity-agent/signatures";
+import { extractPublicContact, isValidProfessionalEmail, prefersDirectOutreach, isProjectMarketplace } from "@/lib/opportunity-agent/signatures";
 
 const ATS_HOST = /(?:^|\.)(?:greenhouse\.io|lever\.co|ashbyhq\.com|workable\.com|smartrecruiters\.com|jobvite\.com|myworkdayjobs\.com|personio\.(?:com|de)|breezy\.hr)$/i;
 const BOARD_HOST = /(?:^|\.)(?:arbeitnow\.com|arbeitnow\.co\.uk|remotefirstjobs\.com|jobicy\.com|jooble\.org|lensa\.com|appcast\.io|experteer\.com|remotive\.com|adzuna\.(?:com|co\.uk|fr|de))$/i;
@@ -213,6 +213,7 @@ async function publicContactFromPage(url: string, opportunity?: Opportunity, fol
 }
 
 export async function enrichDirectOutreachContact(opportunity: Opportunity): Promise<Opportunity> {
+  if (isProjectMarketplace(opportunity.url)) return opportunity;
   if (!prefersDirectOutreach(opportunity.kind) || extractPublicContact(opportunity) || !opportunity.url) return opportunity;
   try {
     const direct = isKnownDirectDestination(opportunity.url) ? await publicContactFromPage(opportunity.url, opportunity) : null;

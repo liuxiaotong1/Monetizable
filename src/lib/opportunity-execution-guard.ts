@@ -1,4 +1,6 @@
 import type { Opportunity, SkillCombination, UserContext } from "@/lib/types";
+import { isRemoteOnlyOpportunity } from "@/lib/remote-only";
+import { capabilityMatches, hasUnsupportedEditingRequirement, missingOptionalLanguages } from "@/lib/capability-evidence";
 
 const TECHNICAL_TITLE = /\b(?:full[ -]?stack|front[ -]?end|back[ -]?end|software|devops|cloud|mobile|web)\s+(?:developer|engineer)|\bdeveloper\b/i;
 const TECHNICAL_CAPABILITY = /software|development|coding|programming|engineering|devops|cloud/i;
@@ -8,34 +10,23 @@ export function isDirectApplicationDestination(method?: string, url?: string) {
   return method === "public_email";
 }
 
-function capabilityTerms(elements: string[]) {
-  const terms = new Set<string>();
-  for (const element of elements) {
-    const lower = element.toLowerCase();
-    lower.split(/[^a-z0-9+#]+/).filter((part) => (part.length >= 4 || ["ai", "sql", "crm", "ux", "seo", "c++", "c#"].includes(part)) && !["management", "development", "analysis", "creation", "strategy", "professional"].includes(part)).forEach((part) => terms.add(part));
-    if (/content/.test(lower)) ["content", "editorial", "copywriter", "creator"].forEach((term) => terms.add(term));
-    if (/social media|influencer/.test(lower)) ["social", "community", "influencer"].forEach((term) => terms.add(term));
-    if (/marketing/.test(lower)) ["marketing", "growth", "campaign"].forEach((term) => terms.add(term));
-    if (/financial|finance|account/.test(lower)) ["financial", "finance", "accounting", "budget", "forecast"].forEach((term) => terms.add(term));
-    if (/sales|business development/.test(lower)) ["sales", "partnership", "business development"].forEach((term) => terms.add(term));
-  }
-  return [...terms];
-}
-
 export function opportunityTitleSupportsIntent(title: string, elements: string[], supportingText = "") {
-  const includesTerm = (text: string, term: string) => new RegExp(`(?:^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:$|[^a-z0-9])`, "i").test(text);
+  if (hasUnsupportedEditingRequirement(elements, supportingText)) return false;
   const lower = title.toLowerCase();
   if (TECHNICAL_TITLE.test(title) && !elements.some((element) => TECHNICAL_CAPABILITY.test(element))) return false;
+  if (/\b(?:3d|character|environment|concept) artist\b/i.test(title) && !elements.some(element => /3d|blender|maya|modeling|modelling|illustration|concept art/i.test(element))) return false;
+  if (/\bgraphic designer\b/i.test(title) && !elements.some(element => /graphic|visual design|photoshop|illustrator|canva/i.test(element))) return false;
+  if (/\b(?:senior producer|project manager)\b/i.test(title) && !elements.some(element => /produc(?:er|tion)|project management|delivery|operations/i.test(element))) return false;
+  if (/\b(?:mentor|teacher|instructor|lecturer)\b/i.test(title) && !elements.some(element => /teach|educat|train|mentor|coach/i.test(element))) return false;
   // A broad "content" capability does not prove professional writing intent.
   // Generic writer listings were previously promoted from incidental words in
   // snippets even when the selected direction was finance/social/marketing.
   if (/\b(?:freelance |content |blog |article |copy)?writer\b|\bcopywriter\b/i.test(title)
     && !elements.some((element) => /\b(?:writing|copywriting|writer|editorial|journalism)\b/i.test(element))) return false;
-  const titleMatches = elements.filter((element) => capabilityTerms([element]).some((term) => includesTerm(lower, term)));
+  const titleMatches = elements.filter((element) => capabilityMatches(element, lower));
   const evidenceText = `${title} ${supportingText}`.toLowerCase();
-  const supportedElements = elements.filter((element) => capabilityTerms([element]).some((term) => includesTerm(evidenceText, term)));
-  const requiredCoverage = elements.length <= 1 ? 1 : 2;
-  return supportedElements.length >= requiredCoverage
+  const supportedElements = elements.filter((element) => capabilityMatches(element, evidenceText));
+  return elements.length > 0 && supportedElements.length === elements.length
     && (titleMatches.length > 0 || supportingText.trim().length >= 80);
 }
 
@@ -45,7 +36,7 @@ const LANGUAGE_NAMES = [
 ];
 
 function requiresUnsupportedLanguage(opportunity: Opportunity, elements: string[]) {
-  const text = `${opportunity.title} ${opportunity.summary ?? ""}`.toLowerCase();
+  const text = `${opportunity.title} ${opportunity.listingEvidence ?? opportunity.summary ?? ""}`.toLowerCase();
   const evidenced = elements.join(" ").toLowerCase();
   return LANGUAGE_NAMES.some((language) => {
     const required = new RegExp(`(?:native(?:-level)?|fluent|fluency|proficien(?:t|cy)|speaking|required|requires?)\\W{0,24}${language}|${language}\\W{0,16}(?:speaking|required|fluency|speaker)`, "i").test(text);
@@ -56,7 +47,7 @@ function requiresUnsupportedLanguage(opportunity: Opportunity, elements: string[
 function explicitForeignRemoteRestriction(opportunity: Opportunity, context?: UserContext) {
   const country = context?.country?.toLowerCase().trim();
   if (!country) return false;
-  const text = `${opportunity.title} ${opportunity.location ?? ""} ${opportunity.authorization ?? ""} ${opportunity.summary ?? ""}`.toLowerCase();
+  const text = `${opportunity.title} ${opportunity.location ?? ""} ${opportunity.authorization ?? ""} ${opportunity.listingEvidence ?? opportunity.summary ?? ""}`.toLowerCase();
   if (/worldwide|anywhere|global remote/.test(text)) return false;
   if (country !== "united states" && /(?:remote\s*[·,-]\s*)?united states|u\.?s\.? work authorization|us[- ]only/.test(text)) return true;
   if (country !== "united states" && /\b[a-z][a-z .'-]{1,40},\s*(?:al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy)\b/i.test(text)) return true;
@@ -71,9 +62,11 @@ export function canAutoExecuteOpportunity(input: {
   context?: UserContext;
 }) {
   const { opportunity, method, combinations, context } = input;
+  if (!isRemoteOnlyOpportunity(opportunity)) return false;
   const elements = combinations[opportunity.combinationIndex]?.elements ?? opportunity.requiredSkills ?? [];
   if (!isDirectApplicationDestination(method, opportunity.url)) return false;
-  if (!opportunityTitleSupportsIntent(opportunity.title, elements, `${opportunity.summary ?? ""} ${(opportunity.publicSignals ?? []).join(" ")}`)) return false;
+  if (missingOptionalLanguages(elements, `${opportunity.title} ${opportunity.listingEvidence ?? opportunity.summary ?? ""}`).length) return false;
+  if (!opportunityTitleSupportsIntent(opportunity.title, elements, opportunity.listingEvidence ?? opportunity.summary ?? "")) return false;
   if (requiresUnsupportedLanguage(opportunity, elements)) return false;
   if (explicitForeignRemoteRestriction(opportunity, context)) return false;
   return true;

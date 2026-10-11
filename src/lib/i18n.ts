@@ -1,5 +1,7 @@
-export const locales = ["en", "fr", "de", "es", "it", "zh"] as const;
-export type Locale = (typeof locales)[number];
+export const locales = ["en", "fr"] as const;
+export type SupportedLocale = (typeof locales)[number];
+// Keep historical dictionaries readable; only supported locales can be selected.
+export type Locale = SupportedLocale | "de" | "es" | "it" | "zh";
 
 export const localeNames: Record<Locale, string> = {
   en: "English",
@@ -40,34 +42,26 @@ export const candidateConsentCopy: Record<
   },
 };
 
-export function isLocale(value: string | undefined): value is Locale {
-  return Boolean(value && locales.includes(value as Locale));
+export function isLocale(value: string | undefined): value is SupportedLocale {
+  return Boolean(value && locales.includes(value as SupportedLocale));
 }
 
-const countryLocales: Record<string, Locale> = {
-  FR: "fr",
-  DE: "de",
-  AT: "de",
-  ES: "es",
-  IT: "it",
-  CN: "zh",
-  HK: "zh",
-  MO: "zh",
-  SG: "zh",
-  TW: "zh",
-};
+// French-speaking countries/territories; multilingual countries are disambiguated
+// by a French browser preference. Unknown location always defaults to English.
+const frenchCountries = new Set(["FR", "MC", "BJ", "BF", "BI", "CD", "CG", "CI", "DJ", "GA", "GN", "ML", "NE", "SN", "TG", "GP", "MQ", "GF", "RE", "YT", "NC", "PF", "PM", "WF"]);
+const multilingualCountries = new Set(["BE", "CA", "CH", "LU", "CM", "HT", "MG", "RW", "SC", "TD", "KM", "VU"]);
 
-export function localeForRequest(
-  country: string | null,
-  acceptLanguage: string | null,
-): Locale {
-  const countryLocale = countryLocales[(country ?? "").toUpperCase()];
-  if (countryLocale) return countryLocale;
-  const requested = (acceptLanguage ?? "")
-    .split(",")
-    .map((part) => part.trim().split(";")[0]?.split("-")[0]?.toLowerCase())
-    .find((value) => isLocale(value));
-  return isLocale(requested) ? requested : "en";
+export function localeForRequest(country: string | null, acceptLanguage: string | null): SupportedLocale {
+  const code = (country ?? "").trim().toUpperCase();
+  if (frenchCountries.has(code)) return "fr";
+  if (multilingualCountries.has(code)) {
+    const preferences = (acceptLanguage ?? "").split(",").map((part) => {
+      const [tag, quality] = part.trim().toLowerCase().split(";");
+      return { language: tag.split("-")[0], quality: quality?.trim().startsWith("q=") ? Number(quality.trim().slice(2)) : 1 };
+    }).filter(item => item.quality > 0).sort((a, b) => b.quality - a.quality);
+    if (preferences[0]?.language === "fr") return "fr";
+  }
+  return "en";
 }
 
 const messages = {
@@ -163,9 +157,9 @@ const messages = {
     unlockBody:
       "See your other evidence-backed offer directions, the exact services you can sell, and the live buyer opportunities that best match them.",
     unlockButton: "Unlock My Monetization Map",
-    subscriptionTrialButton: "Start free 2-day trial — {price}",
+    subscriptionTrialButton: "Subscribe — {price}",
     subscriptionTrialTerms:
-      "Then the selected weekly or monthly price. Cancel anytime.",
+      "Billed at the selected weekly or monthly price. Cancel anytime.",
     openingCheckout: "Opening secure checkout…",
     passLabel: "Access pass or coupon",
     enterCode: "Enter code",
@@ -304,9 +298,9 @@ const messages = {
     unlockBody:
       "Découvrez les autres combinaisons de votre CV, les offres exactes à vendre et les opportunités qui leur correspondent.",
     unlockButton: "Débloquer ma carte de monétisation",
-    subscriptionTrialButton: "Essai gratuit de 2 jours — {price}",
+    subscriptionTrialButton: "S’abonner — {price}",
     subscriptionTrialTerms:
-      "Puis le tarif hebdomadaire ou mensuel sélectionné. Annulez à tout moment.",
+      "Facturation au tarif sélectionné. Annulez à tout moment.",
     openingCheckout: "Ouverture du paiement sécurisé…",
     passLabel: "Pass mensuel ou coupon",
     enterCode: "Saisir le code",
@@ -490,9 +484,9 @@ const messages = {
     verifying:
       "Wir prüfen die Zahlung sicher. Das dauert meist nur einen Moment.",
     returnHome: "Zur Startseite",
-    subscriptionTrialButton: "2 Tage kostenlos testen — {price}",
+    subscriptionTrialButton: "Abonnieren — {price}",
     subscriptionTrialTerms:
-      "Danach gilt der gewählte Wochen- oder Monatspreis. Jederzeit kündbar.",
+      "Der gewählte Wochen- oder Monatspreis gilt sofort. Jederzeit kündbar.",
   },
   es: {
     insights: "Ideas",
@@ -627,9 +621,9 @@ const messages = {
     verifying:
       "Estamos verificando el pago de forma segura. Solo tarda un momento.",
     returnHome: "Volver al inicio",
-    subscriptionTrialButton: "Prueba gratis de 2 días — {price}",
+    subscriptionTrialButton: "Suscribirse — {price}",
     subscriptionTrialTerms:
-      "Después se aplica el precio semanal o mensual elegido. Cancela cuando quieras.",
+      "Se aplica el precio elegido. Cancela cuando quieras.",
   },
   it: {
     insights: "Approfondimenti",
@@ -766,9 +760,9 @@ const messages = {
     verifying:
       "Stiamo verificando il pagamento in modo sicuro. Di solito basta un momento.",
     returnHome: "Torna alla home",
-    subscriptionTrialButton: "Prova gratuita di 2 giorni — {price}",
+    subscriptionTrialButton: "Abbonati — {price}",
     subscriptionTrialTerms:
-      "Poi si applica il prezzo settimanale o mensile selezionato. Annulla quando vuoi.",
+      "Si applica il prezzo selezionato. Annulla quando vuoi.",
   },
   zh: {
     insights: "洞察",
@@ -900,15 +894,15 @@ const messages = {
     paymentReceived: "付款成功，正在解锁你的地图…",
     verifying: "我们正在安全验证付款，通常只需片刻。",
     returnHome: "返回首页",
-    subscriptionTrialButton: "免费试用 2 天 — {price}",
-    subscriptionTrialTerms: "之后按所选周付或月付价格自动续费，可随时取消",
+    subscriptionTrialButton: "订阅 — {price}",
+    subscriptionTrialTerms: "按所选周付或月付价格收费，可随时取消续费",
   },
 } as const;
 
 export type MessageKey = keyof typeof messages.en;
 
 export function getMessages(locale: Locale) {
-  return messages[locale] as Record<MessageKey, string>;
+  return messages[isLocale(locale) ? locale : "en"] as Record<MessageKey, string>;
 }
 
 export function intlLocale(locale: Locale) {

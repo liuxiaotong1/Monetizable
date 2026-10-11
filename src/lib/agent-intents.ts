@@ -94,11 +94,13 @@ export function suggestedAgentIntents(graph: CapacityGraph, limit = 3): AgentInt
 }
 
 export function validCustomIntent(graph: CapacityGraph, capabilities: string[]) {
-  const allowed = new Map(graph.nodes.filter((node) => isCapabilityLabel(node.label)).map((node) => [normalize(node.label), node.label]));
+  const allowed = new Map(graph.nodes.filter((node) => node.type !== "constraint" && isCapabilityLabel(node.label)).map((node) => [normalize(node.label), node.label]));
   graph.combinations.forEach((combination) => combination.elements.forEach((label) => {
     const key = normalize(label);
     if (key && isCapabilityLabel(label) && combination.evidence.length && !allowed.has(key)) allowed.set(key, label.trim());
   }));
-  const values = [...new Set(capabilities.map((value) => allowed.get(normalize(value))).filter((value): value is string => Boolean(value)))];
+  // Reject an invalid selection instead of silently dropping one of its skills.
+  if (capabilities.some(value => !allowed.has(normalize(value)))) return null;
+  const values = [...new Set(capabilities.map((value) => allowed.get(normalize(value))!))];
   return values.length >= 1 && values.length <= 3 ? values : null;
 }

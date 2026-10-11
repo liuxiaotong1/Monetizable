@@ -3,6 +3,7 @@ import type { ActiveAgentProfile } from "@/lib/opportunity-agent/storage";
 import type { MarketTopic } from "@/lib/opportunity-agent/types";
 import type { OpportunityKind } from "@/lib/types";
 import { validCustomIntent } from "@/lib/agent-intents";
+import { remoteRoleQueries } from "@/lib/capability-evidence";
 
 const KINDS: OpportunityKind[] = ["freelance_contract", "consulting", "fractional", "productized_service", "latent_buyer_demand"];
 const STOPWORDS = new Set(["and", "the", "for", "with", "management", "experience", "proficiency"]);
@@ -13,12 +14,12 @@ function normalizedTerms(values: string[]) {
 
 export function marketTopicKey(input: { elements: string[]; region?: string; workMode?: string; variant?: string }) {
   const terms = normalizedTerms(input.elements).slice(0, 12);
-  const region = input.workMode === "global_remote" ? "global" : (input.region?.trim().toLowerCase() || "global");
-  return createHash("sha256").update(`${terms.join("|")}:${region}:${input.variant ?? "core"}`).digest("hex");
+  const region = input.region?.trim().toLowerCase() || "global";
+  return createHash("sha256").update(`remote-v3-full-stack:${terms.join("|")}:${region}:${input.workMode}:${input.variant ?? "core"}`).digest("hex");
 }
 
 export function buildMarketTopics(profile: ActiveAgentProfile): MarketTopic[] {
-  const selectedCustomIntent = profile.intentCombinationIndex === -1
+  const selectedCustomIntent = profile.intentCapabilities?.length
     ? [...new Set((profile.intentCapabilities ?? []).map((value) => value.trim()).filter(Boolean))].slice(0, 3)
     : [];
   const customIntent = selectedCustomIntent.length ? validCustomIntent(profile.graph, selectedCustomIntent) ?? [] : [];
@@ -34,12 +35,12 @@ export function buildMarketTopics(profile: ActiveAgentProfile): MarketTopic[] {
       if (right.combinationIndex === intent) return 1;
       return left.combinationIndex - right.combinationIndex;
     })
-    .filter(({ combinationIndex }) => profile.intentCombinationIndex === undefined || combinationIndex === profile.intentCombinationIndex)
+    .filter(({ combinationIndex }) => !selectedCustomIntent.length && (profile.intentCombinationIndex === undefined || combinationIndex === profile.intentCombinationIndex))
     .slice(0, profile.intentCombinationIndex === undefined ? 5 : 1);
 
   const topics = combinations.flatMap(({ combination, combinationIndex }, rankedIndex) => {
     const elements = combination.elements.slice(0, 4);
-    const region = profile.context.workMode === "global_remote" ? "global" : profile.context.country;
+    const region = profile.context.country || "global";
     const languageNodes = profile.graph.nodes.filter((node) => node.type === "language").map((node) => node.label);
     const service = combination.services[0]?.name;
     const base = { label: elements.join(" × "), opportunityKinds: KINDS, regions: region ? [region] : ["global"], languages: languageNodes.slice(0, 6), combinationIndex };
@@ -52,6 +53,7 @@ export function buildMarketTopics(profile: ActiveAgentProfile): MarketTopic[] {
       query: withTargetFocus(`${element} freelance consulting contract request for proposal`),
     }));
     const variants = [
+      ...remoteRoleQueries(elements).map((query, index) => ({ id: `remote-role-${index}`, query: `${query} remote` })),
       { id: "direct", query: withTargetFocus(`${elements.join(" ")} ${service ?? ""} consultant project needed`) },
       { id: "independent", query: withTargetFocus(`${elements.join(" ")} freelance consultant fractional advisor`) },
       { id: "projects", query: withTargetFocus(`${elements.join(" ")} contract project request for proposal`) },
@@ -76,13 +78,14 @@ export function buildMarketTopics(profile: ActiveAgentProfile): MarketTopic[] {
   });
 
   if (customIntent.length) {
-    const region = profile.context.workMode === "global_remote" ? "global" : profile.context.country;
+    const region = profile.context.country || "global";
     const languageNodes = profile.graph.nodes.filter((node) => node.type === "language").map((node) => node.label);
     const pairs = customIntent.flatMap((left, index) => customIntent.slice(index + 1).map((right, pairIndex) => ({
       variant: `custom-pair-${index}-${pairIndex}`,
       query: withTargetFocus(`${left} ${right} freelance consulting project buyer`),
     })));
     const variants = [
+      ...remoteRoleQueries(customIntent).map((query, index) => ({ variant: `custom-remote-role-${index}`, query: `${query} remote` })),
       { variant: "custom", query: withTargetFocus(`${customIntent.join(" ")} freelance contract consultant needed`) },
       { variant: "custom-demand", query: withTargetFocus(`${customIntent.join(" ")} company needs specialist vendor`) },
       { variant: "custom-project", query: withTargetFocus(`${customIntent.join(" ")} freelance project consultant needed`) },

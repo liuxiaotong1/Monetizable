@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useEffect, useState } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -23,10 +25,10 @@ export function AnalyticsProviders({ gaId }: { gaId?: string }) {
   if (!enabled) return null;
 
   return (
-    <>
+    <Localized><>
       <Clarity />
       <Analytics />
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
-    </>
+    </></Localized>
   );
 }

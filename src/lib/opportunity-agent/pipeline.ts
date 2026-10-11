@@ -3,27 +3,29 @@ import { canonicalUrl } from "@/lib/url";
 import { config } from "@/lib/config";
 import { evaluateOpportunity, searchRawMarket, type RawResult } from "@/lib/search";
 import { cosineSimilarity, embedTexts } from "@/lib/opportunity-agent/embeddings";
-import { canAutoExecuteOpportunity } from "@/lib/opportunity-execution-guard";
+import { canAutoExecuteOpportunity, opportunityTitleSupportsIntent } from "@/lib/opportunity-execution-guard";
 import { enrichDirectOutreachContact, resolveOpportunityDestination } from "@/lib/opportunity-agent/destinations";
 import { renewGmailWatches } from "@/lib/opportunity-agent/gmail-events";
 import { screenOpportunityMatches } from "@/lib/opportunity-agent/screening";
 import { buildCapacitySignature, buildOpportunitySignature } from "@/lib/opportunity-agent/signatures";
 import { decideExecutionChannel } from "@/lib/opportunity-agent/channel-router";
-import { aggregateMarketTopics, buildMarketTopics } from "@/lib/opportunity-agent/topics";
 import { cachedOpportunityMatches, capacitySignatureRow, createScanRun, dailyAgentActionStats, finishScanRun, getActiveAgentProfiles, linkMarketTopicOpportunity, linkMarketTopicProfile, markMarketTopicScanned, opportunitiesForMarketTopic, opportunityFingerprint, opportunitySignatureRows, saveScanFunnelSnapshot, upsertCapacitySignature, upsertMarketOpportunities, upsertMarketTopic, upsertOpportunityMatch, upsertOpportunitySignatures, type ActiveAgentProfile } from "@/lib/opportunity-agent/storage";
 import type { OpportunityKind } from "@/lib/types";
 import type { Opportunity } from "@/lib/types";
 import type { SkillCombination } from "@/lib/types";
 import { validCustomIntent } from "@/lib/agent-intents";
+import { generateBuyerProblems, buyerProblemTopics, buyerProblemSupported, buyerProblemRecoveryQueries } from "@/lib/opportunity-agent/buyer-problems";
+import type { BuyerProblem } from "@/lib/types";
+import { recoverBuyerMatches } from "@/lib/opportunity-agent/semantic-recovery";
 
 const GLOBAL_QUERY_LIMIT = Number(process.env.MAX_AGENT_SEARCH_QUERIES ?? 72);
 
-export function buildAgentQueries(profile: ActiveAgentProfile) {
-  return buildMarketTopics(profile).map((topic) => topic.query);
+export async function buildAgentQueries(profile: ActiveAgentProfile) {
+  return buyerProblemTopics(profile, await generateBuyerProblems(profile)).map((topic) => topic.query);
 }
 
 function rawKey(result: RawResult) { try { return canonicalUrl(result.url); } catch { return result.url; } }
-function rawFromStored(value: Opportunity): RawResult { return { title: value.title, url: value.url, content: [value.summary, ...(value.publicSignals ?? []), ...value.requiredSkills].join(" · "), publishedDate: value.postedDate, source: value.source, buyer: value.buyer }; }
+function rawFromStored(value: Opportunity): RawResult { return { title: value.title, url: value.url, content: value.listingEvidence ?? value.summary, publishedDate: value.postedDate, source: value.source, buyer: value.buyer, employmentType: value.employmentType, eligibleLocations: value.eligibleLocations }; }
 function parseVector(value: unknown): number[] | undefined {
   if (Array.isArray(value)) return value.map(Number);
   if (typeof value === "string") return value.replace(/^\[|\]$/g, "").split(",").map(Number).filter(Number.isFinite);
@@ -46,7 +48,7 @@ function errorCategories(errors: string[]) {
 
 function analysisCacheKey(graphVersion: number, fingerprint: string, context: unknown, intentCapabilities: string[]) {
   const intent = [...intentCapabilities].map((value) => value.trim().toLocaleLowerCase()).sort();
-  return createHash("sha256").update(`${graphVersion}:${fingerprint}:${JSON.stringify(context)}:${JSON.stringify(intent)}:screen-v4`).digest("hex");
+  return createHash("sha256").update(`${graphVersion}:${fingerprint}:${JSON.stringify(context)}:${JSON.stringify(intent)}:screen-v7-buyer-problems`).digest("hex");
 }
 
 async function mapWithConcurrency<T, R>(values: T[], limit: number, mapper: (value: T) => Promise<R>) {
@@ -62,10 +64,12 @@ async function mapWithConcurrency<T, R>(values: T[], limit: number, mapper: (val
   return output;
 }
 
-function matchingCombinations(profile: ActiveAgentProfile): SkillCombination[] {
-  const custom = profile.intentCombinationIndex === -1
+export function matchingCombinations(profile: ActiveAgentProfile): SkillCombination[] {
+  const hasSelectedStack = Boolean(profile.intentCapabilities?.length);
+  const custom = hasSelectedStack
     ? validCustomIntent(profile.graph, profile.intentCapabilities ?? []) ?? []
     : [];
+  if (hasSelectedStack && !custom.length) return [];
   if (!custom.length) {
     const selected = typeof profile.intentCombinationIndex === "number" && profile.intentCombinationIndex >= 0
       ? profile.graph.combinations[profile.intentCombinationIndex]
@@ -75,8 +79,12 @@ function matchingCombinations(profile: ActiveAgentProfile): SkillCombination[] {
     // irrelevant matches and spent execution capacity on the wrong roles.
     return selected ? [selected] : profile.graph.combinations;
   }
-  const template = profile.graph.combinations[0];
-  if (!template) return [];
+  const template: SkillCombination = profile.graph.combinations[0] ?? {
+    elements: [], evidence: [], differentiation: "", alreadyPerformedTogether: false,
+    noveltyReason: "", demandLevel: "Low",
+    careerProspect: { name: "", roleModelTitle: "", wikipediaTitle: "", whatTheyBuilt: "", whyRelevant: "", whatTheyDidDifferently: "", stealThisMove: "" },
+    services: [{ name: "Selected skill stack", description: "User-selected capabilities", projectStructure: "Confirm scope with the buyer", searchQueries: [], location_dependency: "low", speed_to_monetize: "Moderate" }],
+  };
   const evidence = profile.graph.nodes
     .filter((node) => custom.some((label) => label.toLocaleLowerCase() === node.label.toLocaleLowerCase()))
     .flatMap((node) => node.evidence)
@@ -103,20 +111,30 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
   let rawResultCount = 0; let opportunityCount = 0; let matchCount = 0; let lightModelCalls = 0; let deepModelCalls = 0;
   let inputTokens = 0; let outputTokens = 0; let searchCalls = 0; let cacheHits = 0;
   try {
-    const profiles = (await getActiveAgentProfiles()).filter((profile) => !options.userId || profile.userId === options.userId);
+    let profiles = (await getActiveAgentProfiles()).filter((profile) => !options.userId || profile.userId === options.userId);
     const actionStats = new Map(await Promise.all(profiles.map(async (profile) => [profile.userId, await dailyAgentActionStats(profile.userId, profile.candidateProfileId)] as const)));
     const needsSupply = new Set(profiles.filter((profile) => {
       const stats = actionStats.get(profile.userId);
       return (stats?.completedToday ?? 0) + (stats?.pending ?? 0) < config.agentDailyOutreachTarget;
     }).map((profile) => profile.candidateProfileId));
-    const topicGroups = aggregateMarketTopics(profiles).slice(0, GLOBAL_QUERY_LIMIT);
+    // Build buyer outcomes before retrieving any listing. Each outcome has its
+    // own query themes and source-evidence criteria; never revert to skill/jobs.
+    const buyerPlans = new Map<string,BuyerProblem[]>();
+    for (const profile of profiles) {
+      profile.context = { ...profile.context, workMode:"global_remote", targetRoles:[], targetLocations:[], contractTypes:["Freelance / contract","Consulting","Fractional","Productized service","Buyer demand"] };
+      try { buyerPlans.set(profile.candidateProfileId,await generateBuyerProblems(profile)); }
+      catch(error) { errors.push(`Buyer planning: ${error instanceof Error ? error.message : String(error)}`); }
+    }
+    if (profiles.length && !buyerPlans.size) throw new Error(errors.join("; "));
+    profiles=profiles.filter(profile=>buyerPlans.has(profile.candidateProfileId));
+    const topicGroups = profiles.flatMap(profile=>buyerProblemTopics(profile,buyerPlans.get(profile.candidateProfileId)!).map(topic=>({topic,profiles:[{profile,combinationIndex:topic.combinationIndex}]}))).slice(0,GLOBAL_QUERY_LIMIT);
     const rawByProfile = new Map<string, Map<string, RawResult>>();
     const scannedByProfile = new Map<string, number>();
     const topicUrls = new Map<string, Set<string>>();
 
-    for (const group of topicGroups) {
+    await mapWithConcurrency(topicGroups, 4, async (group) => {
       const topicRow = await upsertMarketTopic(group.topic);
-      if (!topicRow) continue;
+      if (!topicRow) return;
       await Promise.all(group.profiles.map(({ profile, combinationIndex }) => linkMarketTopicProfile(topicRow.id, profile.candidateProfileId, combinationIndex)));
       const due = options.force || group.profiles.some(({ profile }) => needsSupply.has(profile.candidateProfileId)) || !topicRow.next_scan_at || new Date(topicRow.next_scan_at).getTime() <= Date.now();
       let results: RawResult[] = [];
@@ -124,11 +142,19 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
         const search = await searchRawMarket(group.topic.query, group.profiles[0].profile.context); searchCalls += 1;
         results = search.results; rawResultCount += results.length;
         errors.push(...search.errors.map((error) => `${group.topic.label.slice(0, 80)}: ${error}`));
-        if (!results.length) {
-          const broadQuery = `${group.topic.label.replaceAll("×", " ")} consultant project vendor buyer`;
-          const fallback = await searchRawMarket(broadQuery, group.profiles[0].profile.context); searchCalls += 1;
-          results = fallback.results; rawResultCount += results.length;
-          errors.push(...fallback.errors.map((error) => `${group.topic.label.slice(0, 80)} fallback: ${error}`));
+        const {profile,combinationIndex}=group.profiles[0];
+        const problem=buyerPlans.get(profile.candidateProfileId)![combinationIndex];
+        const base=matchingCombinations(profile)[0];
+        const recoveryCombo=base ? [{...base,elements:problem.capabilities}] : [];
+        const hasMatch=()=>results.some(raw=>evaluateOpportunity(raw,recoveryCombo,profile.context,[problem]).opportunity);
+        // Raw volume is not success: retry when all fetched briefs were rejected.
+        if (!hasMatch()) {
+          for (const broadQuery of buyerProblemRecoveryQueries(problem)) {
+            const fallback = await searchRawMarket(broadQuery, profile.context); searchCalls += 1;
+            results.push(...fallback.results); rawResultCount += fallback.results.length;
+            errors.push(...fallback.errors.map((error) => `${group.topic.label.slice(0, 80)} fallback: ${error}`));
+            if (hasMatch()) break;
+          }
         }
         await markMarketTopicScanned(topicRow.id);
       } else {
@@ -144,7 +170,7 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
         scannedByProfile.set(profile.candidateProfileId, (scannedByProfile.get(profile.candidateProfileId) ?? 0) + results.length);
         results.forEach((result) => bucket.set(rawKey(result), result)); rawByProfile.set(profile.candidateProfileId, bucket);
       });
-    }
+    });
 
     const capacityEmbeddings = new Map<string, number[]>();
     const staleCapacity: Array<{ profile: ActiveAgentProfile; signature: ReturnType<typeof buildCapacitySignature> }> = [];
@@ -168,15 +194,35 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
     const unique = new Map<string, Opportunity>();
     for (const profile of profiles) {
       const rawUnique = [...(rawByProfile.get(profile.candidateProfileId)?.values() ?? [])];
-      const combinations = matchingCombinations(profile);
-      const evaluated = rawUnique.map((raw) => evaluateOpportunity(raw, combinations, profile.context));
-      const eligibleRanked = evaluated.flatMap((value) => value.opportunity ? [value.opportunity] : [])
-        .filter((opportunity) => opportunity.kind !== "employment");
+      const problems=buyerPlans.get(profile.candidateProfileId)!;
+      const base=matchingCombinations(profile)[0];
+      if (!base) continue;
+      const combinations=problems.map(problem=>({...base,elements:problem.capabilities,services:[{name:problem.outcome,description:problem.problem,projectStructure:problem.outcome,searchQueries:problem.searchThemes,location_dependency:"low" as const,speed_to_monetize:"Moderate" as const}]}));
+      const evaluated = rawUnique.map((raw) => evaluateOpportunity(raw, combinations, profile.context,problems));
+      evaluated.forEach(({opportunity})=>{if(opportunity){const problem=problems[opportunity.combinationIndex];opportunity.buyerProblemMatch={version:1,selectedStack:profile.intentCapabilities??base.elements,problem};opportunity.suggestedOffer=problem.outcome;opportunity.fitReason=`Buyer problem: ${problem.problem} Offer: ${problem.outcome}. Uses ${problem.capabilities.join(", ")} from your stack; other selected skills are additional strengths, not asserted listing requirements.`;}});
+      const eligibleRanked:Opportunity[] = [];
+      {
+        // Every published match needs source-grounded review, not only recovery.
+        const candidates=rawUnique.filter((_,i)=>evaluated[i].eligibleAfterHardFilters)
+          .sort((a,b)=>Number(Boolean(evaluated[rawUnique.indexOf(b)].opportunity))-Number(Boolean(evaluated[rawUnique.indexOf(a)].opportunity)));
+        try {
+          const recovered=await recoverBuyerMatches(profile,problems,candidates);
+          for(const {raw,problem} of recovered) {
+            const result=evaluateOpportunity(raw,[{...base,elements:problem.capabilities}],profile.context,[problem]);
+            if(!result.opportunity) continue;
+            result.opportunity.buyerProblemMatch={version:2,selectedStack:profile.intentCapabilities??base.elements,problem};
+            result.opportunity.suggestedOffer=problem.outcome;
+            eligibleRanked.push(result.opportunity);
+            const index=rawUnique.indexOf(raw);if(index>=0)evaluated[index]=result;
+          }
+          console.info('[opportunity-scan] buyer recovery',{candidateProfileId:profile.candidateProfileId,reviewed:Math.min(80,candidates.length),recovered:recovered.length});
+        } catch(error) {errors.push(`Buyer recovery: ${error instanceof Error?error.message:String(error)}`);}
+      }
       // Resolve and verify a public professional contact before execution.
       // Search-result URLs are discovery evidence, never email destinations.
       const contactCandidates = eligibleRanked
         .sort((left, right) => right.score - left.score)
-        .slice(0, Math.max(90, config.agentLightCandidateLimit, config.agentDailyOutreachTarget * 4));
+        .slice(0, Math.max(200, config.agentLightCandidateLimit, config.agentDailyOutreachTarget * 4));
       const ranked = await mapWithConcurrency(contactCandidates, 6, async (opportunity) =>
         enrichDirectOutreachContact(await resolveOpportunityDestination(opportunity)),
       );
@@ -223,7 +269,7 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
         const row = rowByFingerprint.get(opportunityFingerprint(opportunity)); const similarity = row ? cosineSimilarity(capacityVector, storedById.get(row.id)) : 0;
         const score = Math.max(0, Math.min(96, opportunity.score + (similarity >= 0.2 ? Math.round(similarity * 10) : similarity > 0 && similarity < 0.05 ? -10 : 0)));
         return { ...opportunity, score, fitLabel: score >= 78 ? "Strong fit" as const : score >= 62 ? "Good fit" as const : "Moderate fit" as const };
-      }).sort((a, b) => b.score - a.score).slice(0, Math.max(config.agentLightCandidateLimit, config.agentDailyOutreachTarget * 3));
+      }).sort((a, b) => b.score - a.score).slice(0, Math.max(200, config.agentLightCandidateLimit, config.agentDailyOutreachTarget * 3));
       const opportunityIds = ranked.flatMap((opportunity) => { const row = rowByFingerprint.get(opportunityFingerprint(opportunity)); return row ? [row.id] : []; });
       const cachedRows = await cachedOpportunityMatches(profile.candidateProfileId, opportunityIds);
       const cacheByOpportunity = new Map<string, { key?: string; fitLabel?: Opportunity["fitLabel"]; fitReason?: string; score?: number; analysis?: Record<string, unknown> }>((cachedRows ?? []).map((row: { opportunity_id: string; analysis_cache_key?: string; fit_label?: Opportunity["fitLabel"]; fit_reason?: string; score?: number; deep_analysis?: Record<string, unknown> }) => [row.opportunity_id, { key: row.analysis_cache_key, fitLabel: row.fit_label, fitReason: row.fit_reason, score: row.score, analysis: row.deep_analysis }]));
@@ -250,6 +296,12 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
       let strongOpportunities = 0;
       let hotLeads = 0;
       for (const match of screening.matches) {
+        const selectedStack = screeningGraph.combinations[match.opportunity.combinationIndex]?.elements ?? profile.intentCapabilities ?? [];
+        const buyerMatch=match.opportunity.buyerProblemMatch;
+        if (buyerMatch ? !buyerProblemSupported(buyerMatch.problem,match.opportunity.title,match.opportunity.listingEvidence??match.opportunity.summary) : !opportunityTitleSupportsIntent(match.opportunity.title, selectedStack, match.opportunity.listingEvidence ?? match.opportunity.summary)) continue;
+        if (buyerMatch) {match.deepAnalysis={...match.deepAnalysis,buyerProblemMatch:buyerMatch};match.opportunity.fitReason=`Buyer problem: ${buyerMatch.problem.problem} Deliverable: ${buyerMatch.problem.outcome}. Relevant capabilities: ${buyerMatch.problem.capabilities.join(", ")}. Additional stack skills are not claimed as buyer requirements.`;}
+        // Semantic relevance is not proof of every professional prerequisite.
+        if(buyerMatch?.version===2){match.opportunity.score=Math.min(77,match.opportunity.score);match.opportunity.fitLabel="Good fit";}
         const fingerprint = opportunityFingerprint(match.opportunity); const row = rowByFingerprint.get(fingerprint); if (!row) continue;
         const nextCacheKey = analysisCacheKey(profile.graph.version, fingerprint, profile.context, profile.intentCapabilities ?? []);
         const previousCacheKey = cacheByOpportunity.get(row.id)?.key;
@@ -287,7 +339,7 @@ export async function runOpportunityScan(options: { force?: boolean; userId?: st
       });
     }
 
-    const watches = await renewGmailWatches();
+    const watches = options.userId ? null : await renewGmailWatches();
     const execution = { sent: 0, submitted: 0, failed: 0, browserbaseSessions: 0 };
     const notificationsSent = 0;
     const status = errors.length ? "partial" : "complete";

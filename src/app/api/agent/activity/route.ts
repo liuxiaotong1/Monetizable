@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { getDisplayTranslations } from "@/lib/display-translations";
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { agentFeed, agentJobsForUser, agentRadarStats, dailyAgentActionStats, subscriptionForUser } from "@/lib/opportunity-agent/storage";
@@ -18,7 +20,10 @@ export async function GET() {
     agentRadarStats(user.id, subscription.candidate_profile_id),
     dailyAgentActionStats(user.id, subscription.candidate_profile_id),
   ]);
+  const locale = await getRequestLocale();
+  const translations = locale === "fr" ? await getDisplayTranslations(matches, locale) : {};
   return NextResponse.json({
+    translations,
     radar: {
       scanning: radar.scanning,
       marketSignalsScanned: radar.marketSignalsScanned,

@@ -1,10 +1,20 @@
 import { config } from "@/lib/config";
 import { canonicalUrl, isSafeExternalUrl } from "@/lib/url";
-import { normalizeOpportunityText } from "@/lib/opportunity-text";
+import { normalizeOpportunityText, safeOpportunityDescription } from "@/lib/opportunity-text";
+import { RemoteOkProvider } from "@/lib/remote-ok";
+import { LeverRemoteProvider } from "@/lib/lever-remote";
+import { FreelancerProjectsProvider } from "@/lib/freelancer-projects";
+import { isRemoteOnlyOpportunity } from "@/lib/remote-only";
+import { HimalayasProvider } from "@/lib/himalayas";
+import { WeWorkRemotelyProvider } from "@/lib/we-work-remotely";
+import { capabilityMatches, remoteRoleQueries } from "@/lib/capability-evidence";
+import { remoteLocationAllows, permitsEmployment } from "@/lib/remote-eligibility";
 import { opportunityTitleSupportsIntent } from "@/lib/opportunity-execution-guard";
+import { buyerProblemSupported } from "@/lib/opportunity-agent/buyer-problems";
+import type { BuyerProblem } from "@/lib/types";
 import type { LocationDependency, MonetizationSpeed, Opportunity, OpportunityKind, SkillCombination, UserContext } from "@/lib/types";
 
-export interface RawResult { title: string; url: string; content: string; publishedDate?: string; source?: string; buyer?: string; estimatedTotal?: number }
+export interface RawResult { title: string; url: string; content: string; description?: string; publishedDate?: string; source?: string; buyer?: string; estimatedTotal?: number; employmentType?: string; eligibleLocations?: string[] }
 
 const nearbyMarkets: Record<string, string[]> = {
   "nice|france": ["côte d’azur", "côte d'azur", "cote d'azur", "alpes-maritimes", "antibes", "cannes", "sophia antipolis", "monaco"],
@@ -29,6 +39,7 @@ function selectedOpportunityKinds(contractTypes: string[] = []) {
   const kinds = new Set<OpportunityKind>();
   for (const value of contractTypes) {
     const normalized = value.toLowerCase();
+    if (/full[- ]time|employment/.test(normalized)) kinds.add("employment");
     if (normalized.includes("freelance") || normalized.includes("contract") || normalized.includes("part-time") || normalized.includes("part time")) kinds.add("freelance_contract");
     if (normalized.includes("consulting")) kinds.add("consulting");
     if (normalized.includes("fractional")) kinds.add("fractional");
@@ -55,7 +66,7 @@ function authorizationAllows(text: string, context: UserContext) {
 }
 
 export function buildMarketQueries(combinations: SkillCombination[], context: UserContext) {
-  const base = combinations.flatMap((combo) => combo.services.flatMap((service) => service.searchQueries));
+  const base = [...new Set([...combinations.flatMap(combo => remoteRoleQueries(combo.elements)), ...combinations.flatMap((combo) => combo.services.flatMap((service) => service.searchQueries))])];
   const targetFocus = (context.targetRoles ?? []).slice(0, 4).join(" ");
   const terms = geographyTerms(context);
   return base.map((query, index) => {
@@ -136,28 +147,41 @@ function simpleApiQuery(query: string) {
   return query.replace(/\([^)]*\)/g, " ").replace(/\b(?:OR|AND|freelance|contract|project|consultant|remote|worldwide)\b/gi, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 7).join(" ");
 }
 
-class RemoteFirstProvider implements MarketSearchProvider {
+export class RemoteFirstProvider implements MarketSearchProvider {
   async search(query: string) {
-    const response = await fetch(`https://remotefirstjobs.com/api/search-jobs?query=${encodeURIComponent(simpleApiQuery(query))}&page=0`, { headers: { "user-agent": "Monetizable/1.0 (https://thecoreme.com)" }, signal: AbortSignal.timeout(8_000) });
+    const results = new Map<string, RawResult>();
+    // Public API documents five pages of up to 100 jobs; do not truncate page one to 40.
+    for (let page = 0; page < 5; page++) {
+    const response = await fetch(`https://remotefirstjobs.com/api/search-jobs?query=${encodeURIComponent(simpleApiQuery(query))}&page=${page}`, { next: { revalidate: 600 }, headers: { "user-agent": "Monetizable/1.0 (https://getmonetizable.com)" }, signal: AbortSignal.timeout(8_000) });
+    if (!response.ok && page > 0) break;
     if (!response.ok) throw new Error(`Remote First Jobs search failed (${response.status})`);
     const data = await response.json();
-    return (data.jobs ?? []).slice(0, 40).map((job: { title?: string; url?: string; description?: string; published_at?: string; company_name?: string; locations?: string[]; salary_min?: number; salary_max?: number }) => ({
+    const rows = (data.jobs ?? []).map((job: { title?: string; url?: string; description?: string; published_at?: string; company_name?: string; locations?: string[]; salary_min?: number; salary_max?: number }) => ({
       title: job.title ?? "Untitled remote opportunity", url: job.url ?? "",
       content: [job.company_name, "Remote", job.locations?.join(", "), job.salary_min && job.salary_max ? `$${job.salary_min}-$${job.salary_max}` : undefined, job.description].filter(Boolean).join(" · "),
       publishedDate: job.published_at, source: "Remote First Jobs",
       buyer: job.company_name,
+      description: job.description,
+      eligibleLocations: job.locations,
     }));
+    const before = results.size;
+    for (const row of rows) if (row.url) results.set(row.url, row);
+    if (results.size === before || rows.length < 100) break;
+    }
+    return [...results.values()];
   }
 }
 
 let arbeitnowJobs: Promise<Array<{ title?: string; url?: string; description?: string; created_at?: number; company_name?: string; location?: string; remote?: boolean; tags?: string[]; job_types?: string[] }>> | undefined;
+let arbeitnowCacheUntil = 0;
 
 class ArbeitnowProvider implements MarketSearchProvider {
   async search(query: string) {
-    arbeitnowJobs ??= fetch("https://www.arbeitnow.com/api/job-board-api", { headers: { "user-agent": "Monetizable/1.0 (https://thecoreme.com)" }, signal: AbortSignal.timeout(8_000) }).then(async (response) => {
+    if (Date.now() >= arbeitnowCacheUntil) { arbeitnowJobs = undefined; arbeitnowCacheUntil = Date.now() + 3_600_000; }
+    arbeitnowJobs ??= fetch("https://www.arbeitnow.com/api/job-board-api", { next: { revalidate: 3600 }, headers: { "user-agent": "Monetizable/1.0 (https://getmonetizable.com)" }, signal: AbortSignal.timeout(8_000) }).then(async (response) => {
       if (!response.ok) throw new Error(`Arbeitnow search failed (${response.status})`);
       return (await response.json()).data ?? [];
-    });
+    }).catch(error => { arbeitnowJobs = undefined; throw error; });
     const terms = tokenSet([simpleApiQuery(query)]);
     return (await arbeitnowJobs).filter((job) => job.remote && [...terms].some((term) => `${job.title} ${job.description} ${job.tags?.join(" ")}`.toLowerCase().includes(term))).slice(0, 40).map((job) => ({
       title: job.title ?? "Untitled remote opportunity", url: job.url ?? "",
@@ -170,15 +194,18 @@ class ArbeitnowProvider implements MarketSearchProvider {
 
 let jobicyJobs: Promise<Array<{ jobTitle?: string; url?: string; jobDescription?: string; pubDate?: string; companyName?: string; jobGeo?: string; jobType?: string; jobIndustry?: string[]; annualSalaryMin?: number; annualSalaryMax?: number }>> | undefined;
 
+let jobicyCacheUntil = 0;
 class JobicyProvider implements MarketSearchProvider {
   async search(query: string) {
+    if (Date.now() > jobicyCacheUntil) { jobicyJobs = undefined; jobicyCacheUntil = Date.now() + 3_600_000; }
     jobicyJobs ??= fetch("https://jobicy.com/api/v2/remote-jobs?count=200", {
+      next: { revalidate: 3600 },
       headers: { "user-agent": "Monetizable/1.0 (https://getmonetizable.com)" },
       signal: AbortSignal.timeout(10_000),
     }).then(async (response) => {
       if (!response.ok) throw new Error(`Jobicy search failed (${response.status})`);
       return (await response.json()).jobs ?? [];
-    });
+    }).catch(error => { jobicyJobs = undefined; throw error; });
     const terms = tokenSet([simpleApiQuery(query)]);
     return (await jobicyJobs)
       .filter((job) => [...terms].some((term) => `${job.jobTitle} ${job.jobDescription} ${job.jobIndustry?.join(" ")}`.toLowerCase().includes(term)))
@@ -190,6 +217,8 @@ class JobicyProvider implements MarketSearchProvider {
         publishedDate: job.pubDate,
         source: "Jobicy",
         buyer: job.companyName,
+        employmentType: job.jobType,
+        eligibleLocations: job.jobGeo ? [job.jobGeo] : [],
       }));
   }
 }
@@ -246,8 +275,12 @@ function providers(context: UserContext): MarketSearchProvider[] {
   if (config.enableRemoteFirstJobs) available.push(new RemoteFirstProvider());
   if (config.enableArbeitnow) available.push(new ArbeitnowProvider());
   available.push(new JobicyProvider());
-  available.push(new RemotiveProvider());
-  if (process.env.JOOBLE_API_KEY) available.push(new JoobleProvider());
+  available.push(new HimalayasProvider(context));
+  available.push(new WeWorkRemotelyProvider(context));
+  available.push(new RemoteOkProvider());
+  available.push(new LeverRemoteProvider());
+  available.push(new FreelancerProjectsProvider());
+  // Remotive public data disallows signup gates; Jooble lacks remote proof.
   if (process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY) available.push(new AdzunaProvider(adzunaCountry(context.country)));
   if (process.env.SEARCH_API_KEY && config.searchProvider === "tavily") available.push(new TavilyProvider());
   if (process.env.SEARCH_API_KEY && config.searchProvider === "brave") available.push(new BraveProvider());
@@ -279,40 +312,22 @@ function tokenSet(values: string[]) {
   return new Set(values.join(" ").toLowerCase().match(/[a-zà-ž0-9+#.]{3,}/g) ?? []);
 }
 
-const GENERIC_CAPABILITY_WORDS = new Set(["and", "the", "for", "with", "specialist", "professional", "experience", "management", "creation", "development"]);
-
-const CAPABILITY_ALIASES: Array<{ match: RegExp; terms: string[] }> = [
-  { match: /business development|sales|commercial/i, terms: ["partnership", "go-to-market", "account growth", "revenue", "commercial"] },
-  { match: /financial|finance|account/i, terms: ["finance", "financial", "accounting", "budget", "forecast"] },
-  { match: /content|writing|copy/i, terms: ["content", "editorial", "copywriter", "writer", "communications"] },
-  { match: /social media|influencer/i, terms: ["social", "community", "influencer", "creator"] },
-  { match: /education|program/i, terms: ["learning", "training", "curriculum", "education", "programme", "program"] },
-  { match: /project management/i, terms: ["project", "program manager", "programme manager", "delivery", "operations"] },
-  { match: /market expansion|localization|translation|multilingual/i, terms: ["localization", "translation", "multilingual", "international", "market entry"] },
-];
-
-function capabilityMatches(label: string, haystack: string) {
-  const phrase = label.toLowerCase().replace(/[^\p{L}\p{N}+#.]+/gu, " ").trim();
-  if (!phrase) return false;
-  if (haystack.includes(phrase)) return true;
-  if (CAPABILITY_ALIASES.some((alias) => alias.match.test(label) && alias.terms.some((term) => haystack.includes(term)))) return true;
-  const terms = [...tokenSet([phrase])].filter((term) => !GENERIC_CAPABILITY_WORDS.has(term));
-  if (!terms.length) return false;
-  const matched = terms.filter((term) => haystack.includes(term)).length;
-  return matched >= Math.max(1, Math.ceil(terms.length * 0.5));
-}
-
 export function rankOpportunity(raw: RawResult, combinations: SkillCombination[], context: UserContext): Opportunity | null {
   return evaluateOpportunity(raw, combinations, context).opportunity;
 }
 
 export type OpportunityFilterReason = "location" | "expired" | "low_fit";
 
-export function evaluateOpportunity(raw: RawResult, combinations: SkillCombination[], context: UserContext): { opportunity: Opportunity | null; eligibleAfterHardFilters: boolean; filterReason?: OpportunityFilterReason } {
+export function evaluateOpportunity(raw: RawResult, combinations: SkillCombination[], context: UserContext, buyerProblems?: BuyerProblem[]): { opportunity: Opportunity | null; eligibleAfterHardFilters: boolean; filterReason?: OpportunityFilterReason } {
   if (!isSafeExternalUrl(raw.url)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "expired" };
+  if (!isRemoteOnlyOpportunity(raw)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "location" };
+  if (!remoteLocationAllows({ ...raw }, context)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "location" };
+  if (!permitsEmployment({ ...raw }, context)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "low_fit" };
   const haystack = `${raw.title} ${raw.content}`.toLowerCase();
   if (/expired|position has been filled|no longer accepting/.test(haystack)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "expired" };
-  const kind = classifyOpportunityKind(haystack);
+  const arrangement = `${raw.employmentType ?? ""} ${raw.title}`;
+  const kind = /full[-_ ]time/i.test(arrangement) ? "employment" : /part[-_ ]time|freelance|contractor|contract/i.test(arrangement) ? "freelance_contract" : classifyOpportunityKind(haystack);
+  if (buyerProblems && kind === "employment") return { opportunity:null, eligibleAfterHardFilters:false, filterReason:"low_fit" };
   const selectedKinds = selectedOpportunityKinds(context.contractTypes);
   if (selectedKinds.size && !selectedKinds.has(kind)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "low_fit" };
   if (!authorizationAllows(haystack, context)) return { opportunity: null, eligibleAfterHardFilters: false, filterReason: "location" };
@@ -323,11 +338,12 @@ export function evaluateOpportunity(raw: RawResult, combinations: SkillCombinati
   let bestIndex = 0;
   let bestMatches = 0;
   combinations.forEach((combo, index) => {
-    const matches = combo.elements.filter((element) => capabilityMatches(element, haystack)).length;
+    if (buyerProblems ? !buyerProblemSupported(buyerProblems[index],raw.title,raw.content) : !opportunityTitleSupportsIntent(raw.title, combo.elements, raw.content)) return;
+    const matches = buyerProblems ? combo.elements.length : combo.elements.filter((element) => capabilityMatches(element, haystack)).length;
     if (matches > bestMatches) { bestMatches = matches; bestIndex = index; }
   });
   if (bestMatches < 1) return { opportunity: null, eligibleAfterHardFilters: true, filterReason: "low_fit" };
-  if (!opportunityTitleSupportsIntent(raw.title, combinations[bestIndex].elements, raw.content)) {
+  if (!buyerProblems && !opportunityTitleSupportsIntent(raw.title, combinations[bestIndex].elements, raw.content)) {
     return { opportunity: null, eligibleAfterHardFilters: true, filterReason: "low_fit" };
   }
   const remote = /remote|anywhere|distributed/.test(haystack);
@@ -350,7 +366,7 @@ export function evaluateOpportunity(raw: RawResult, combinations: SkillCombinati
   const geoScore = context.workMode === "local" ? Math.min(18, 10 + locationMatches.length * 2) : 12;
   const speedBonus = monetizationSpeed === "Fast" ? 10 : monetizationSpeed === "Moderate" ? 4 : 0;
   const sourceQuality = raw.source === "Jobicy" || raw.source === "Arbeitnow" || raw.source === "Remote First Jobs" ? 5 : raw.url.includes("jooble.org") ? -10 : 0;
-  const requiredCoverage = combinations[bestIndex].elements.length === 1 ? 1 : 2;
+  const requiredCoverage = combinations[bestIndex].elements.length;
   const rawScore = 38 + bestMatches * 12 + geoScore + (comp ? 8 : 0) + freshBonus + speedBonus + sourceQuality;
   // One generic overlap must never become a Good/Strong match through remote,
   // compensation or freshness bonuses. Multi-capability directions require
@@ -360,9 +376,11 @@ export function evaluateOpportunity(raw: RawResult, combinations: SkillCombinati
     id: crypto.randomUUID(), title: raw.title.replace(/<[^>]+>/g, "").slice(0, 160), source: raw.source ?? sourceFromUrl(raw.url),
     url: canonicalUrl(raw.url), postedDate: raw.publishedDate, compensation: comp, location: remote ? "Remote" : locationMatches[0] ?? context.city,
     remoteStatus: remote ? "Remote" : "Not stated", authorization: usOnly ? "US work authorization" : undefined,
-    summary: normalizeOpportunityText(raw.content).slice(0, 320), requiredSkills: combinations[bestIndex].elements.filter((element) => capabilityMatches(element, haystack)),
+    summary: safeOpportunityDescription(raw.description ?? raw.content) ?? "", requiredSkills: combinations[bestIndex].elements.filter((element) => capabilityMatches(element, haystack)),
+    listingEvidence: normalizeOpportunityText(raw.content),
+    employmentType: raw.employmentType, eligibleLocations: raw.eligibleLocations,
     fitLabel: score >= 78 ? "Strong fit" : score >= 62 ? "Good fit" : "Moderate fit",
-    fitReason: `The listing mentions ${combinations[bestIndex].elements.filter((element) => capabilityMatches(element, haystack)).join(", ")}. Review the full requirements and working arrangements before applying.`,
+    fitReason: `The listing supports your selected stack: ${combinations[bestIndex].elements.join(", ")}. Check the required software, experience and location eligibility before applying.`,
     combinationIndex: bestIndex, score, location_dependency, speed_to_monetize: monetizationSpeed,
     kind,
     buyer: raw.buyer ?? raw.source,

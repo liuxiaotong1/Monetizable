@@ -1,3 +1,5 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { LocalizationProvider } from "@/components/localization-provider";
 import type { Metadata } from "next";
 import { AnalyticsProviders } from "@/components/analytics-providers";
 import { DiscoveryBridge } from "@/components/discovery-bridge";
@@ -7,7 +9,7 @@ import "./globals.css";
 // Search metadata always identifies the production entity, including on Preview deployments.
 const appUrl = "https://getmonetizable.com";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: { default: "Monetizable — Package Your Expertise and Reach Buyers", template: "%s | Monetizable" },
   description: "Turn proven experience into a sellable offer, validate who will buy it, and continuously reach relevant decision makers.",
@@ -28,5 +30,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const locale = await getRequestLocale();
-  return <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning><body>{children}<DiscoveryBridge /><AnalyticsProviders gaId={gaId} /></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning><body><LocalizationProvider locale={locale}>{children}<DiscoveryBridge /><AnalyticsProviders gaId={gaId} /></LocalizationProvider></body></html>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

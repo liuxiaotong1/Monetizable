@@ -146,12 +146,12 @@ interface WikipediaPage {
   thumbnail?: { source?: string; width?: number; height?: number };
 }
 
-function isTrustedWikipediaUrl(value: string | undefined, kind: "image" | "page") {
+export function isTrustedWikipediaUrl(value: string | undefined, kind: "image" | "page") {
   if (!value) return false;
   try {
     const url = new URL(value);
     if (url.protocol !== "https:") return false;
-    return kind === "image" ? url.hostname === "upload.wikimedia.org" : url.hostname.endsWith(".wikipedia.org");
+    return kind === "image" ? ["upload.wikimedia.org", "thumb.wikimedia.org"].includes(url.hostname) : url.hostname.endsWith(".wikipedia.org");
   } catch {
     return false;
   }

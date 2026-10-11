@@ -3,7 +3,7 @@ export const config = {
   priceCents: Number(process.env.MONETIZABLE_PRICE_CENTS ?? 499),
   agentWeeklyPriceCents: Number(process.env.MONETIZABLE_AGENT_WEEKLY_PRICE_CENTS ?? 999),
   agentMonthlyPriceCents: Number(process.env.MONETIZABLE_AGENT_MONTHLY_PRICE_CENTS ?? 2999),
-  agentTrialDays: Number(process.env.MONETIZABLE_AGENT_TRIAL_DAYS ?? 2),
+  agentTrialDays: 0,
   currency: process.env.MONETIZABLE_CURRENCY ?? "eur",
   resultTtlHours: Number(process.env.RESULT_TTL_HOURS ?? 24),
   freshnessDays: Number(process.env.OPPORTUNITY_FRESHNESS_DAYS ?? 45),

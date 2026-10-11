@@ -3,6 +3,7 @@ export interface AnalysisApiPayload {
   recoveryToken?: string;
   error?: string;
   code?: string;
+  subscribeUrl?: string;
   details?: {
     cityRequired?: boolean;
     serviceName?: string;
@@ -39,7 +40,11 @@ async function recoverCompletedAnalysis(requestId: string, fetchImpl: FetchLike)
         cache: "no-store",
         credentials: "same-origin",
       });
-      if (response.ok) return { ok: true, status: response.status, data: await readJson(response) } satisfies AnalysisApiResponse;
+      if (response.ok) {
+        const data = await readJson(response) as AnalysisApiPayload & {result?:{id:string}};
+        if (data.result?.id && !data.preview) data.preview = {analysisId:data.result.id};
+        return { ok: true, status: response.status, data } satisfies AnalysisApiResponse;
+      }
       if (response.status !== 404) return null;
     } catch {
       // The connection may still be recovering. Continue the bounded poll.
@@ -52,6 +57,7 @@ export async function submitAnalysis(form: FormData, fetchImpl: FetchLike = fetc
   const existingRequestId = String(form.get("requestId") ?? "");
   const requestId = /^[0-9a-f-]{36}$/i.test(existingRequestId) ? existingRequestId : crypto.randomUUID();
   form.set("requestId", requestId);
+  if (!form.get("submissionToken")) form.set("submissionToken", crypto.randomUUID() + crypto.randomUUID());
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const startedAt = Date.now();
@@ -67,7 +73,10 @@ export async function submitAnalysis(form: FormData, fetchImpl: FetchLike = fetc
         if (recovered) return recovered;
         continue;
       }
-      return { ok: response.ok, status: response.status, data: await readJson(response) };
+      const data = await readJson(response);
+      if (response.status === 402 && data.subscribeUrl && typeof window !== "undefined") window.location.assign(data.subscribeUrl);
+      if (response.status === 401 && typeof window !== "undefined") window.location.assign("/auth?next=/resume");
+      return { ok: response.ok, status: response.status, data };
     } catch (error) {
       if (attempt === 0) {
         if (Date.now() - startedAt > 3_000) {

@@ -1,9 +1,16 @@
 import { createHash } from "node:crypto";
 import { analysisBelongsToUser, supabaseConfig, supabaseRest } from "@/lib/storage";
 import { config } from "@/lib/config";
-import { ensureCapacityGraph } from "@/lib/capacity-graph";
+import { PAYWALL_ENABLED } from "@/lib/access-policy";
+import { isAccountAdmin } from "@/lib/admin";
+import { isRemoteOnlyOpportunity } from "@/lib/remote-only";
+import { SubscriptionRequired } from "@/lib/account-usage";
+import { ensureCapacityGraph, sanitizeCapacityGraph } from "@/lib/capacity-graph";
 import { isCapabilityLabel } from "@/lib/capability-label";
+import { storedBuyerProblemMatches } from "@/lib/opportunity-agent/buyer-problems";
 import { opportunityTitleSupportsIntent } from "@/lib/opportunity-execution-guard";
+import { opportunityEvidence } from "@/lib/capability-evidence";
+import { remoteLocationAllows, permitsEmployment } from "@/lib/remote-eligibility";
 import type { CapacityGraph, Opportunity, UserContext } from "@/lib/types";
 import type { CapacitySignature, MarketTopic, OpportunitySignature, AgentJobKind, ScanFunnelSnapshot } from "@/lib/opportunity-agent/types";
 
@@ -89,8 +96,18 @@ export async function linkSubscriptionUser(email: string, userId: string) {
 
 export async function getActiveAgentProfiles(): Promise<ActiveAgentProfile[]> {
   if (!supabaseConfig()) return [];
-  const subscriptions = await supabaseRest("agent_subscriptions?status=in.(active,trialing)&user_id=not.is.null&candidate_profile_id=not.is.null&select=id,user_id,email,candidate_profile_id,updated_at,created_at&order=updated_at.desc,created_at.desc") as Array<{ id: string; user_id: string; email: string; candidate_profile_id: string; updated_at?: string; created_at?: string }> | null;
+  const subscriptions = await supabaseRest(PAYWALL_ENABLED
+    ? "agent_subscriptions?status=in.(active,trialing)&user_id=not.is.null&candidate_profile_id=not.is.null&select=id,user_id,email,candidate_profile_id,updated_at,created_at&order=updated_at.desc,created_at.desc"
+    : "agent_onboarding?completed_at=not.is.null&candidate_profile_id=not.is.null&select=user_id,candidate_profile_id,updated_at&order=updated_at.desc") as Array<{ id: string; user_id: string; email: string; candidate_profile_id: string; updated_at?: string; created_at?: string }> | null;
   const byUser = new Map<string, Array<{ id: string; user_id: string; email: string; candidate_profile_id: string; updated_at?: string; created_at?: string }>>();
+  if (PAYWALL_ENABLED) {
+    const onboarded = await supabaseRest("agent_onboarding?completed_at=not.is.null&candidate_profile_id=not.is.null&select=user_id,candidate_profile_id,updated_at&order=updated_at.desc");
+    for (const row of onboarded ?? []) {
+      if (await isAccountAdmin(row.user_id)) {
+        byUser.set(row.user_id, [{ ...row, id: row.candidate_profile_id, email: "" }]);
+      }
+    }
+  }
   for (const subscription of subscriptions ?? []) {
     const userId = String(subscription.user_id);
     byUser.set(userId, [...(byUser.get(userId) ?? []), subscription]);
@@ -101,7 +118,7 @@ export async function getActiveAgentProfiles(): Promise<ActiveAgentProfile[]> {
   for (const subscription of canonicalSubscriptions) {
     const [graph, profileRows, onboardingRows, authorizationRows, applicationRows] = await Promise.all([
       capacityGraphForCandidate(subscription.candidate_profile_id),
-      supabaseRest(`candidate_profiles?id=eq.${encodeURIComponent(subscription.candidate_profile_id)}&select=constraints&limit=1`),
+      supabaseRest(`candidate_profiles?id=eq.${encodeURIComponent(subscription.candidate_profile_id)}&user_id=eq.${encodeURIComponent(subscription.user_id)}&select=constraints&limit=1`),
       supabaseRest(`agent_onboarding?user_id=eq.${encodeURIComponent(subscription.user_id)}&candidate_profile_id=eq.${encodeURIComponent(subscription.candidate_profile_id)}&completed_at=not.is.null&select=intent_combination_index,intent_capabilities&limit=1`),
       supabaseRest(`agent_authorizations?user_id=eq.${encodeURIComponent(subscription.user_id)}&candidate_profile_id=eq.${encodeURIComponent(subscription.candidate_profile_id)}&status=eq.active&select=id,allow_ats_application,allow_email_outreach&limit=1`),
       supabaseRest(`application_profiles?user_id=eq.${encodeURIComponent(subscription.user_id)}&select=target_roles,target_locations,remote_preference,relocation_preference,work_authorization,contract_types,available_from&limit=1`),
@@ -109,7 +126,7 @@ export async function getActiveAgentProfiles(): Promise<ActiveAgentProfile[]> {
     const constraints = profileRows?.[0]?.constraints ?? {};
     const onboarding = onboardingRows?.[0];
     const application = applicationRows?.[0] ?? {};
-    if (!graph || !onboarding || !authorizationRows?.[0]) continue;
+    if (!graph || !profileRows?.[0] || !onboarding || !authorizationRows?.[0]) continue;
     const remotePreference = String(application.remote_preference ?? "");
     const targetLocations = Array.isArray(application.target_locations) ? application.target_locations.filter(Boolean) : [];
     const targetRoles = Array.isArray(application.target_roles) ? application.target_roles.filter(Boolean) : [];
@@ -118,11 +135,13 @@ export async function getActiveAgentProfiles(): Promise<ActiveAgentProfile[]> {
     const globalRemote = remotePreference === "global_remote";
     profiles.push({
       userId: subscription.user_id,
-      email: subscription.email,
+      email: subscription.email ?? "",
       candidateProfileId: subscription.candidate_profile_id,
       graph,
       context: {
-        country: globalRemote ? undefined : targetLocations[0] ?? constraints.country,
+        // Remote describes the working arrangement, not the right to work
+        // everywhere. Retain country eligibility for source-side filtering.
+        country: constraints.country ?? targetLocations[0],
         city: globalRemote ? undefined : targetLocations[0] ?? constraints.city,
         workMode: globalRemote ? "global_remote" : remotePreference === "regional_remote" ? "regional_remote" : constraints.workMode ?? "global_remote",
         exclusions: constraints.exclusions,
@@ -161,36 +180,12 @@ export async function resetAgentOnboardingForCandidate(candidateProfileId: strin
 
 export async function saveAgentIntent(userId: string, candidateProfileId: string, input: { combinationIndex: number | null; label: string; capabilities: string[] }) {
   const capabilities = input.capabilities.filter(isCapabilityLabel);
-  const directionChangedAt = new Date().toISOString();
-  await Promise.all([
-    supabaseRest(`agent_jobs?user_id=eq.${encodeURIComponent(userId)}&status=in.(queued,running,awaiting_user_answer)`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "skipped", error_code: "agent_direction_updated", updated_at: new Date().toISOString() }),
-    }),
-    supabaseRest(`opportunity_matches?user_id=eq.${encodeURIComponent(userId)}&status=neq.dismissed`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "dismissed", analysis_cache_key: `direction-reset:${directionChangedAt}`, updated_at: directionChangedAt }),
-    }),
-    supabaseRest(`market_topic_profiles?candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}`, {
-      method: "DELETE",
-      headers: { prefer: "return=minimal" },
-    }),
-  ]);
-  const rows = await supabaseRest("agent_onboarding?on_conflict=user_id", {
-    method: "POST",
-    headers: { prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify({
-      user_id: userId,
-      candidate_profile_id: candidateProfileId,
-      intent_combination_index: input.combinationIndex,
-      intent_label: capabilities.join(" × ") || input.label,
-      intent_capabilities: capabilities,
-      cv_confirmed_at: null,
-      completed_at: null,
-      updated_at: directionChangedAt,
-    }),
+  const data = await supabaseRest("rpc/save_account_direction", {
+    method: "POST", body: JSON.stringify({ p_user: userId, p_candidate: candidateProfileId, p_index: input.combinationIndex, p_capabilities: capabilities }),
   });
-  return rows?.[0] ?? null;
+  if (data.error === "payment_required") throw new SubscriptionRequired();
+  if (data.error) throw new Error("Could not save this direction for your account");
+  return data.onboarding;
 }
 
 export async function completeAgentOnboarding(userId: string, subscriptionId: string, analysisId: string, executionConsent: boolean) {
@@ -199,8 +194,9 @@ export async function completeAgentOnboarding(userId: string, subscriptionId: st
   if (!candidateProfileId) throw new Error("Candidate profile not found for uploaded CV");
   const current = await agentOnboardingForUser(userId);
   if (!current?.intent_capabilities?.length) throw new Error("Select an intent before uploading your CV");
+  if (current.candidate_profile_id !== candidateProfileId) throw new Error("Choose a direction from this analysis before starting SuperCharlie");
   const now = new Date().toISOString();
-  await supabaseRest(`agent_subscriptions?id=eq.${encodeURIComponent(subscriptionId)}&user_id=eq.${encodeURIComponent(userId)}`, {
+  if (PAYWALL_ENABLED) await supabaseRest(`agent_subscriptions?id=eq.${encodeURIComponent(subscriptionId)}&user_id=eq.${encodeURIComponent(userId)}`, {
     method: "PATCH",
     body: JSON.stringify({ candidate_profile_id: candidateProfileId, updated_at: now }),
   });
@@ -210,7 +206,7 @@ export async function completeAgentOnboarding(userId: string, subscriptionId: st
   });
   const graph = await capacityGraphForCandidate(candidateProfileId);
   const customIntent = current.intent_combination_index == null;
-  const selectedIndex = graph ? bestIntentIndex(graph, current.intent_capabilities) : Number(current.intent_combination_index ?? 0);
+  const selectedIndex = Number(current.intent_combination_index ?? 0);
   const selected = graph?.combinations[selectedIndex];
   const availableLabels = new Map(graph?.nodes.map((node) => [node.label.toLocaleLowerCase(), node.label]) ?? []);
   const retainedCustomCapabilities = customIntent
@@ -397,8 +393,11 @@ export async function authorizationForUser(userId: string) {
 }
 
 export async function isCurrentAgentExecutionTarget(userId: string, candidateProfileId: string, jobCreatedAt?: string) {
+  const requiresSubscription = PAYWALL_ENABLED && !await isAccountAdmin(userId);
   const [subscriptions, onboarding, authorizations] = await Promise.all([
-    supabaseRest(`agent_subscriptions?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&status=in.(active,trialing)&select=id&limit=1`),
+    requiresSubscription
+      ? supabaseRest(`agent_subscriptions?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&status=in.(active,trialing)&select=id&limit=1`)
+      : supabaseRest(`candidate_profiles?user_id=eq.${encodeURIComponent(userId)}&id=eq.${encodeURIComponent(candidateProfileId)}&select=id&limit=1`),
     supabaseRest(`agent_onboarding?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&completed_at=not.is.null&select=user_id,updated_at&limit=1`),
     supabaseRest(`agent_authorizations?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&status=eq.active&select=updated_at&limit=1`),
   ]);
@@ -853,18 +852,42 @@ export async function releaseHotLeadNotification(matchId: string) {
   });
 }
 
+async function allFeedRows(query: string) {
+  const rows = [];
+  for (let offset = 0; ; offset += 200) {
+    const page = await supabaseRest(`${query}&offset=${offset}`);
+    rows.push(...(page ?? []));
+    if (!page || page.length < 200) return rows;
+  }
+}
+
+async function marketContextForUser(userId: string, candidateProfileId?: string): Promise<UserContext> {
+  const [applications, profiles] = await Promise.all([
+    supabaseRest(`application_profiles?user_id=eq.${encodeURIComponent(userId)}&select=target_locations,contract_types&limit=1`),
+    candidateProfileId ? supabaseRest(`candidate_profiles?id=eq.${encodeURIComponent(candidateProfileId)}&user_id=eq.${encodeURIComponent(userId)}&select=constraints&limit=1`) : Promise.resolve([]),
+  ]);
+  return { workMode: "global_remote", country: profiles?.[0]?.constraints?.country ?? applications?.[0]?.target_locations?.[0], contractTypes: applications?.[0]?.contract_types ?? [] };
+}
+
 export async function agentFeed(userId: string, candidateProfileId?: string) {
   const now = encodeURIComponent(new Date().toISOString());
   const profileFilter = candidateProfileId ? `&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}` : "";
   const boundary = candidateProfileId ? await matchingBoundaryForUser(userId, candidateProfileId) : null;
   const since = boundary ? `&updated_at=gte.${encodeURIComponent(boundary)}` : "";
-  const [rows, intentCapabilities] = await Promise.all([
-    supabaseRest(`opportunity_matches?user_id=eq.${encodeURIComponent(userId)}${profileFilter}${since}&status=neq.dismissed&select=id,combination_index,fit_label,fit_reason,score,status,created_at,updated_at,notified_at,deep_analysis,market_opportunities!inner(id,title,source,source_url,kind,buyer,posted_at,compensation,location,remote_status,summary,required_skills,public_signals,evidence_urls,suggested_offer,opportunity_signatures(contact_method,contact_value))&market_opportunities.expires_at=gt.${now}&order=updated_at.desc&limit=200`),
+  const [rows, intentCapabilities, context] = await Promise.all([
+    allFeedRows(`opportunity_matches?user_id=eq.${encodeURIComponent(userId)}${profileFilter}${since}&status=neq.dismissed&select=id,combination_index,fit_label,fit_reason,score,status,created_at,updated_at,notified_at,deep_analysis,market_opportunities!inner(id,title,source,source_url,kind,buyer,posted_at,compensation,location,remote_status,summary,raw_payload,required_skills,public_signals,evidence_urls,suggested_offer,opportunity_signatures(contact_method,contact_value))&market_opportunities.expires_at=gt.${now}&order=updated_at.desc,id.asc&limit=200`),
     candidateProfileId ? intentCapabilitiesForUser(userId, candidateProfileId) : Promise.resolve([] as string[]),
+    marketContextForUser(userId, candidateProfileId),
   ]);
-  return (rows ?? []).filter((match: { market_opportunities?: Record<string, unknown> | Array<Record<string, unknown>> }) => {
+  const seenRoles = new Set<string>();
+  return (rows ?? []).filter((match: { deep_analysis?: unknown; market_opportunities?: Record<string, unknown> | Array<Record<string, unknown>> }) => {
     const opportunity = Array.isArray(match.market_opportunities) ? match.market_opportunities[0] : match.market_opportunities;
-    return Boolean(opportunity && opportunityTitleSupportsIntent(String(opportunity.title ?? ""), intentCapabilities, String(opportunity.summary ?? "")));
+    if (!opportunity || !isRemoteOnlyOpportunity(opportunity) || !remoteLocationAllows(opportunity, context) || !permitsEmployment(opportunity, { ...context, contractTypes: ["Freelance / contract"] }) || opportunity.kind === "employment" || !(storedBuyerProblemMatches(opportunity, intentCapabilities, match.deep_analysis) || opportunityTitleSupportsIntent(String(opportunity.title ?? ""), intentCapabilities, opportunityEvidence(opportunity)))) return false;
+    const normalize = (value: unknown) => String(value ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const key = opportunity.buyer ? `${normalize(opportunity.buyer)}|${normalize(opportunity.title)}` : String(opportunity.source_url ?? opportunity.id);
+    if (seenRoles.has(key)) return false;
+    seenRoles.add(key);
+    return true;
   });
 }
 
@@ -893,20 +916,17 @@ export async function agentRadarStats(userId: string, candidateProfileId: string
   const scanBoundary = await matchingBoundaryForUser(userId, candidateProfileId);
   const since = `&updated_at=gte.${encodeURIComponent(scanBoundary)}`;
   const snapshotSince = `&created_at=gte.${encodeURIComponent(scanBoundary)}`;
-  const [runs, matches, snapshots, intentCapabilities] = await Promise.all([
+  const [runs, matches, snapshots] = await Promise.all([
     supabaseRest("scan_runs?select=status,started_at,completed_at,query_count,raw_result_count,opportunity_count,match_count&order=started_at.desc&limit=5"),
-    supabaseRest(`opportunity_matches?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&status=neq.dismissed${since}&select=id,fit_label,market_opportunities!inner(title,summary,required_skills,source_url,expires_at,opportunity_signatures(contact_method,contact_value))&market_opportunities.expires_at=gt.${encodeURIComponent(now)}&limit=5000`),
+    agentFeed(userId, candidateProfileId),
     supabaseRest(`scan_funnel_snapshots?user_id=eq.${encodeURIComponent(userId)}&candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}${snapshotSince}&select=*&order=created_at.desc&limit=1`),
-    intentCapabilitiesForUser(userId, candidateProfileId),
   ]);
   const latest = runs?.[0] ?? null;
   const startedAt = latest?.started_at ? new Date(latest.started_at).getTime() : 0;
   const scanning = latest?.status === "running" && Date.now() - startedAt < 10 * 60_000;
   const snapshot = snapshots?.[0] ?? null;
-  const relevantMatches = (matches ?? []).filter((row: { market_opportunities?: Record<string, unknown> | Array<Record<string, unknown>> }) => {
-    const opportunity = Array.isArray(row.market_opportunities) ? row.market_opportunities[0] : row.market_opportunities;
-    return Boolean(opportunity && opportunityTitleSupportsIntent(String(opportunity.title ?? ""), intentCapabilities, String(opportunity.summary ?? "")));
-  });
+  // Radar and list must count the exact same current, eligible records.
+  const relevantMatches = matches;
   const storedMatchCount = relevantMatches.length;
   const currentStrongCount = relevantMatches.filter((row: { fit_label?: string }) => row.fit_label === "Strong fit").length;
   const channelCounts = relevantMatches.reduce((counts: { platform: number; email: number }, row: {
@@ -937,7 +957,12 @@ export async function agentRadarStats(userId: string, candidateProfileId: string
     platformLeads: channelCounts.platform,
     emailLeads: channelCounts.email,
     hotLeads: channelCounts.platform + channelCounts.email,
-    opportunityTypeBreakdown: snapshot?.opportunity_type_breakdown ?? {},
+    opportunityTypeBreakdown: relevantMatches.reduce((counts: Record<string, number>, row: { market_opportunities?: Record<string, unknown> | Array<Record<string, unknown>> }) => {
+      const opportunity = Array.isArray(row.market_opportunities) ? row.market_opportunities[0] : row.market_opportunities;
+      const kind = String(opportunity?.kind ?? "employment");
+      counts[kind] = (counts[kind] ?? 0) + 1;
+      return counts;
+    }, {}),
     filteredOutReasons: snapshot?.filtered_out_reasons ?? { location: 0, expired: 0, duplicate: 0, low_fit: 0 },
     lastCompletedAt: snapshot?.created_at ?? null,
   };
@@ -949,16 +974,16 @@ export async function capacityGraphForCandidate(candidateProfileId?: string | nu
     supabaseRest(`capacity_graphs?candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&is_active=eq.true&select=graph&limit=1`),
     supabaseRest(`candidate_scans?candidate_profile_id=eq.${encodeURIComponent(candidateProfileId)}&select=analysis_id&order=created_at.desc&limit=1`),
   ]);
-  const stored = rows?.[0]?.graph as CapacityGraph | undefined;
+  const rawStored = rows?.[0]?.graph as CapacityGraph | undefined;
+  const stored = rawStored ? sanitizeCapacityGraph(rawStored) : undefined;
   const analysisId = scans?.[0]?.analysis_id as string | undefined;
   if (!analysisId) return stored ?? null;
   const analyses = await supabaseRest(`analyses?id=eq.${encodeURIComponent(analysisId)}&select=result&limit=1`);
   const result = analyses?.[0]?.result;
   if (!result) return stored ?? null;
-  const rebuilt = ensureCapacityGraph(result).capacityGraph;
+  const rebuilt = ensureCapacityGraph({ ...result, capacityGraph: stored ?? result.capacityGraph }).capacityGraph;
   if (!rebuilt) return stored ?? null;
-  const labelCount = (graph?: CapacityGraph) => new Set((graph?.nodes ?? []).map((node) => node.label.trim().toLocaleLowerCase())).size;
-  return labelCount(rebuilt) > labelCount(stored) ? rebuilt : stored ?? rebuilt;
+  return rebuilt;
 }
 
 export async function updateMatchStatus(userId: string, matchId: string, status: "saved" | "dismissed" | "new" | "drafted") {
@@ -969,14 +994,15 @@ export async function updateMatchStatus(userId: string, matchId: string, status:
 }
 
 export async function matchForUser(userId: string, matchId: string) {
-  const rows = await supabaseRest(`opportunity_matches?id=eq.${encodeURIComponent(matchId)}&user_id=eq.${encodeURIComponent(userId)}&status=neq.dismissed&select=id,user_id,candidate_profile_id,opportunity_id,combination_index,fit_reason,fit_label,score,updated_at,market_opportunities!inner(id,title,source,buyer,source_url,kind,suggested_offer,summary,required_skills,location,remote_status,authorization,public_signals,raw_payload,expires_at,opportunity_signatures(contact_method,contact_value))&market_opportunities.expires_at=gt.${encodeURIComponent(new Date().toISOString())}&limit=1`);
+  const rows = await supabaseRest(`opportunity_matches?id=eq.${encodeURIComponent(matchId)}&user_id=eq.${encodeURIComponent(userId)}&status=neq.dismissed&select=id,user_id,candidate_profile_id,opportunity_id,combination_index,fit_reason,fit_label,score,updated_at,deep_analysis,market_opportunities!inner(id,title,source,buyer,source_url,kind,suggested_offer,summary,required_skills,location,remote_status,authorization,public_signals,raw_payload,expires_at,opportunity_signatures(contact_method,contact_value))&market_opportunities.expires_at=gt.${encodeURIComponent(new Date().toISOString())}&limit=1`);
   const match = rows?.[0] ?? null;
   if (!match?.candidate_profile_id) return null;
   const boundary = await matchingBoundaryForUser(userId, String(match.candidate_profile_id));
   if (new Date(match.updated_at ?? 0).getTime() < new Date(boundary).getTime()) return null;
   const opportunity = Array.isArray(match.market_opportunities) ? match.market_opportunities[0] : match.market_opportunities;
   const intentCapabilities = await intentCapabilitiesForUser(userId, String(match.candidate_profile_id));
-  if (!opportunity || !opportunityTitleSupportsIntent(String(opportunity.title ?? ""), intentCapabilities, String(opportunity.summary ?? ""))) return null;
+  const context = await marketContextForUser(userId, String(match.candidate_profile_id));
+  if (!opportunity || !isRemoteOnlyOpportunity(opportunity) || !remoteLocationAllows(opportunity, context) || !permitsEmployment(opportunity, { ...context, contractTypes: ["Freelance / contract"] }) || opportunity.kind === "employment" || !(storedBuyerProblemMatches(opportunity, intentCapabilities, match.deep_analysis) || opportunityTitleSupportsIntent(String(opportunity.title ?? ""), intentCapabilities, opportunityEvidence(opportunity)))) return null;
   return match;
 }
 
@@ -986,6 +1012,18 @@ export async function activeAgentJobForMatch(userId: string, matchId: string, ki
 }
 
 export async function subscriptionForUser(userId: string) {
+  const admin = await isAccountAdmin(userId);
+  if (!PAYWALL_ENABLED || admin) {
+    // Read-only free entitlement: keep Stripe records untouched so restoring
+    // the paywall does not accidentally grant a permanent paid subscription.
+    const onboarding = await agentOnboardingForUser(userId);
+    const selected = onboarding?.candidate_profile_id
+      ? await supabaseRest(`candidate_profiles?user_id=eq.${encodeURIComponent(userId)}&id=eq.${encodeURIComponent(onboarding.candidate_profile_id)}&select=id&limit=1`)
+      : null;
+    const profiles = selected?.length ? selected : await supabaseRest(`candidate_profiles?user_id=eq.${encodeURIComponent(userId)}&select=id&order=updated_at.desc,id.desc&limit=1`);
+    const profile = profiles?.[0];
+    return profile ? { id: profile.id, user_id: userId, candidate_profile_id: profile.id, status: admin ? "admin" : "free", stripe_customer_id: null } : null;
+  }
   const rows = await supabaseRest(`agent_subscriptions?user_id=eq.${encodeURIComponent(userId)}&status=in.(active,trialing)&select=*&order=updated_at.desc,created_at.desc&limit=1`);
   return rows?.[0] ?? null;
 }

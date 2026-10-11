@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,13 +19,14 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const locale = await getRequestLocale();
+  const post = getPost(slug, locale);
   if (!post) return {};
   const canonical = postUrl(post);
   const image = `${MAIN_SITE_URL}${post.heroImage}`;
   const metadataTitle = post.seoTitle ?? post.title;
 
-  return {
+  return translateMetadata({
     title: post.seoTitle ? { absolute: metadataTitle } : post.title,
     description: post.description,
     keywords: post.seoKeywords,
@@ -42,12 +47,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.description,
       images: [image],
     },
-  };
+  }, await getRequestLocale());
 }
 
 export default async function PostPage({ params }: Props) {
+  const contentLocale = await getRequestLocale();
   const { slug } = await params;
-  const post = getPost(slug);
+  const locale = await getRequestLocale();
+  const post = getPost(slug, locale);
   if (!post) notFound();
   const canonical = postUrl(post);
   const wasMigratedFromLegacyBlog = post.source.startsWith(LEGACY_BLOG_ORIGIN);
@@ -67,7 +74,7 @@ export default async function PostPage({ params }: Props) {
     keywords: post.seoKeywords,
     citation: post.sources.map((source) => source.url),
     isAccessibleForFree: true,
-    inLanguage: "en",
+    inLanguage: locale,
   };
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -81,14 +88,14 @@ export default async function PostPage({ params }: Props) {
   const blogNavUrl = process.env.NEXT_PUBLIC_BLOG_NAV_URL ?? (process.env.NODE_ENV === "development" ? "/blog" : BLOG_URL);
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(articleJsonLd, contentLocale)).replace(/</g, "\\u003c") }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(breadcrumbJsonLd, contentLocale)).replace(/</g, "\\u003c") }}
       />
       <BlogHeader cta={headerCta} />
       <article className="shell py-12 md:py-20">
@@ -98,8 +105,8 @@ export default async function PostPage({ params }: Props) {
           <p className="mt-6 max-w-3xl text-lg leading-8 text-black/65">{post.description}</p>
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold text-black/50">
             <Link href={EDITORIAL_AUTHOR_URL} className="underline underline-offset-4">By {EDITORIAL_AUTHOR_NAME}</Link>
-            <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time>
-            {post.modifiedAt !== post.publishedAt ? <span>Updated {formatPostDate(post.modifiedAt)}</span> : null}
+            <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt, locale)}</time>
+            {post.modifiedAt !== post.publishedAt ? <span>Updated {formatPostDate(post.modifiedAt, locale)}</span> : null}
             <span>{Math.max(1, Math.round(post.wordCount / 220))} min read</span>
           </div>
           <Image
@@ -134,6 +141,6 @@ export default async function PostPage({ params }: Props) {
         </aside>
       </article>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
 }

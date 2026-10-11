@@ -1,4 +1,8 @@
 "use client";
+import { useLocale, useDisplayTranslations } from "@/components/localization-provider";
+import { translateText } from "@/lib/localized-text";
+import { Localized } from "@/components/localized";
+
 
 import { useEffect, useRef } from "react";
 import type {
@@ -44,6 +48,8 @@ export function CapacityGraphCanvas({
   onSelect,
   onClear,
 }: CapacityGraphCanvasProps) {
+  const locale = useLocale();
+  const translations = useDisplayTranslations();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef({
     rotation: 0,
@@ -227,7 +233,7 @@ export function CapacityGraphCanvas({
       labelCandidates
         .sort((left, right) => Number(right.selected) - Number(left.selected) || right.node.importance - left.node.importance)
         .forEach(({ node, x, y, radius, selected }) => {
-          const text = node.label.slice(0, 34);
+          const text = translateText(node.label, locale, translations).slice(0, 34);
           context.font = `${selected ? 700 : 600} ${selected ? 13 : 10.5}px -apple-system, BlinkMacSystemFont, sans-serif`;
           const width = Math.min(190, context.measureText(text).width + 10);
           const top = y + radius + 5;
@@ -267,7 +273,7 @@ export function CapacityGraphCanvas({
       observer.disconnect();
       cancelAnimationFrame(animation);
     };
-  }, [scene, selectedId, selectedIds, active, fullscreen]);
+  }, [scene, selectedId, selectedIds, active, fullscreen, locale, translations]);
 
   function pointerDown(event: React.PointerEvent<HTMLCanvasElement>) {
     const state = stateRef.current;
@@ -316,7 +322,7 @@ export function CapacityGraphCanvas({
   }
 
   return (
-    <canvas
+    <Localized><canvas
       ref={canvasRef}
       aria-label="Interactive Capacity Graph"
       role="img"
@@ -334,6 +340,6 @@ export function CapacityGraphCanvas({
         display: "block",
         touchAction: "pan-y",
       }}
-    />
+    /></Localized>
   );
 }

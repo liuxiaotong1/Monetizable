@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -65,7 +67,7 @@ export function AuthForm({
 
   if (signedInEmail) {
     return (
-      <section className="card mt-8 max-w-xl p-6 md:p-8">
+      <Localized><section className="card mt-8 max-w-xl p-6 md:p-8">
         <div className="eyebrow text-[var(--gold-deep)]">Current session</div>
         <h2 className="mt-3 text-2xl font-black">You’re signed in</h2>
         <p className="mt-2 text-black/60">{signedInEmail}</p>
@@ -74,12 +76,12 @@ export function AuthForm({
           {loading ? "Signing out…" : "Use another account"}
         </button>
         {message && <p role="alert" className="mt-4 text-sm">{message}</p>}
-      </section>
+      </section></Localized>
     );
   }
 
   return (
-    <section className="card mt-8 max-w-xl p-6 md:p-8">
+    <Localized><section className="card mt-8 max-w-xl p-6 md:p-8">
       <div className="grid grid-cols-2 rounded-full bg-black/[.05] p-1" role="tablist" aria-label="Authentication mode">
         {(["login", "signup"] as const).map((value) => (
           <button
@@ -111,6 +113,6 @@ export function AuthForm({
       </form>
       {mode === "signup" ? <p className="mt-4 text-xs leading-5 text-black/45">By creating an account, you agree to Monetizable’s Terms and Privacy Policy.</p> : null}
       {message ? <p role="status" className="mt-4 text-sm leading-6 text-black/60">{message}</p> : null}
-    </section>
+    </section></Localized>
   );
 }

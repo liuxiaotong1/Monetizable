@@ -1,21 +1,30 @@
 "use client";
+import { useDisplayTranslations } from "@/components/localization-provider";
+import { translateText } from "@/lib/localized-text";
+import { Localized } from "@/components/localized";
+
 
 import { Header } from "@/components/brand";
 import { Stack } from "@/components/stack";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { ensureCapacityGraph } from "@/lib/capacity-graph";
+import { RoleModelPortrait } from "@/components/role-model-portrait";
 import type { AnalysisResult, Opportunity } from "@/lib/types";
 import { highestPriceRange, numericPriceDisplay } from "@/lib/pricing";
 import { trackClient } from "@/lib/client-analytics";
 import { getMessages, type Locale } from "@/lib/i18n";
+import { isRemoteOnlyOpportunity } from "@/lib/remote-only";
 
 function trackClick(resultId: string, opportunity: Opportunity) {
   trackClient("opportunity_clicked", { analysisId: resultId, opportunityId: opportunity.id, source: opportunity.source });
 }
 
-function copyReadyOutreach(value: string, positioning: string, targetClient: string) {
-  if (/^(hi|hello|hey|i help|i work|i specialize)/i.test(value.trim())) return value;
-  return `Hi — ${positioning} I’m reaching out because this may be relevant to ${targetClient}. Would you be open to a small paid pilot?`;
+function copyReadyOutreach(value: string, positioning: string, targetClient: string, locale: Locale, translations: Record<string, string>) {
+  if (/^(hi|hello|hey|dear|i help|i work|i specialize|bonjour|bonsoir|salut|madame|monsieur|je )/i.test(value.trim())) return translateText(value, locale, translations);
+  const statement = translateText(positioning, locale, translations);
+  const buyer = translateText(targetClient, locale, translations);
+  return locale === "fr"
+    ? `Bonjour — ${statement} Je vous contacte car cette offre pourrait intéresser ${buyer}. Seriez-vous ouvert à une courte mission pilote rémunérée ?`
+    : `Hi — ${statement} I’m reaching out because this may be relevant to ${buyer}. Would you be open to a small paid pilot?`;
 }
 
 function constructiveCombinationCopy(value: string) {
@@ -25,18 +34,19 @@ function constructiveCombinationCopy(value: string) {
   return value;
 }
 
-export function Report({ result, locale }: { result: AnalysisResult; locale: Locale }) {
-  const router = useRouter();
+export function Report({ result: rawResult, locale }: { result: AnalysisResult; locale: Locale }) {
+  const translations = useDisplayTranslations();
+  const result = ensureCapacityGraph(rawResult);
   const copy = getMessages(locale);
-  const topOpportunities = result.opportunities.slice(0, 10);
+  const topOpportunities = result.opportunities.filter(isRemoteOnlyOpportunity).slice(0, 3);
   const fastestService = result.combinations[0]?.services[0];
   const targetClient = result.positioning.targetClient ?? (fastestService ? `Teams buying ${fastestService.name.toLowerCase()}` : "buyers in your strongest niche");
   const pricing = result.pricing[0];
   const highestPricing = highestPriceRange(pricing?.range);
   const earningRange = numericPriceDisplay(result.positioning.estimatedEarningRange ?? highestPricing) ?? "$1,500–$5,000";
-  const outreach = copyReadyOutreach(result.positioning.outreachAngle, result.positioning.sentence, targetClient);
+  const outreach = copyReadyOutreach(result.positioning.outreachAngle, result.positioning.sentence, targetClient, locale, translations);
 
-  return <main className="min-h-screen pb-24">
+  return <Localized><main className="min-h-screen pb-24">
     <Header locale={locale} />
     <section className="shell pt-8 md:pt-14">
       <div className="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--line)] pb-8">
@@ -44,8 +54,10 @@ export function Report({ result, locale }: { result: AnalysisResult; locale: Loc
           <div className="eyebrow text-[var(--gold-deep)]">{copy.reportEyebrow}</div>
           <h1 className="editorial-title mt-3 text-4xl md:text-6xl">{copy.reportTitle}</h1>
         </div>
-        <div className="gold-surface rounded-full px-4 py-2 text-xs font-black uppercase tracking-wider">{copy.unlocked}</div>
+        <div className="gold-surface rounded-full px-4 py-2 text-xs font-black uppercase tracking-wider">{result.paid ? copy.unlocked : (locale === "fr" ? "Analyse prête" : "Analysis ready")}</div>
       </div>
+
+      <div className="mt-7 flex flex-wrap items-center gap-4"><a href={`/unlock/${result.id}`} className="button gold-surface">Build my personal skill stack and outreach {result.paid ? "→" : "🔒"}</a><p className="text-sm text-black/60">{result.paid ? "Emails are sent only after your approval." : "One-time unlock. Your analysis remains free to read."}</p></div>
 
       {fastestService && <div className="priority-strip mt-7 grid gap-px overflow-hidden rounded-2xl border border-black bg-white/25 sm:grid-cols-2">
         <Priority label={copy.speed} value={fastestService.speed_to_monetize} />
@@ -118,10 +130,10 @@ export function Report({ result, locale }: { result: AnalysisResult; locale: Loc
             {result.combinations.slice(0, 3).map((combo) => combo.careerProspect && <article key={`${combo.elements.join("-")}-prospect`} className="card p-6 md:p-9">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="flex min-w-0 items-center gap-5">
-                  {combo.careerProspect.imageUrl && <Image src={combo.careerProspect.imageUrl} alt={`${combo.careerProspect.name} portrait`} width={128} height={128} unoptimized className="h-24 w-24 shrink-0 rounded-full border-2 border-[var(--gold)] object-cover object-[center_18%] shadow-lg md:h-32 md:w-32" />}
+                  <RoleModelPortrait prospect={combo.careerProspect} />
                   <div className="min-w-0">
                     <div className="eyebrow text-[var(--gold-deep)]">{copy.roleModel}</div>
-                    <h3 className="editorial-title mt-2 text-3xl font-black leading-none md:text-5xl">{combo.careerProspect.name}</h3>
+                    <h3 className="editorial-title mt-2 text-3xl font-black leading-none md:text-5xl"><span translate="no">{combo.careerProspect.name}</span></h3>
                     <p className="mt-3 text-sm font-bold text-black/55 md:text-base">{combo.careerProspect.roleModelTitle}</p>
                     <div className="mt-3 text-sm font-black text-[var(--gold-deep)]">{combo.elements.join(" × ")}</div>
                   </div>
@@ -139,25 +151,23 @@ export function Report({ result, locale }: { result: AnalysisResult; locale: Loc
         </div>
       </section>
 
-      <footer className="flex flex-wrap items-center justify-end gap-4 border-t border-[var(--line)] pt-7 text-xs text-black/50">
-        <button onClick={async () => { await fetch(`/api/analysis/${result.id}`, { method: "DELETE" }); router.push("/"); }} className="underline underline-offset-4">{copy.deleteAnalysis}</button>
-      </footer>
+      <div className="border-t border-[var(--line)] pt-7"><a href={`/unlock/${result.id}`} className="button gold-surface">Build my personal skill stack and outreach {result.paid ? "→" : "🔒"}</a><p className="mt-3 text-sm text-black/60">{result.paid ? "Choose your direction. Emails are sent only after your approval." : "One-time unlock. Your analysis remains free to read."}</p></div>
     </section>
-  </main>;
+  </main></Localized>;
 }
 
 function SectionTitle({ number, title, intro }: { number: string; title: string; intro: string }) {
-  return <div className="grid gap-3 md:grid-cols-[70px_1fr_1fr] md:items-start"><div className="eyebrow text-[var(--gold-deep)]">{number}</div><h2 className="editorial-title text-3xl md:text-4xl">{title}</h2><p className="max-w-xl leading-7 text-black/62">{intro}</p></div>;
+  return <Localized><div className="grid gap-3 md:grid-cols-[70px_1fr_1fr] md:items-start"><div className="eyebrow text-[var(--gold-deep)]">{number}</div><h2 className="editorial-title text-3xl md:text-4xl">{title}</h2><p className="max-w-xl leading-7 text-black/62">{intro}</p></div></Localized>;
 }
 
 function PositionModule({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="border-l-[3px] border-[var(--gold)] py-1 pl-5 md:pl-7"><div className="eyebrow mb-3 text-black/45">{label}</div>{children}</div>;
+  return <Localized><div className="border-l-[3px] border-[var(--gold)] py-1 pl-5 md:pl-7"><div className="eyebrow mb-3 text-black/45">{label}</div>{children}</div></Localized>;
 }
 
 function CareerField({ label, value }: { label: string; value: string }) {
-  return <div className="border-l-[3px] border-[var(--gold)] pl-5"><div className="eyebrow text-black/45">{label}</div><p className="mt-3 max-w-[65ch] leading-7 text-black/75">{value}</p></div>;
+  return <Localized><div className="border-l-[3px] border-[var(--gold)] pl-5"><div className="eyebrow text-black/45">{label}</div><p className="mt-3 max-w-[65ch] leading-7 text-black/75">{value}</p></div></Localized>;
 }
 
 function Priority({ label, value }: { label: string; value: string }) {
-  return <div className="bg-black p-4 md:px-6"><div className="eyebrow text-[var(--gold-bright)]">{label}</div><div className="mt-2 text-lg font-black capitalize">{value}</div></div>;
+  return <Localized><div className="bg-black p-4 md:px-6"><div className="eyebrow text-[var(--gold-bright)]">{label}</div><div className="mt-2 text-lg font-black capitalize">{value}</div></div></Localized>;
 }

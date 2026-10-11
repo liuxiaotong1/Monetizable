@@ -35,15 +35,20 @@ export async function POST(request: Request) {
       }
       await trackServer("purchase_completed", { analysisId, product: "opportunity_agent", stripeEventId: event.id });
     }
-  } else if (event.type === "checkout.session.completed" && object.payment_status === "paid") {
+  } else if (event.type === "checkout.session.completed" && object.mode === "payment" && object.payment_status === "paid") {
     const id = object.metadata?.analysis_id ?? object.client_reference_id;
     if (id) await markAnalysisPaid(id, object.id);
   } else if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
-    await updateSubscriptionByStripeId(String(object.id), { status: event.type === "customer.subscription.deleted" ? "canceled" : object.status, currentPeriodEnd: periodEnd(object.current_period_end) });
+    // Events can arrive out of order: read Stripe's current state so an older
+    // update cannot restore access after cancellation.
+    const subscription = await retrieveSubscription(String(object.id));
+    await updateSubscriptionByStripeId(String(object.id), { status: subscription.status, currentPeriodEnd: periodEnd(subscription.current_period_end ?? subscription.items?.data?.[0]?.current_period_end) });
   } else if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
     const subscriptionId = object.subscription ?? object.parent?.subscription_details?.subscription;
-    const end = object.lines?.data?.[0]?.period?.end;
-    if (subscriptionId) await updateSubscriptionByStripeId(String(subscriptionId), { status: event.type === "invoice.paid" ? "active" : "past_due", currentPeriodEnd: periodEnd(end) });
+    if (subscriptionId) {
+      const subscription = await retrieveSubscription(String(subscriptionId));
+      await updateSubscriptionByStripeId(String(subscriptionId), { status: subscription.status, currentPeriodEnd: periodEnd(subscription.current_period_end ?? subscription.items?.data?.[0]?.current_period_end) });
+    }
   }
   return NextResponse.json({ received: true });
 }

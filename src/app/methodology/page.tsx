@@ -1,14 +1,19 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/info-page";
 import { MAIN_SITE_URL } from "@/lib/blog";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Skill and Market-Demand Methodology",
   description: "How Monetizable extracts evidence, builds skill combinations, searches public demand, ranks opportunities, and communicates limitations.",
   alternates: { canonical: `${MAIN_SITE_URL}/methodology` },
 };
 
-export default function MethodologyPage() {
+export default async function MethodologyPage() {
+  const contentLocale = await getRequestLocale();
   const methodologyJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -17,7 +22,7 @@ export default function MethodologyPage() {
     about: ["skill analysis", "skills-first careers", "market demand validation"],
     reviewedBy: { "@type": "Organization", name: "Monetizable", url: MAIN_SITE_URL },
   };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(methodologyJsonLd).replace(/</g, "\\u003c") }} /><InfoPage eyebrow="Methodology" title="How Monetizable turns experience into testable market hypotheses." description="The system separates profile evidence, AI-assisted interpretation, and public-market validation so users can see what is observed, what is inferred, and what remains uncertain.">
+  return <Localized><><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(methodologyJsonLd, contentLocale)).replace(/</g, "\\u003c") }} /><InfoPage eyebrow="Methodology" title="How Monetizable turns experience into testable market hypotheses." description="The system separates profile evidence, AI-assisted interpretation, and public-market validation so users can see what is observed, what is inferred, and what remains uncertain.">
     <h2>1. Evidence intake</h2>
     <p>The analysis starts with a user-provided CV, pasted experience, or publicly accessible professional information. With the required consent, the original CV is retained privately for future opportunity matching. The system normalizes roles, projects, education, languages, certifications, tools, and other demonstrated capabilities while removing duplicate evidence.</p>
     <h2>2. Skill graph and combinations</h2>
@@ -34,5 +39,9 @@ export default function MethodologyPage() {
     <p>AI can misinterpret ambiguous experience, public pages can be incomplete, and market listings change quickly. Users should verify important recommendations, licensing requirements, rates, and buyer fit independently. The product is not a substitute for legal, financial, tax, immigration, or regulated-career advice.</p>
     <h2>Privacy and retention</h2>
     <p>Original CV files and structured Capacity Graphs are stored privately only after affirmative consent and can be deleted from the product. Extracted CV text is not stored as a separate record. Generated analysis pages expire after 24 hours by default. Subscription cancellation and candidate-data deletion are separate actions. See the privacy page for the current operational summary.</p>
-  </InfoPage></>;
+  </InfoPage></></Localized>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

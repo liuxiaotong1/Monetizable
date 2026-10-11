@@ -1,5 +1,5 @@
 import type { AnalysisResult, Preview } from "@/lib/types";
-import { buildCapacityGraph } from "@/lib/capacity-graph";
+import { buildCapacityGraph, ensureCapacityGraph } from "@/lib/capacity-graph";
 
 function conciseSkillLabel(value: string) {
   const clean = value.replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
@@ -23,31 +23,32 @@ function constructiveCombinationCopy(value: string) {
   return value;
 }
 
-export function toPreview(result: AnalysisResult): Preview {
+export function toPreview(rawResult: AnalysisResult): Preview {
+  const result = ensureCapacityGraph(rawResult);
   const strongest = result.combinations[0];
   const pricing = result.pricing[0];
   return {
     analysisId: result.id,
     profileName: conciseProfileName(result.profile.name),
-    strongestCombination: strongest.elements.map(conciseSkillLabel),
-    combinationEvidence: strongest.evidence.slice(0, 3),
+    strongestCombination: strongest?.elements.map(conciseSkillLabel) ?? [],
+    combinationEvidence: strongest?.evidence.slice(0, 3) ?? [],
     servicePreview: {
-      name: strongest.services[0].name,
-      description: strongest.services[0].description,
-      location_dependency: strongest.services[0].location_dependency,
-      speed_to_monetize: strongest.services[0].speed_to_monetize,
+      name: strongest?.services[0]?.name ?? "Explore your evidenced capabilities",
+      description: strongest?.services[0]?.description ?? "Choose capabilities from your saved profile to explore a direction.",
+      location_dependency: strongest?.services[0]?.location_dependency ?? "low",
+      speed_to_monetize: strongest?.services[0]?.speed_to_monetize ?? "Slower",
     },
-    demandLevel: strongest.demandLevel,
+    demandLevel: strongest?.demandLevel ?? "Low",
     pricing: pricing?.sampleSize >= 2 && hasComparablePricing(pricing.range) ? pricing : undefined,
     liveOpportunityCount: result.opportunities.length,
-    opportunityTeasers: result.opportunities.slice(0, 10).map((opportunity) => ({
+    opportunityTeasers: result.opportunities.slice(0, 3).map((opportunity) => ({
       source: opportunity.source,
       fitLabel: opportunity.fitLabel,
       kind: opportunity.kind,
       locationDependency: opportunity.location_dependency,
       speedToMonetize: opportunity.speed_to_monetize,
     })),
-    explanation: constructiveCombinationCopy(strongest.differentiation),
+    explanation: strongest ? constructiveCombinationCopy(strongest.differentiation) : "Select a direction using your evidenced capabilities.",
     weakProfile: result.weakProfile,
     searchStatus: result.searchStatus,
     expiresAt: result.expiresAt,

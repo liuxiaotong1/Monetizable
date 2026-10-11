@@ -126,6 +126,15 @@ export interface WeakProfile {
 }
 
 export interface Opportunity {
+  buyerProblemMatch?: {
+    version: 1 | 2;
+    selectedStack: string[];
+    problem: BuyerProblem;
+  };
+  employmentType?: string;
+  eligibleLocations?: string[];
+  /** Full source evidence, kept separate from the short display description. */
+  listingEvidence?: string;
   id: string;
   title: string;
   source: string;
@@ -148,6 +157,15 @@ export interface Opportunity {
   publicSignals?: string[];
   suggestedOffer?: string;
   evidenceUrls?: string[];
+}
+
+export interface BuyerProblem {
+  buyer: string;
+  problem: string;
+  outcome: string;
+  capabilities: string[];
+  searchThemes: string[];
+  evidenceGroups: string[][];
 }
 
 export interface PricingEvidence {
@@ -182,6 +200,7 @@ export interface CapacityGraph {
 }
 
 export interface AnalysisResult {
+  locale?: "en" | "fr";
   id: string;
   createdAt: string;
   expiresAt: string;

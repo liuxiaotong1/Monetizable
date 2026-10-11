@@ -11,6 +11,8 @@ node_modules-prev/
 graphify-out/
 .codex-artifacts/
 outputs/
+output/
+.codex-pitch-snee/
 supabase/.temp/
 content/geo/
 src/app/*--route-entry.js

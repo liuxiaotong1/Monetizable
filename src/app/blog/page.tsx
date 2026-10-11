@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -5,7 +9,7 @@ import { BlogFooter, BlogHeader } from "@/components/blog-shell";
 import { BLOG_FEED_URL, BLOG_URL, formatPostDate, getAllPosts, MAIN_SITE_URL } from "@/lib/blog";
 import { getAllGuides } from "@/lib/guides";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Skill intelligence and market-demand insights",
   description: "Evidence-led guides to uncover valuable skill combinations, validate market demand, and find work people are already paying for.",
   alternates: {
@@ -20,8 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
+export default async function BlogPage() {
+  const contentLocale = await getRequestLocale();
+  const locale = await getRequestLocale();
+  const posts = getAllPosts(locale);
   const guides = getAllGuides();
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -32,10 +38,10 @@ export default function BlogPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(organizationJsonLd, contentLocale)).replace(/</g, "\\u003c") }}
       />
       <BlogHeader />
       <section className="shell py-14 md:py-20">
@@ -86,7 +92,7 @@ export default function BlogPage() {
                 />
               </Link>
               <div className="p-6 md:p-7">
-                <div className="eyebrow text-black/45">{formatPostDate(post.publishedAt)} · {Math.max(1, Math.round(post.wordCount / 220))} min read</div>
+                <div className="eyebrow text-black/45">{formatPostDate(post.publishedAt, locale)} · {Math.max(1, Math.round(post.wordCount / 220))} min read</div>
                 <h2 className="editorial-title mt-3 text-3xl leading-tight"><Link href={`/post/${post.slug}`} className="hover:text-[var(--gold-deep)]">{post.title}</Link></h2>
                 <p className="mt-4 leading-7 text-black/62">{post.description}</p>
                 <Link href={`/post/${post.slug}`} className="mt-5 inline-flex font-black underline decoration-[var(--gold)] decoration-2 underline-offset-4">Read the guide →</Link>
@@ -96,6 +102,10 @@ export default function BlogPage() {
         </div>
       </section>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

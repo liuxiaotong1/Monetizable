@@ -1,3 +1,6 @@
+import { LanguageSwitcher } from "@/components/language-switcher";
+
+import { Localized } from "@/components/localized";
 import Link from "next/link";
 import { BLOG_URL, MAIN_SITE_URL } from "@/lib/blog";
 import { Brand } from "@/components/brand";
@@ -25,17 +28,18 @@ export function BlogHeader({ cta = "package" }: { cta?: BlogCta }) {
   const ctaLabel = cta === "outreach" ? "Outreach opportunities with Agent" : "Package your expertise";
   const ctaHref = cta === "outreach" ? mainPage("/agent") : `${mainNavUrl === "/" ? "" : mainNavUrl}/#analyze`;
   return (
-    <header className="border-b border-black/10 bg-[var(--cream)]">
+    <Localized><header className="border-b border-black/10 bg-[var(--cream)]">
       <div className="shell flex min-h-20 items-center justify-between gap-5">
         <Brand href={mainNavUrl} />
         <nav aria-label="Blog navigation" className="flex items-center gap-4 text-sm font-bold">
           <Link href={blogNavUrl} className="hidden underline-offset-4 hover:underline sm:inline">Insights</Link>
           <Link href="/guides" className="hidden underline-offset-4 hover:underline md:inline">Guides</Link>
           <Link href="/faq" className="hidden underline-offset-4 hover:underline md:inline">FAQ</Link>
+          <LanguageSwitcher />
           <Link href={ctaHref} className="button min-h-10 px-4">{ctaLabel}</Link>
         </nav>
       </div>
-    </header>
+    </header></Localized>
   );
 }
 
@@ -43,7 +47,7 @@ export function BlogFooter() {
   const { blog: blogNavUrl, main: mainNavUrl, mainPage } = navigationUrls();
   const showPreferredSourceCta = preferredSourceCtaEnabled();
   return (
-    <footer className="mt-20 border-t border-black/10 py-10">
+    <Localized><footer className="mt-20 border-t border-black/10 py-10">
       <div className="shell flex flex-col justify-between gap-4 text-sm text-black/60 sm:flex-row">
         <p>© {new Date().getUTCFullYear()} Monetizable. Evidence-led career intelligence.</p>
         <div className="flex flex-wrap gap-5 font-bold text-black">
@@ -63,6 +67,6 @@ export function BlogFooter() {
           <Link href={mainNavUrl}>Try Monetizable</Link>
         </div>
       </div>
-    </footer>
+    </footer></Localized>
   );
 }

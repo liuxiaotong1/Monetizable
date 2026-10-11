@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n";
+
 export type WorksheetEvidence = {
   situation: string;
   action: string;
@@ -19,11 +21,13 @@ export function skillStackFromLayers(layers: string[], limit = 8) {
   return stack;
 }
 
-export function positioningHypothesis({ stack, buyer, problem, outcome }: { stack: string[]; buyer: string; problem: string; outcome: string }) {
-  const combination = stack.length ? stack.join(" + ") : "[your strongest evidence-backed skills]";
-  const audience = buyer.trim() || "[a defined buyer]";
-  const pain = problem.trim() || "[a costly or recurring problem]";
-  const result = outcome.trim() || "[a measurable outcome]";
+export function positioningHypothesis({ stack, buyer, problem, outcome }: { stack: string[]; buyer: string; problem: string; outcome: string }, locale: Locale = "en") {
+  const fr = locale === "fr";
+  const combination = stack.length ? stack.join(" + ") : (fr ? "[vos compétences les mieux étayées]" : "[your strongest evidence-backed skills]");
+  const audience = buyer.trim() || (fr ? "[un acheteur défini]" : "[a defined buyer]");
+  const pain = problem.trim() || (fr ? "[un problème coûteux ou récurrent]" : "[a costly or recurring problem]");
+  const result = outcome.trim() || (fr ? "[un résultat mesurable]" : "[a measurable outcome]");
+  if (fr) return `Je combine ${combination} pour aider ${audience} à résoudre ${pain} et à obtenir ${result}.`;
   return `I combine ${combination} to help ${audience} solve ${pain} and achieve ${result}.`;
 }
 
@@ -34,25 +38,26 @@ export function worksheetSummary({ evidence, domain, execution, people, tools, p
   people: string;
   tools: string;
   positioning: string;
-}) {
+}, locale: Locale = "en") {
+  const fr = locale === "fr";
   const completed = evidence.filter((row) => row.situation.trim() || row.action.trim() || row.result.trim());
   return [
-    "MONETIZABLE — SKILL EVIDENCE WORKSHEET",
+    fr ? "MONETIZABLE — PREUVES DE COMPÉTENCES" : "MONETIZABLE — SKILL EVIDENCE WORKSHEET",
     "",
     ...completed.flatMap((row, index) => [
-      `Evidence ${index + 1}`,
-      `Situation: ${row.situation || "—"}`,
-      `Action: ${row.action || "—"}`,
-      `Result: ${row.result || "—"}`,
+      `${fr ? "Preuve" : "Evidence"} ${index + 1}`,
+      `${fr ? "Situation" : "Situation"}: ${row.situation || "—"}`,
+      `${fr ? "Action" : "Action"}: ${row.action || "—"}`,
+      `${fr ? "Résultat" : "Result"}: ${row.result || "—"}`,
       "",
     ]),
-    `Domain knowledge: ${domain || "—"}`,
-    `Execution skills: ${execution || "—"}`,
-    `People skills: ${people || "—"}`,
-    `Tools and methods: ${tools || "—"}`,
+    `${fr ? "Connaissances métier" : "Domain knowledge"}: ${domain || "—"}`,
+    `${fr ? "Compétences opérationnelles" : "Execution skills"}: ${execution || "—"}`,
+    `${fr ? "Compétences relationnelles" : "People skills"}: ${people || "—"}`,
+    `${fr ? "Outils et méthodes" : "Tools and methods"}: ${tools || "—"}`,
     "",
-    `Positioning hypothesis: ${positioning}`,
+    `${fr ? "Hypothèse de positionnement" : "Positioning hypothesis"}: ${positioning}`,
     "",
-    "Next step: verify the buyer, problem, evidence, and willingness to pay before making a major decision.",
+    fr ? "Prochaine étape : vérifiez l’acheteur, le problème, les preuves et la volonté de payer avant de prendre une décision importante." : "Next step: verify the buyer, problem, evidence, and willingness to pay before making a major decision.",
   ].join("\n");
 }

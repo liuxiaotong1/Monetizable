@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -8,9 +10,24 @@ import {
   type CapacitySceneNode,
 } from "@/lib/capacity-graph-view";
 import { demoCombinationInsight } from "@/lib/demo-career-insights";
+import { demoRoleModel, DEFAULT_DEMO_CAPABILITIES } from "@/lib/demo-role-models";
+import { RoleModelPortrait } from "@/components/role-model-portrait";
 import type { CapacityGraph, CapacityNodeType } from "@/lib/types";
 
 export { demoCombinationInsight } from "@/lib/demo-career-insights";
+
+function DemoRoleModel({ career }: { career: string }) {
+  const prospect = demoRoleModel(career);
+  return <Localized><>
+    <div className={styles.detailLabel}>Role model · a method to learn from</div>
+    <div className={styles.roleModel}>
+      <RoleModelPortrait key={prospect.name} prospect={prospect} />
+      <div><strong>{prospect.name}</strong><p>{prospect.whatTheyBuilt}</p><a href={prospect.profileUrl} target="_blank" rel="noopener noreferrer">About their work ↗</a></div>
+    </div>
+    <div className={styles.roleModelExample}><strong>Example you can try</strong><p>{prospect.stealThisMove}</p></div>
+    <p className={styles.roleModelNote}>Method inspiration, not an identical career or earnings comparison. No affiliation or endorsement.</p>
+  </></Localized>;
+}
 
 const CapacityGraphCanvas = dynamic(
   () =>
@@ -19,7 +36,7 @@ const CapacityGraphCanvas = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className={styles.loading}>Mapping capacities</div>,
+    loading: () => <Localized><div className={styles.loading}>Mapping capacities</div></Localized>,
   },
 );
 
@@ -27,6 +44,7 @@ export interface CapacityGraph3DProps {
   graph: CapacityGraph;
   mode: "demo" | "personalized";
   onExploreOpportunities?: (combinationIndex?: number) => void;
+  onChooseCapabilities?: (capabilities: string[]) => void;
   fallback?: ReactNode;
 }
 
@@ -62,6 +80,7 @@ export function CapacityGraph3D({
   graph,
   mode,
   onExploreOpportunities,
+  onChooseCapabilities,
   fallback,
 }: CapacityGraph3DProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,7 +89,9 @@ export function CapacityGraph3D({
     () => projectCapacityGraph(graph, mode === "demo" ? 42 : 60),
     [graph, mode],
   );
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => mode === "demo"
+    ? scene.nodes.filter(node => DEFAULT_DEMO_CAPABILITIES.includes(node.label)).map(node => node.id)
+    : []);
   const [canRender, setCanRender] = useState<boolean | null>(null);
   const [hasEntered, setHasEntered] = useState(false);
   const [active, setActive] = useState(false);
@@ -126,7 +147,7 @@ export function CapacityGraph3D({
 
   function selectNode(id: string | undefined) {
     if (!id) { setSelectedIds([]); return; }
-    if (mode !== "demo") { setSelectedIds([id]); return; }
+    if (mode !== "demo" && !onChooseCapabilities) { setSelectedIds([id]); return; }
     setSelectedIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current.slice(-2), id]);
   }
   const connected = useMemo(() => {
@@ -155,7 +176,7 @@ export function CapacityGraph3D({
     return fallback ?? <StaticCapacityGraph graph={graph} />;
 
   return (
-    <section
+    <Localized><section
       ref={sectionRef}
       className={`${mode === "demo" ? "shell " : ""}${styles.section}`}
       aria-labelledby={`capacity-graph-${mode}-title`}
@@ -249,8 +270,7 @@ export function CapacityGraph3D({
               <div className={styles.detailBlock}><div className={styles.detailLabel}>Potential buyers to explore</div><p className={styles.evidence}>{demoInsight.market}</p></div>
               <div className={styles.detailBlock}><div className={styles.detailLabel}>Illustrative earning range</div><p className={styles.benchmark}>{demoInsight.earning}</p><p className={styles.evidence}>Demo estimate, not verified salary data or a promise of earnings. Validate against current roles in your location and at your experience level.</p></div>
               <div className={styles.detailBlock}>
-                <div className={styles.detailLabel}>Illustrative role profile</div>
-                <div className={styles.roleModel}><div><strong>{demoInsight.roleModel}</strong><p>{demoInsight.roleModelSummary}</p></div></div>
+                <DemoRoleModel career={demoInsight.career} />
               </div>
               {onExploreOpportunities ? <button type="button" className={styles.cta} onClick={() => onExploreOpportunities()}><span>Build my Capacity Graph</span><span aria-hidden="true">→</span></button> : null}
             </>
@@ -333,12 +353,12 @@ export function CapacityGraph3D({
                     "It connects a demonstrated capacity with adjacent commercial strengths."}
                 </p>
               </div>
-              {onExploreOpportunities && mode !== "demo" && (
+              {(onChooseCapabilities || onExploreOpportunities) && mode !== "demo" && (
                 <button
                   type="button"
                   className={styles.cta}
                   onClick={() =>
-                    onExploreOpportunities(leadingCombination?.index)
+                    onChooseCapabilities ? onChooseCapabilities(selectedNodes.map((node) => node.label)) : onExploreOpportunities?.(leadingCombination?.index)
                   }
                 >
                   <span>Explore opportunities</span>
@@ -357,7 +377,7 @@ export function CapacityGraph3D({
           )}
         </aside>
       </div>
-    </section>
+    </section></Localized>
   );
 }
 
@@ -381,7 +401,7 @@ export function StaticCapacityGraph({ graph }: { graph: CapacityGraph }) {
     {},
   );
   return (
-    <section className={styles.section} aria-label="Capacity Graph">
+    <Localized><section className={styles.section} aria-label="Capacity Graph">
       <div className={styles.staticFallback}>
         <div className={styles.fallbackGroups}>
           {Object.entries(grouped).map(([type, nodes]) => (
@@ -402,6 +422,6 @@ export function StaticCapacityGraph({ graph }: { graph: CapacityGraph }) {
           ))}
         </div>
       </div>
-    </section>
+    </section></Localized>
   );
 }

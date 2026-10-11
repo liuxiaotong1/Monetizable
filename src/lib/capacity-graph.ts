@@ -5,6 +5,20 @@ function clean(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+export function sanitizeCapacityGraph(graph: CapacityGraph, allowed = isCapabilityLabel): CapacityGraph {
+  const nodes = graph.nodes.filter((node) => node.type === "constraint" || allowed(node.label));
+  const ids = new Set(nodes.map((node) => node.id));
+  // Remap edges to their surviving combination. Never relabel an invented offer.
+  const combinations = graph.combinations.filter((item) => item.elements.length >= 2 && item.elements.every(allowed));
+  return { ...graph, nodes, combinations, edges: graph.edges
+    .filter((edge) => ids.has(edge.source) && ids.has(edge.target))
+    .flatMap((edge) => {
+      if (edge.combinationIndex === undefined) return [edge];
+      const index = combinations.indexOf(graph.combinations[edge.combinationIndex]);
+      return index < 0 ? [] : [{ ...edge, combinationIndex: index }];
+    }) };
+}
+
 function nodeKey(type: CapacityNodeType, label: string) {
   return `${type}:${clean(label).toLowerCase()}`;
 }
@@ -30,8 +44,7 @@ export function buildCapacityGraph(input: {
 }): CapacityGraph {
   const { skillGraph, profile, context } = input;
   const combinations = input.combinations
-    .map((combination) => ({ ...combination, elements: combination.elements.filter(isCapabilityLabel) }))
-    .filter((combination) => combination.elements.length >= 2);
+    .filter((combination) => combination.elements.length >= 2 && combination.elements.every(isCapabilityLabel));
   const nodes = new Map<string, CapacityNode>();
   const edges = new Map<string, CapacityEdge>();
 
@@ -96,25 +109,22 @@ export function buildCapacityGraph(input: {
 }
 
 export function ensureCapacityGraph(result: AnalysisResult): AnalysisResult {
+  const entities = new Set([
+    result.profile.name, result.profile.location,
+    ...result.profile.roles.map((role) => role.company),
+    ...result.profile.education,
+  ].filter((value): value is string => Boolean(value)).map((value) => clean(value).toLowerCase()));
+  const allowed = (value: string) => isCapabilityLabel(value) && !entities.has(clean(value).toLowerCase());
   const skillGraph = Object.fromEntries(Object.entries(result.skillGraph).map(([key, value]) => [
     key,
-    Array.isArray(value) ? value.filter((item) => typeof item !== "string" || isCapabilityLabel(item)) : value,
+    ["education", "certifications", "geographicContext"].includes(key) ? value : Array.isArray(value) ? value.filter((item) => typeof item !== "string" || allowed(item)) : value,
   ])) as unknown as SkillGraph;
   const combinations = result.combinations
-    .map((combination) => ({ ...combination, elements: combination.elements.filter(isCapabilityLabel) }))
-    .filter((combination) => combination.elements.length >= 2);
+    .filter((combination) => combination.elements.length >= 2 && combination.elements.every(allowed));
   const sanitizedResult = { ...result, skillGraph, combinations };
   const rebuilt = buildCapacityGraph(sanitizedResult);
   if (!result.capacityGraph) return { ...sanitizedResult, capacityGraph: rebuilt };
-  const allowedIds = new Set(result.capacityGraph.nodes.filter((node) => isCapabilityLabel(node.label)).map((node) => node.id));
-  const existing: CapacityGraph = {
-    ...result.capacityGraph,
-    nodes: result.capacityGraph.nodes.filter((node) => allowedIds.has(node.id)),
-    edges: result.capacityGraph.edges.filter((edge) => allowedIds.has(edge.source) && allowedIds.has(edge.target)),
-    combinations: result.capacityGraph.combinations
-      .map((combination) => ({ ...combination, elements: combination.elements.filter(isCapabilityLabel) }))
-      .filter((combination) => combination.elements.length >= 2),
-  };
+  const existing = sanitizeCapacityGraph(result.capacityGraph, allowed);
   const uniqueLabels = (graph: CapacityGraph) => new Set(graph.nodes.map((node) => clean(node.label).toLowerCase())).size;
   // Some historical analyses persisted an incomplete model-produced graph.
   // Always rebuild from the full normalized analysis and use the richer,

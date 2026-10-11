@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { attachPendingProfile } from "@/lib/profile-submission";
 import { sendSignupConfirmationEmail } from "@/lib/account-email";
 import { openAgentAccessGrant } from "@/lib/analysis-token";
 import { safeAuthRedirect } from "@/lib/auth-flow";
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       if (error) throw error;
       if (!data.properties?.hashed_token) throw new Error("Could not create the confirmation link.");
       await attachAccessGrant(agentAccessGrant, value, data.user.id);
+      await attachPendingProfile(data.user.id);
       const signupNext = agentAccessGrant ? "/agent?setup=intent" : next === "/agent" ? "/?welcome=supercharlie#analyze" : next;
       await sendSignupConfirmationEmail(value, data.properties.hashed_token, signupNext);
       return NextResponse.json({ ok: true, message: "Account created. Confirm your email, then upload your CV to start with SuperCharlie." });
@@ -42,6 +44,7 @@ export async function POST(request: Request) {
     const { data, error } = await client.auth.signInWithPassword({ email: value, password: secret });
     if (error || !data.user) return NextResponse.json({ error: "Email or password is incorrect. If you are new, choose Sign up." }, { status: 401 });
     await attachAccessGrant(agentAccessGrant, value, data.user.id);
+    await attachPendingProfile(data.user.id);
     return NextResponse.json({ ok: true, redirect: agentAccessGrant ? "/agent?setup=intent" : next });
   } catch (error) {
     console.error("Password authentication failed", error);

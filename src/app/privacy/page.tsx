@@ -1,15 +1,19 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/info-page";
 import { MAIN_SITE_URL } from "@/lib/blog";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Privacy Summary",
   description: "How Monetizable handles CV files, public profile evidence, generated analysis results, retention, deletion, payments, and analytics.",
   alternates: { canonical: `${MAIN_SITE_URL}/privacy` },
 };
 
 export default function PrivacyPage() {
-  return <InfoPage eyebrow="Privacy" title="Professional evidence is used to answer the user—not to build a public profile." description="This operational summary explains the product's current data flow in plain language. It should be reviewed alongside any formal legal terms introduced before wider commercial launch.">
+  return <Localized><InfoPage eyebrow="Privacy" title="Professional evidence is used to answer the user—not to build a public profile." description="This operational summary explains the product's current data flow in plain language. It should be reviewed alongside any formal legal terms introduced before wider commercial launch.">
     <h2>Inputs</h2>
     <p>Users may provide a CV, pasted experience, or a public LinkedIn member URL. The system does not use LinkedIn OAuth or authenticated scraping. Public-profile evidence is limited to information available without signing in or to indexed public snippets.</p>
     <h2>File handling</h2>
@@ -25,5 +29,9 @@ export default function PrivacyPage() {
     <p>Payment completion is handled through Stripe. Product analytics measure funnel actions such as starting an analysis or opening an opportunity. During the current browser session, Monetizable keeps only the discovery source and channel so a later funnel action can be attributed to sources such as Google, Bing, ChatGPT, or Perplexity. When someone moves from the Blog to the main product, those two non-personal values may be carried in standard UTM parameters. Microsoft Clarity, when configured, masks session recordings and does not receive analysis identifiers as custom tags.</p>
     <h2>Public content</h2>
     <p>User CVs, pasted experience, individual analysis results, and optional candidate profiles are not published as blog content or made publicly searchable. Aggregated product insights must remove identifying information before research use.</p>
-  </InfoPage>;
+  </InfoPage></Localized>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

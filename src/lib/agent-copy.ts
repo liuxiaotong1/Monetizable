@@ -3,11 +3,11 @@ import type { Locale } from "@/lib/i18n";
 const en = {
   loginTitle: "Your capacity, matched to what the market needs now", loginBody: "Sign in with the email used for your subscription. No password required.",
   noSubscription: "SuperCharlie is not active yet", noSubscriptionBody: "Run a free CV analysis first, then activate SuperCharlie from the results.",
-  setupEyebrow: "SuperCharlie setup", setupTitle: "Give SuperCharlie a direction before the market scan", setupBody: "Choose the commercial intent you want to pursue, confirm the facts SuperCharlie may use, then upload one current CV for this direction.",
+  setupEyebrow: "SuperCharlie setup", setupTitle: "Give SuperCharlie a direction before the market scan", setupBody: "Choose a skill stack from your saved profile. SuperCharlie turns it into buyer problems and searches for remote freelance projects.",
   working: "Working for you daily", dashboardTitle: "Where your capacity is valuable right now", dashboardBody: "Freelance, consulting, fractional, productized service, and evidence-backed buyer demand—ranked against your Capacity Graph.",
   direction: "Set SuperCharlie’s direction", intentTitle: "Which capacity should SuperCharlie package and distribute?", evidenceTitle: "Now give SuperCharlie your latest evidence", intentBody: "Choose one intent first. It becomes the priority for packaging, market scanning, matching and outreach—not a permanent limit.",
   facts: "Confirmed outreach facts", upload: "Upload your latest CV", authorization: "Execution authorization", consentTitle: "Start continuous scanning and approved outreach automation", start: "Start scanning and outreach →", change: "Change direction or replace CV",
-  radar: "Opportunity radar", radarWorking: "Your market scan is working", radarScanning: "Scanning where your capacity is valuable now", radarBody: "We search freelance, consulting, fractional work and evidence-backed buyer demand, then rank it against your Capacity Graph.",
+  radar: "Opportunity radar", radarWorking: "Your market scan is working", radarScanning: "Scanning where your capacity is valuable now", radarBody: "Your skill stack becomes buyer problems and sellable outcomes. We search each theme for remote freelance projects, then verify the buyer brief.",
   signals: "Market signals scanned", eligible: "Eligible after hard filters", matches: "Capacity matches", strong: "Strong opportunities", leads: "Actionable leads", platformLeads: "Platform applications", emailLeads: "Direct email leads", types: "Opportunity types", noise: "Noise removed",
 };
 

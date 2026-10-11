@@ -3,6 +3,7 @@ import "server-only";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { cache } from "react";
+import type { Locale } from "@/lib/i18n";
 
 export type BlogPost = {
   slug: string;
@@ -35,25 +36,26 @@ export const EDITORIAL_AUTHOR_URL = `${MAIN_SITE_URL}/authors/monetizable-resear
 
 const postsDirectory = path.join(process.cwd(), "content", "posts");
 
-function readPost(fileName: string): BlogPost {
-  return JSON.parse(readFileSync(path.join(postsDirectory, fileName), "utf8")) as BlogPost;
+function readPost(fileName: string, locale: Locale = "en"): BlogPost {
+  const directory = locale === "fr" ? path.join(process.cwd(), "content", "posts-fr") : postsDirectory;
+  return JSON.parse(readFileSync(path.join(directory, fileName), "utf8")) as BlogPost;
 }
 
-export const getAllPosts = cache(() =>
+export const getAllPosts = cache((locale: Locale = "en") =>
   (existsSync(postsDirectory) ? readdirSync(postsDirectory) : [])
     .filter((fileName) => fileName.endsWith(".json"))
-    .map(readPost)
+    .map(file => readPost(file, locale))
     .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt)),
 );
 
-export const getPost = cache((slug: string) => getAllPosts().find((post) => post.slug === slug));
+export const getPost = cache((slug: string, locale: Locale = "en") => getAllPosts(locale).find((post) => post.slug === slug));
 
 export function postUrl(post: Pick<BlogPost, "slug">) {
   return `${MAIN_SITE_URL}/post/${post.slug}`;
 }
 
-export function formatPostDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
+export function formatPostDate(value: string, locale: Locale = "en") {
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", {
     dateStyle: "long",
     timeZone: "UTC",
   }).format(new Date(value));

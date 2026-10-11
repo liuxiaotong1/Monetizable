@@ -1,3 +1,5 @@
+
+import { Localized } from "@/components/localized";
 import { AuthForm } from "@/components/auth-form";
 import { Header } from "@/components/brand";
 import { currentUser } from "@/lib/auth";
@@ -11,7 +13,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   const redirectPath = safeAuthRedirect(query.next);
   const initialMode = query.mode === "signup" ? "signup" : "login";
   return (
-    <main className="min-h-screen">
+    <Localized><main className="min-h-screen">
       <Header locale={locale} accountEmail={user?.email}/>
       <section className="shell py-12 md:py-16">
         <div className="eyebrow text-[var(--gold-deep)]">Your Monetizable account</div>
@@ -19,7 +21,8 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
         <p className="mt-5 max-w-2xl leading-7 text-black/60">Create an account with email and password or continue with Google. Your analysis, opportunities and outreach remain private.</p>
         {query.error ? <p className="mt-6 max-w-xl rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">Sign-in could not be completed. Please try again.</p> : null}
         <AuthForm redirectPath={redirectPath} initialMode={initialMode} signedInEmail={user?.email}/>
+        <a href="/account/billing" className="mt-6 inline-block font-bold underline underline-offset-4">{locale === "fr" ? "Gérer / résilier l’abonnement" : "Manage / cancel subscription"}</a>
       </section>
-    </main>
+    </main></Localized>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
+import { DisplayTranslations } from "@/components/localization-provider";
+import { Localized } from "@/components/localized";
+
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { RoleModelPortrait } from "@/components/role-model-portrait";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/brand";
 import {
@@ -32,6 +35,7 @@ export function PreviewClient({
 }) {
   const router = useRouter();
   const copy = getMessages(locale);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<Preview | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
@@ -57,6 +61,7 @@ export function PreviewClient({
         }
         const data = await readAnalysisResponse(response);
         if (cancelled) return;
+        setTranslations(data.translations ?? {});
         if (data.result) setResult(data.result);
         else if (data.preview) setPreview(data.preview);
         else throw new Error("Your analysis could not be loaded right now. Please try again.");
@@ -66,7 +71,7 @@ export function PreviewClient({
       });
     trackClient("preview_viewed", { analysisId: id });
     return () => { cancelled = true; };
-  }, [id, reload]);
+  }, [id, reload, locale]);
   async function checkout() {
     setPaying(true);
     setError("");
@@ -131,10 +136,11 @@ export function PreviewClient({
       setRedeeming(false);
     }
   }
-  if (result) return <Report result={result} locale={locale} />;
+  // Reading a completed analysis never requires starting or configuring the agent.
+  if (result) return <DisplayTranslations translations={translations}><Report key={result.id} result={result} locale={locale}/></DisplayTranslations>;
   if (error && !preview)
     return (
-      <main>
+      <DisplayTranslations translations={translations}><Localized><main>
         <Header locale={locale} />
         <div className="shell card mt-16 max-w-xl p-8">
           <h1 className="display text-4xl">{copy.unavailable}</h1>
@@ -144,20 +150,20 @@ export function PreviewClient({
             {copy.startAgain}
           </Link>
         </div>
-      </main>
+      </main></Localized></DisplayTranslations>
     );
   if (!preview)
     return (
-      <main className="min-h-screen">
+      <DisplayTranslations translations={translations}><Localized><main className="min-h-screen">
         <Header locale={locale} />
         <div className="shell mt-24 animate-pulse">
           <div className="h-4 w-40 rounded bg-black/10" />
           <div className="mt-8 h-24 max-w-3xl rounded bg-black/10" />
         </div>
-      </main>
+      </main></Localized></DisplayTranslations>
     );
   return (
-    <main className="min-h-screen pb-16">
+    <DisplayTranslations translations={translations}><Localized><main className="min-h-screen pb-16">
       <Header locale={locale} />
       <section className="shell pt-8 md:pt-16">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -166,7 +172,7 @@ export function PreviewClient({
           </div>
           {preview.profileName && (
             <div className="rounded-full border border-[var(--gold)] bg-[var(--gold-soft)] px-3 py-1.5 text-xs font-black">
-              {copy.analysisFor} {preview.profileName}
+              {copy.analysisFor} <span translate="no">{preview.profileName}</span>
             </div>
           )}
         </div>
@@ -409,24 +415,24 @@ export function PreviewClient({
           </button>
         </div>
       </section>
-    </main>
+    </main></Localized></DisplayTranslations>
   );
 }
 
 function Signal({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card p-5">
+    <Localized><div className="card p-5">
       <div className="eyebrow text-black/50">{label}</div>
       <div className="mt-3 text-xl font-black leading-tight">{value}</div>
-    </div>
+    </div></Localized>
   );
 }
 function Priority({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-black p-4 md:px-6">
+    <Localized><div className="bg-black p-4 md:px-6">
       <div className="eyebrow text-[var(--gold-bright)]">{label}</div>
       <div className="mt-2 text-lg font-black capitalize">{value}</div>
-    </div>
+    </div></Localized>
   );
 }
 
@@ -450,7 +456,7 @@ function constructiveCombinationCopy(value: string) {
 
 function TopCombinations({ preview }: { preview: Preview }) {
   return (
-    <section className="mt-8 border-t border-[var(--line)] pt-10">
+    <Localized><section className="mt-8 border-t border-[var(--line)] pt-10">
       <div className="eyebrow text-[var(--gold-deep)]">
         Your complete monetizable stack
       </div>
@@ -516,7 +522,7 @@ function TopCombinations({ preview }: { preview: Preview }) {
           </article>
         ))}
       </div>
-    </section>
+    </section></Localized>
   );
 }
 
@@ -538,7 +544,7 @@ function FreeAnalysisSections({
   const earningRange = previewEarningRange(preview);
 
   return (
-    <>
+    <Localized><>
       <section className="mt-12 border-t border-[var(--line)] pt-12">
         <FreeSectionTitle
           number="02"
@@ -636,22 +642,13 @@ function FreeAnalysisSections({
                   >
                     <div className="flex flex-wrap items-start justify-between gap-5">
                       <div className="flex min-w-0 items-center gap-5">
-                        {combination.careerProspect.imageUrl && (
-                          <Image
-                            src={combination.careerProspect.imageUrl}
-                            alt={`${combination.careerProspect.name} portrait`}
-                            width={128}
-                            height={128}
-                            unoptimized
-                            className="h-24 w-24 shrink-0 rounded-full border-2 border-[var(--gold)] object-cover object-[center_18%] shadow-lg md:h-32 md:w-32"
-                          />
-                        )}
+                        <RoleModelPortrait prospect={combination.careerProspect} />
                         <div className="min-w-0">
                           <div className="eyebrow text-[var(--gold-deep)]">
                             {copy.roleModel}
                           </div>
                           <h3 className="editorial-title mt-2 text-3xl font-black leading-none md:text-5xl">
-                            {combination.careerProspect.name}
+                            <span translate="no">{combination.careerProspect.name}</span>
                           </h3>
                           <p className="mt-3 text-sm font-bold text-black/55 md:text-base">
                             {combination.careerProspect.roleModelTitle}
@@ -698,7 +695,7 @@ function FreeAnalysisSections({
           </div>
         </div>
       </section>
-    </>
+    </></Localized>
   );
 }
 
@@ -712,11 +709,11 @@ function FreeSectionTitle({
   intro: string;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-[70px_1fr_1fr] md:items-start">
+    <Localized><div className="grid gap-3 md:grid-cols-[70px_1fr_1fr] md:items-start">
       <div className="eyebrow text-[var(--gold-deep)]">{number}</div>
       <h2 className="editorial-title text-3xl md:text-4xl">{title}</h2>
       <p className="max-w-xl leading-7 text-black/62">{intro}</p>
-    </div>
+    </div></Localized>
   );
 }
 
@@ -728,19 +725,19 @@ function FreePositionModule({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-l-[3px] border-[var(--gold)] py-1 pl-5 md:pl-7">
+    <Localized><div className="border-l-[3px] border-[var(--gold)] py-1 pl-5 md:pl-7">
       <div className="eyebrow mb-3 text-black/45">{label}</div>
       {children}
-    </div>
+    </div></Localized>
   );
 }
 
 function FreeCareerField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-l-[3px] border-[var(--gold)] pl-5">
+    <Localized><div className="border-l-[3px] border-[var(--gold)] pl-5">
       <div className="eyebrow text-black/45">{label}</div>
       <p className="mt-3 max-w-[65ch] leading-7 text-black/75">{value}</p>
-    </div>
+    </div></Localized>
   );
 }
 
@@ -764,7 +761,7 @@ function LockedOpportunityFeed({
 
   if (visibleCount === 0) {
     return (
-      <section
+      <Localized><section
         id="live-opportunities"
         className="mt-8 overflow-hidden rounded-[2rem] border-2 border-black bg-black p-6 text-white shadow-[0_24px_70px_rgba(0,0,0,0.14)] md:p-9"
       >
@@ -793,12 +790,12 @@ function LockedOpportunityFeed({
             </div>
           ))}
         </div>
-      </section>
+      </section></Localized>
     );
   }
 
   return (
-    <section
+    <Localized><section
       id="live-opportunities"
       className="mt-8 scroll-mt-8 overflow-hidden rounded-[2rem] border-2 border-black bg-[#f6f3ec] shadow-[0_24px_70px_rgba(0,0,0,0.10)]"
     >
@@ -903,14 +900,14 @@ function LockedOpportunityFeed({
           >
             {paying
               ? "Opening secure checkout…"
-              : `Start free 2-day trial — ${price}/${billingInterval}`}
+              : `Subscribe — ${price}/${billingInterval}`}
           </button>
           <p className="mt-3 text-xs leading-5 text-white/55">
             Then {price}/{billingInterval}. Cancel anytime.
           </p>
         </div>
       </div>
-    </section>
+    </section></Localized>
   );
 }
 

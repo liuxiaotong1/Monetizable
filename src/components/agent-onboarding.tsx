@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useRef, useState } from "react";
 import { CapacityGraph3D } from "@/components/capacity-graph-3d";
@@ -6,11 +8,12 @@ import type { CapacityGraph } from "@/lib/types";
 import { isCapabilityLabel } from "@/lib/capability-label";
 import { submitAnalysis } from "@/lib/client-analysis";
 import { getAgentCopy } from "@/lib/agent-copy";
-import { expandCustomIntent, suggestedAgentIntents } from "@/lib/agent-intents";
+import { suggestedAgentIntents } from "@/lib/agent-intents";
 import type { Locale } from "@/lib/i18n";
 
 interface AgentOnboardingProps {
   graph: CapacityGraph;
+  existingAnalysisId?: string;
   selectedIntentIndex?: number | null;
   initialProfile?: Record<string, unknown> | null;
   locale?: Locale;
@@ -20,6 +23,7 @@ interface AgentOnboardingProps {
 
 export function AgentOnboarding({
   graph,
+  existingAnalysisId,
   selectedIntentIndex,
   initialProfile,
   locale = "en",
@@ -33,7 +37,7 @@ export function AgentOnboarding({
   );
   const [intentLabel, setIntentLabel] = useState("");
   const [customCapabilities, setCustomCapabilities] = useState<string[]>([]);
-  const [showCustom, setShowCustom] = useState(false);
+  const [showCustom, setShowCustom] = useState(true);
   const [progress, setProgress] = useState("");
   const [stage, setStage] = useState<"intent" | "cv" | "approval">(
     selectedIntentIndex === null || selectedIntentIndex === undefined
@@ -69,9 +73,7 @@ export function AgentOnboarding({
 
   const intentOptions = suggestedAgentIntents(graph, 2);
   const selectableCapabilities = dedupeCapabilities(graph);
-  const expandedCustomCapabilities = customCapabilities.length
-    ? expandCustomIntent(graph, customCapabilities)
-    : [];
+  const expandedCustomCapabilities = customCapabilities;
 
   async function chooseIntent(option?: {
     combinationIndex?: number;
@@ -90,15 +92,21 @@ export function AgentOnboarding({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           action: "intent",
+          analysisId: existingAnalysisId,
           combinationIndex: option.combinationIndex,
           capabilities: option.capabilities,
         }),
       });
       const data = await response.json();
+      if (response.status === 402) { window.location.assign("/subscribe"); return; }
       if (!response.ok)
         throw new Error(data.error ?? "Could not save this intent");
       setIntentIndex(option.combinationIndex ?? -1);
       setIntentLabel(option.label);
+      if (existingAnalysisId && hasOngoingApproval && details.fullName && details.contractTypes.length) {
+        await startAgent();
+        return;
+      }
       setStage("cv");
     } catch (reason) {
       setError(
@@ -111,13 +119,13 @@ export function AgentOnboarding({
 
   async function startAgent() {
     if (
-      !file ||
+      (!file && !existingAnalysisId) ||
       (!hasOngoingApproval && !executionConsent) ||
       !details.fullName ||
       !details.contractTypes.length
     ) {
       setError(
-        !file
+        !file && !existingAnalysisId
           ? "Upload your latest CV to continue."
           : !details.fullName || !details.contractTypes.length
             ? "Complete the required facts before starting SuperCharlie."
@@ -126,9 +134,11 @@ export function AgentOnboarding({
       return;
     }
     setSaving(true);
-    setProgress("Uploading and reading your CV…");
+    setProgress(file ? "Uploading and reading your CV…" : "Using your saved analysis…");
     setError("");
     try {
+      let analysisId = existingAnalysisId;
+      if (file) {
       const form = new FormData();
       form.set("file", file);
       form.set("text", "");
@@ -141,9 +151,14 @@ export function AgentOnboarding({
       const analysis = analysisResponse.data;
       if (!analysisResponse.ok)
         throw new Error(analysis.error ?? "We could not analyze this CV");
-      const analysisId = analysis.preview?.analysisId;
+      analysisId = analysis.preview?.analysisId;
+      }
       if (!analysisId)
         throw new Error("The CV analysis did not return an analysis ID");
+      if (file) {
+        window.location.assign(`/preview/${analysisId}`);
+        return;
+      }
 
       setProgress("Saving your direction and confirmed facts…");
       const completionResponse = await fetch("/api/agent/onboarding", {
@@ -189,9 +204,9 @@ export function AgentOnboarding({
   }
 
   function reviewAuthorization() {
-    if (!file || !details.fullName || !details.contractTypes.length) {
+    if ((!file && !existingAnalysisId) || !details.fullName || !details.contractTypes.length) {
       setError(
-        !file
+        !file && !existingAnalysisId
           ? "Upload your latest CV to continue."
           : "Complete the required facts before reviewing SuperCharlie’s authorization.",
       );
@@ -203,7 +218,7 @@ export function AgentOnboarding({
   }
 
   return (
-    <section className="mt-10">
+    <Localized><section className="mt-10">
       <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-[0_24px_70px_rgba(0,0,0,.07)] md:p-10">
         <div className="eyebrow text-[var(--gold-deep)]">{copy.direction}</div>
         <h2 className="editorial-title mt-4 max-w-4xl text-3xl leading-tight md:text-5xl">
@@ -213,12 +228,13 @@ export function AgentOnboarding({
               ? "Approve SuperCharlie once"
               : copy.evidenceTitle}
         </h2>
+        {stage !== "intent" && <button type="button" disabled={saving} onClick={() => { setError(""); setStage("intent"); }} className="button gold-surface mt-5 w-full justify-center sm:w-auto">Change direction ↗</button>}
         <p className="mt-4 max-w-3xl leading-7 text-black/60">
           {stage === "intent"
             ? copy.intentBody
             : stage === "approval"
               ? "Approve once. SuperCharlie then scans and acts continuously within these confirmed rules."
-              : `Your selected intent is ${intentLabel || (intentIndex !== null && intentIndex >= 0 ? graph.combinations[intentIndex]?.elements.join(" × ") : "saved")}. Upload your latest CV before scanning starts.`}
+              : `Your selected intent is ${intentLabel || (intentIndex !== null && intentIndex >= 0 ? graph.combinations[intentIndex]?.elements.join(" × ") : "saved")}. ${existingAnalysisId ? "Your saved CV or LinkedIn analysis will be used." : "Upload your latest CV before scanning starts."}`}
         </p>
 
         {stage === "intent" ? (
@@ -227,6 +243,9 @@ export function AgentOnboarding({
               <CapacityGraph3D
                 graph={graph}
                 mode="personalized"
+                onChooseCapabilities={(capabilities) => {
+                  if (!saving) void chooseIntent({ capabilities, label: capabilities.join(" × ") });
+                }}
                 onExploreOpportunities={(index) => {
                   const option = intentOptions.find(
                     (item) => item.combinationIndex === index,
@@ -444,7 +463,7 @@ export function AgentOnboarding({
                 </div>
               </fieldset>
             </div>
-            <button
+            {!existingAnalysisId && <button
               type="button"
               onClick={() => fileRef.current?.click()}
               className="grid min-h-64 place-items-center rounded-[1.5rem] border border-dashed border-black/30 bg-black/[.015] p-8 text-center hover:border-[var(--gold-deep)]"
@@ -460,7 +479,7 @@ export function AgentOnboarding({
                   PDF or DOCX · up to 8 MB
                 </span>
               </span>
-            </button>
+            </button>}
             <div className="flex flex-col justify-between rounded-[1.5rem] border border-black/10 p-6 lg:col-span-2">
               {stage === "approval" ? (
                 <div>
@@ -543,7 +562,7 @@ export function AgentOnboarding({
                   type="button"
                   disabled={
                     saving ||
-                    !file ||
+                    (!file && !existingAnalysisId) ||
                     !details.fullName ||
                     !details.contractTypes.length
                   }
@@ -573,7 +592,7 @@ export function AgentOnboarding({
           </p>
         )}
       </div>
-    </section>
+    </section></Localized>
   );
 }
 
@@ -618,7 +637,7 @@ function SetupField({
   onChange(value: string): void;
 }) {
   return (
-    <label className="text-xs font-black uppercase tracking-[.12em] text-black/55">
+    <Localized><label className="text-xs font-black uppercase tracking-[.12em] text-black/55">
       {label}
       <input
         className="field mt-2 w-full normal-case tracking-normal text-black"
@@ -626,7 +645,7 @@ function SetupField({
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
       />
-    </label>
+    </label></Localized>
   );
 }
 
@@ -644,7 +663,7 @@ function SetupSelect({
   onChange(value: string): void;
 }) {
   return (
-    <label className="text-xs font-black uppercase tracking-[.12em] text-black/55">
+    <Localized><label className="text-xs font-black uppercase tracking-[.12em] text-black/55">
       {label}
       <select
         className="field mt-2 w-full bg-white normal-case tracking-normal text-black"
@@ -658,6 +677,6 @@ function SetupSelect({
           </option>
         ))}
       </select>
-    </label>
+    </label></Localized>
   );
 }

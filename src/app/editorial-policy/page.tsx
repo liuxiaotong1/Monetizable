@@ -1,15 +1,19 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/info-page";
 import { MAIN_SITE_URL } from "@/lib/blog";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Editorial and Research Policy",
   description: "How Monetizable selects topics, uses automation, verifies claims, cites sources, corrects errors, and updates market-sensitive content.",
   alternates: { canonical: `${MAIN_SITE_URL}/editorial-policy` },
 };
 
 export default function EditorialPolicyPage() {
-  return <InfoPage eyebrow="Editorial policy" title="Useful first, inspectable second, optimized third." description="Search visibility is an outcome of useful research—not the reason to publish a page. Every article must help a professional make a better decision without hiding uncertainty.">
+  return <Localized><InfoPage eyebrow="Editorial policy" title="Useful first, inspectable second, optimized third." description="Search visibility is an outcome of useful research—not the reason to publish a page. Every article must help a professional make a better decision without hiding uncertainty.">
     <h2>Topic selection</h2>
     <p>We cover skill combinations, skills-first careers, career pivots, independent work, market-demand validation, and the practical use of professional evidence. We do not publish unrelated trending topics simply to attract traffic.</p>
     <h2>Automation and human responsibility</h2>
@@ -22,5 +26,9 @@ export default function EditorialPolicyPage() {
     <p>Articles may link to Monetizable because it is the product behind this publication. A product link does not convert a hypothesis into evidence. Sponsored relationships or affiliate compensation, if introduced, must be disclosed where the recommendation appears.</p>
     <h2>Quality gate</h2>
     <p>A publishable article needs a clear reader question, a direct answer, unique value, inspectable sources, descriptive headings, relevant internal links, and an honest limitations section. Pages that only repeat existing web content are held as drafts rather than published.</p>
-  </InfoPage>;
+  </InfoPage></Localized>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

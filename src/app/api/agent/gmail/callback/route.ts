@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { attachPendingProfile } from "@/lib/profile-submission";
 import { NextRequest, NextResponse } from "next/server";
 import { openAgentAccessGrant } from "@/lib/analysis-token";
 import { OAUTH_STATE_COOKIE, verifyLoginOAuthState } from "@/lib/auth-flow";
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
       if (!tokens.id_token || !client) throw new Error("Google sign-in is not configured");
       const { data, error } = await client.auth.signInWithIdToken({ provider: "google", token: tokens.id_token });
       if (error || !data.user) throw error ?? new Error("Google sign-in failed");
+      await attachPendingProfile(data.user.id);
       const cookieStore = await cookies();
       const grant = cookieStore.get("monetizable_agent_grant")?.value;
       cookieStore.delete("monetizable_agent_grant");

@@ -99,17 +99,18 @@ export async function storeAgentAuditScreenshot(data: Uint8Array, userId: string
   return `${AGENT_AUDIT_BUCKET}:${path}`;
 }
 
-async function uploadCandidateCv(file: File, candidateProfileId: string, analysisId: string) {
+export async function uploadCandidateCv(file: File, candidateProfileId: string, analysisId: string) {
+  if (!/\.(pdf|docx)$/i.test(file.name) || file.size <= 0 || file.size > 8 * 1024 * 1024) throw new Error("Upload a PDF or DOCX CV up to 8 MB.");
   await ensureCandidateCvBucket();
   const extension = file.name.toLowerCase().endsWith(".docx") ? "docx" : "pdf";
   const path = `${candidateProfileId}/${analysisId}/source.${extension}`;
   const response = await supabaseStorage(`object/${CANDIDATE_CV_BUCKET}/${path}`, {
     method: "POST",
-    headers: { "content-type": file.type || "application/octet-stream", "x-upsert": "true" },
+    headers: { "content-type": extension === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "x-upsert": "true" },
     body: await file.arrayBuffer(),
   });
   if (!response.ok) throw new Error(`Candidate CV upload failed (${response.status})`);
-  return { bucket: CANDIDATE_CV_BUCKET, path, filename: file.name, mimeType: file.type, sizeBytes: file.size };
+  return { bucket: CANDIDATE_CV_BUCKET, path, filename: file.name, mimeType: extension === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document", sizeBytes: file.size };
 }
 
 async function deleteCandidateCvObjects(objects: Array<{ raw_cv_bucket?: string; raw_cv_path?: string }>) {
@@ -145,6 +146,7 @@ export async function candidateCvSignedUrl(candidateProfileId: string, expiresIn
 
 export async function saveAnalysis(result: AnalysisResult) {
   if (!supabaseConfig()) {
+    if (process.env.NODE_ENV === "production") throw new Error("Persistent storage is not configured");
     if (memoryStore.has(result.id)) throw new Error("Analysis request already exists");
     memoryStore.set(result.id, result);
     return;
@@ -162,7 +164,7 @@ export async function saveAnalysis(result: AnalysisResult) {
   });
 }
 
-export async function saveCandidateProfile(result: AnalysisResult, rawCv?: File | null, userId?: string) {
+export async function saveCandidateProfile(result: AnalysisResult, rawCv?: File | null, userId?: string, savedCv?: { bucket: string; path: string; filename: string; mimeType: string; sizeBytes: number }) {
   if (!supabaseConfig()) { if (userId) memoryOwners.set(result.id, userId); return; }
   const profile = buildCandidateProfile(result);
   const now = new Date();
@@ -195,7 +197,7 @@ export async function saveCandidateProfile(result: AnalysisResult, rawCv?: File 
   });
   const candidateProfileId = rows?.[0]?.id;
   if (!candidateProfileId) throw new Error("Candidate profile was not returned after save");
-  const rawCvObject = rawCv ? await uploadCandidateCv(rawCv, candidateProfileId, result.id) : null;
+  const rawCvObject = savedCv ?? (rawCv ? await uploadCandidateCv(rawCv, candidateProfileId, result.id) : null);
   await supabaseRest("candidate_scans?on_conflict=analysis_id", {
     method: "POST",
     headers: { prefer: "resolution=merge-duplicates,return=representation" },
@@ -243,7 +245,16 @@ export async function getAnalysis(id: string): Promise<AnalysisResult | null> {
     return result && new Date(result.expiresAt).getTime() > Date.now() ? result : null;
   }
   const rows = await supabaseRest(`analyses?id=eq.${encodeURIComponent(id)}&select=result,paid,expires_at&limit=1`);
-  if (!rows?.[0] || new Date(rows[0].expires_at) < new Date()) return null;
+  if (!rows?.[0]) return null;
+  if (new Date(rows[0].expires_at) < new Date()) {
+    // Saved, account-owned reports follow the consented profile retention,
+    // not the short-lived anonymous preview expiry.
+    const scans = await supabaseRest(`candidate_scans?analysis_id=eq.${encodeURIComponent(id)}&select=candidate_profile_id&limit=1`);
+    const profileId = scans?.[0]?.candidate_profile_id;
+    if (!profileId) return null;
+    const profiles = await supabaseRest(`candidate_profiles?id=eq.${encodeURIComponent(profileId)}&user_id=not.is.null&retention_until=gt.${encodeURIComponent(new Date().toISOString())}&select=id&limit=1`);
+    if (!profiles?.length) return null;
+  }
   return { ...rows[0].result, paid: rows[0].paid };
 }
 
@@ -316,6 +327,9 @@ export async function deleteCandidateProfilesForUser(userId: string) {
     for (const [id, owner] of memoryOwners) if (owner === userId) { memoryStore.delete(id); memoryOwners.delete(id); }
     return true;
   }
+  const submissions = await supabaseRest(`profile_submissions?user_id=eq.${encodeURIComponent(userId)}&select=raw_cv_bucket,raw_cv_path`);
+  await deleteCandidateCvObjects(submissions ?? []);
+  await supabaseRest(`profile_submissions?user_id=eq.${encodeURIComponent(userId)}`, {method:"DELETE"});
   const profiles = await supabaseRest(`candidate_profiles?user_id=eq.${encodeURIComponent(userId)}&select=id`);
   for (const profile of profiles ?? []) {
     const scans = await supabaseRest(`candidate_scans?candidate_profile_id=eq.${encodeURIComponent(profile.id)}&select=analysis_id,raw_cv_bucket,raw_cv_path`);

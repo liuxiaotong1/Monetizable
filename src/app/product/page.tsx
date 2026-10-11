@@ -1,12 +1,17 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InfoPage } from "@/components/info-page";
 import { MAIN_SITE_URL } from "@/lib/blog";
 import { config, formatAgentPrice } from "@/lib/config";
+import { PAYWALL_ENABLED } from "@/lib/access-policy";
 
 const canonical = `${MAIN_SITE_URL}/product`;
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Monetizable AI Skill Stack Analyzer — Product Facts",
   description: "Verified product facts about the Monetizable AI skill stack analyzer: intended users, inputs, outputs, market evidence, current access, pricing, privacy, and limitations.",
   alternates: { canonical },
@@ -18,7 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ProductPage() {
+export default async function ProductPage() {
+  const contentLocale = await getRequestLocale();
   const monthlyPrice = formatAgentPrice(config.agentMonthlyPriceCents);
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -46,11 +52,11 @@ export default function ProductPage() {
     isAccessibleForFree: true,
     offers: [
       { "@type": "Offer", name: "Personalized preview", price: "0", priceCurrency: config.currency.toUpperCase() },
-      { "@type": "Offer", name: "SuperCharlie monthly access", price: (config.agentMonthlyPriceCents / 100).toFixed(2), priceCurrency: config.currency.toUpperCase(), availability: "https://schema.org/OnlineOnly", description: `${config.agentTrialDays}-day free trial, then monthly billing` },
+      { "@type": "Offer", name: "SuperCharlie monthly access", price: (config.agentMonthlyPriceCents / 100).toFixed(2), priceCurrency: config.currency.toUpperCase(), availability: "https://schema.org/OnlineOnly", description: "Two free analyses and two direction changes. Subscription required beyond either allowance; no trial." },
     ],
   };
 
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c") }} /><InfoPage eyebrow="Product facts" title="Monetizable AI Skill Stack Analyzer" description="Monetizable is an evidence-led career-intelligence application for professionals whose useful combination of skills is not captured by one job title. This page is the stable, inspectable description of what the product currently does—and does not do.">
+  return <Localized><><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(productJsonLd, contentLocale)).replace(/</g, "\\u003c") }} /><InfoPage eyebrow="Product facts" title="Monetizable AI Skill Stack Analyzer" description="Monetizable is an evidence-led career-intelligence application for professionals whose useful combination of skills is not captured by one job title. This page is the stable, inspectable description of what the product currently does—and does not do.">
     <p><strong>Last product-fact review:</strong> August 15, 2026.</p>
 
     <h2>Short answer</h2>
@@ -65,9 +71,9 @@ export default function ProductPage() {
       <dt><strong>Inputs</strong></dt>
       <dd>PDF or DOCX CV, a publicly accessible LinkedIn member URL, or experience pasted by the user.</dd>
       <dt><strong>Free access</strong></dt>
-      <dd>No account is required. A free analysis shows the complete Capacity Graph, three supported combinations, and initial market validation.</dd>
+      <dd>You can start an analysis without an account. Sign in to access your private saved report and SuperCharlie.</dd>
       <dt><strong>Subscription access</strong></dt>
-      <dd>SuperCharlie includes a {config.agentTrialDays}-day free trial, then costs {monthlyPrice} per month. It packages your strongest capabilities, adds daily market scanning and private live matches, and helps prepare or execute authorized outreach.</dd>
+      <dd>Each account includes two successful analyses, two direction changes and two application openings. The initial direction selection does not count as a change. Beyond any allowance, subscribe from {monthlyPrice} per month. Saved results remain accessible. Emails require your approval before sending.</dd>
       <dt><strong>Interface</strong></dt>
       <dd>Localized web application, usable in a modern browser.</dd>
       <dt><strong>Retention</strong></dt>
@@ -92,5 +98,9 @@ export default function ProductPage() {
     <h2>How to verify the product</h2>
     <p>Read the <Link href="/methodology">analysis methodology</Link>, <Link href="/privacy">privacy summary</Link>, and <Link href="/editorial-policy">editorial policy</Link>. You can also use the <Link href="/tools/skill-evidence-worksheet">free Skill Evidence Worksheet</Link> without uploading a CV.</p>
     <p><Link className="button !no-underline" href={MAIN_SITE_URL}>Try the personalized analysis</Link></p>
-  </InfoPage></>;
+  </InfoPage></></Localized>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

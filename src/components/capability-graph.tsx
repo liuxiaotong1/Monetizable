@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useState } from "react";
 import { CapacityGraph3D } from "@/components/capacity-graph-3d";
@@ -42,12 +44,12 @@ const byKey = Object.fromEntries(capabilities.map((capability) => [capability.ke
 const demoGraph = buildDemoCapacityGraph();
 
 export function CapabilityGraph() {
-  return <CapacityGraph3D
+  return <Localized><CapacityGraph3D
     graph={demoGraph}
     mode="demo"
     onExploreOpportunities={() => document.getElementById("analyze")?.scrollIntoView({ behavior: "smooth", block: "start" })}
     fallback={<CapabilityGraphFallback />}
-  />;
+  /></Localized>;
 }
 
 function CapabilityGraphFallback() {
@@ -57,7 +59,7 @@ function CapabilityGraphFallback() {
   const points = selected.keys.map((key) => byKey[key]);
   const links: [Capability, Capability][] = [[points[0], points[1]], [points[1], points[2]], [points[2], points[0]]];
 
-  return <section className={`shell ${styles.section}`} aria-labelledby="capability-graph-title">
+  return <Localized><section className={`shell ${styles.section}`} aria-labelledby="capability-graph-title">
     <div className={styles.heading}>
       <div>
         <p className={styles.kicker}>Your skills are more valuable in combination</p>
@@ -92,5 +94,5 @@ function CapabilityGraphFallback() {
         <div className={styles.signal}><div className={styles.signalLabel}>Packaging angle</div><div className={styles.signalValue}>{selected.signal}</div></div>
       </aside>
     </div>
-  </section>;
+  </section></Localized>;
 }

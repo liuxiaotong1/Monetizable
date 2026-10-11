@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -111,8 +113,8 @@ export function Funnel({ guides, posts, locale, welcome = false }: { guides: Hom
     }
   }
 
-  if (stage === "loading") return <LoadingState index={loadingIndex} locale={locale} />;
-  return <main className="min-h-screen overflow-hidden">
+  if (stage === "loading") return <Localized><LoadingState index={loadingIndex} locale={locale} /></Localized>;
+  return <Localized><main className="min-h-screen overflow-hidden">
     <Header locale={locale} />
     {stage === "upload" ? <>
       <section className="shell relative grid gap-7 pb-12 pt-2 md:pt-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(380px,.8fr)] lg:items-start lg:gap-24 lg:pb-16">
@@ -123,7 +125,7 @@ export function Funnel({ guides, posts, locale, welcome = false }: { guides: Hom
               <h1 className="display max-w-[680px] text-[clamp(2.35rem,3.3vw,2.65rem)] leading-[1.03]"><span className="block">{homepageText(copy.heroLine1)}</span><span className="block">{homepageText(copy.heroLine2)}</span></h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-black/65 md:text-lg">{homepageText(copy.heroBody)}</p>
             </div>
-            <SuperCharlieCompanion placement="homepage" message="Ready to help package your expertise." />
+            <SuperCharlieCompanion placement="homepage" message="Ready when you are." />
           </div>
           <div className="mt-8 max-w-xl border-l-2 border-[var(--gold)] py-1 pl-5"><p className="text-xl font-black leading-tight">{homepageText(copy.whyTitle)}</p><p className="mt-3 text-base font-medium leading-7 text-black/68">{homepageText(copy.whyBody)}</p></div>
           <div className="mt-9 max-w-xl border-t border-black/15 pt-7">
@@ -135,7 +137,6 @@ export function Funnel({ guides, posts, locale, welcome = false }: { guides: Hom
         </div>
         <div id="analyze" className="card relative z-10 p-5 md:p-7">
           {welcome ? <div className="mb-5 rounded-2xl border border-[var(--gold)] bg-[var(--gold-soft)] p-4"><div className="eyebrow text-[var(--gold-deep)]">Account ready · Step 1 of 2</div><p className="mt-2 text-sm font-bold leading-6">Upload your CV to package what you do best. After the analysis, activate SuperCharlie to scan the market and begin authorized outreach.</p></div> : null}
-          <div className="gold-surface absolute -right-3 -top-5 hidden rotate-3 rounded-full px-4 py-2 text-[.68rem] font-black uppercase tracking-wider md:block">{copy.noAccount}</div>
           <h2 className="text-xl font-black">{copy.addProfile}</h2>
           <p className="mt-2 text-sm leading-6 text-black/60">{homepageText(copy.publicHelp)}</p>
           <label htmlFor="linkedin-profile-url" className="mt-5 block text-sm font-bold">{copy.linkedinLabel}<input id="linkedin-profile-url" name="linkedinProfileUrl" className="field mt-2 font-normal" type="url" autoComplete="url" value={linkedinUrl} onChange={(event) => { if (!linkedinUrl) trackClient("upload_started", { type: "linkedin" }); setLinkedinUrl(event.target.value); setPreservedEvidence([]); setError(""); setErrorCode(""); }} placeholder="https://www.linkedin.com/in/your-name/" /></label>
@@ -158,6 +159,13 @@ export function Funnel({ guides, posts, locale, welcome = false }: { guides: Hom
         </div>
       </section>
       <CapabilityGraph />
+      <section className="shell py-8 md:py-10" aria-labelledby="demo-video-title">
+        <h2 id="demo-video-title" className="mb-5 text-2xl font-black md:text-3xl">See SuperCharlie in action</h2>
+        <video controls playsInline preload="none" poster="/supercharlie-walkthrough-poster.png" className="aspect-video w-full rounded-3xl bg-[#faf8f2]" aria-label="SuperCharlie product walkthrough">
+          <source src="/supercharlie-walkthrough.mp4" type="video/mp4" />
+          <a href="/supercharlie-walkthrough.mp4">Watch the walkthrough</a>
+        </video>
+      </section>
       <OpportunityAgentIntro locale={locale} />
       <section className="shell pb-6 pt-12 md:pb-8 md:pt-16" aria-labelledby="for-companies-title">
         <div className="card discovery-card grid gap-8 overflow-hidden p-7 md:grid-cols-[1fr_auto] md:items-center md:p-10">
@@ -225,15 +233,15 @@ export function Funnel({ guides, posts, locale, welcome = false }: { guides: Hom
         <button onClick={() => void analyze(true)} className="button mt-7 w-full">{copy.validatePath} <span>→</span></button>
       </div>
     </section>}
-  </main>;
+  </main></Localized>;
 }
 
 function LoadingState({ index, locale }: { index: number; locale: Locale }) {
   const copy = getMessages(locale);
   const loadingSteps = [copy.loading1, copy.loading2, copy.loading3, copy.loading4, copy.loading5];
-  return <main className="min-h-screen bg-black text-white"><Header compact locale={locale} /><section className="shell grid min-h-[75vh] place-items-center py-12"><div className="w-full max-w-3xl">
+  return <Localized><main className="min-h-screen bg-black text-white"><Header compact locale={locale} /><section className="shell grid min-h-[75vh] place-items-center py-12"><div className="w-full max-w-3xl">
     <div className="eyebrow mb-8 text-[var(--gold-bright)]">{copy.loadingEyebrow}</div><h1 className="display text-4xl leading-[.98] md:text-6xl">{copy.loadingTitle}</h1>
     <div className="mt-12 space-y-1">{loadingSteps.map((step,i) => <div key={step} className={`flex items-center gap-4 border-t border-white/15 py-4 transition-opacity ${i > index ? 'opacity-25' : 'opacity-100'}`}><span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-black ${i < index ? 'gold-surface text-black' : i === index ? 'border border-[var(--gold-bright)] text-[var(--gold-bright)] animate-pulse' : 'border border-white/40'}`}>{i < index ? '✓' : i + 1}</span><span className="font-bold">{step}</span></div>)}</div>
     <p className="mt-8 text-sm text-white/55">Opportunity counts appear only after public search results are returned and checked.</p>
-  </div></section></main>;
+  </div></section></main></Localized>;
 }

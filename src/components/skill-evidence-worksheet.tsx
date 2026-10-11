@@ -1,4 +1,7 @@
 "use client";
+import { useLocale } from "@/components/localization-provider";
+import { Localized } from "@/components/localized";
+
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -7,6 +10,7 @@ import { positioningHypothesis, skillStackFromLayers, worksheetSummary, type Wor
 const emptyRow = (): WorksheetEvidence => ({ situation: "", action: "", result: "" });
 
 export function SkillEvidenceWorksheet() {
+  const locale = useLocale();
   const [evidence, setEvidence] = useState<WorksheetEvidence[]>([emptyRow(), emptyRow(), emptyRow()]);
   const [domain, setDomain] = useState("");
   const [execution, setExecution] = useState("");
@@ -18,8 +22,8 @@ export function SkillEvidenceWorksheet() {
   const [copied, setCopied] = useState(false);
 
   const stack = useMemo(() => skillStackFromLayers([domain, execution, people, tools]), [domain, execution, people, tools]);
-  const positioning = useMemo(() => positioningHypothesis({ stack, buyer, problem, outcome }), [buyer, outcome, problem, stack]);
-  const summary = worksheetSummary({ evidence, domain, execution, people, tools, positioning });
+  const positioning = useMemo(() => positioningHypothesis({ stack, buyer, problem, outcome }, locale), [buyer, outcome, problem, stack, locale]);
+  const summary = worksheetSummary({ evidence, domain, execution, people, tools, positioning }, locale);
 
   function updateEvidence(index: number, field: keyof WorksheetEvidence, value: string) {
     setEvidence((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, [field]: value } : row));
@@ -32,7 +36,7 @@ export function SkillEvidenceWorksheet() {
   }
 
   return (
-    <div className="mt-10 grid gap-7 xl:grid-cols-[1.15fr_.85fr] xl:items-start">
+    <Localized><div className="mt-10 grid gap-7 xl:grid-cols-[1.15fr_.85fr] xl:items-start">
       <form className="card p-6 md:p-8" onSubmit={(event) => event.preventDefault()}>
         <fieldset>
           <legend className="text-2xl font-black">1. Capture evidence from real work</legend>
@@ -90,7 +94,7 @@ export function SkillEvidenceWorksheet() {
           <Link href="/" className="button mt-5 border-white bg-white text-black">Analyze my skill stack →</Link>
         </div>
       </aside>
-    </div>
+    </div></Localized>
   );
 }
 

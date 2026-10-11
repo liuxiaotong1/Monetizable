@@ -16,8 +16,14 @@ export function isValidProfessionalEmail(value: string) {
 }
 
 export function extractPublicContact(opportunity: Opportunity) {
+  // Marketplace footer/demo addresses belong to the platform, not the buyer.
+  if (isProjectMarketplace(opportunity.url)) return undefined;
   const evidence = [opportunity.summary, ...(opportunity.publicSignals ?? [])].join(" ");
   return evidence.match(EMAIL_PATTERN)?.map((value) => value.toLowerCase()).find(isValidProfessionalEmail);
+}
+
+export function isProjectMarketplace(url:string) {
+  try {return /(^|\.)(freelancer\.com|upwork\.com|peopleperhour\.com|guru\.com|contra\.com)$/.test(new URL(url).hostname);}catch{return false;}
 }
 
 export function prefersDirectOutreach(kind?: Opportunity["kind"]) {

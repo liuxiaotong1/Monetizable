@@ -6,6 +6,9 @@ const ts = require('typescript');
 let user = { id: 'owner' }, owns = true, storageFails = false, claimed = false;
 const report = { id: 'report', paid: true, combinations: [], marker: 'saved result' };
 const mocks = {
+  '@/lib/request-locale': { getRequestLocale: async () => 'en' },
+  '@/lib/display-translations': { getDisplayTranslations: async () => { throw new Error('English saved reports must not invoke translation'); } },
+  '@/lib/opportunity-agent/storage': {agentOnboardingForUser:async()=>null,candidateProfileIdForAnalysis:async()=>null},
   'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
   '@/lib/auth': { currentUser: async () => user },
   '@/lib/preview': { toPreview: value => ({ id: value.id }) },
@@ -27,7 +30,7 @@ require.extensions['.ts'] = (module, file) => module._compile(ts.transpileModule
 async function main() {
   const { GET, POST } = require('../src/app/api/analysis/[id]/route.ts');
   const context = { params: Promise.resolve({ id: 'report' }) };
-  assert.deepEqual(await (await GET(new Request('https://example.com/api/analysis/report'), context)).json(), { result: report });
+  assert.deepEqual(await (await GET(new Request('https://example.com/api/analysis/report'), context)).json(), { result: report, directionSelected: false });
   owns = false;
   assert.equal((await GET(new Request('https://example.com/api/analysis/report'), context)).status, 403);
   const request = new Request('https://example.com/api/analysis/report', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ recoveryToken: 'x'.repeat(70000) }) });

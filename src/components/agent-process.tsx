@@ -1,4 +1,6 @@
 "use client";
+import { Localized } from "@/components/localized";
+
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -76,7 +78,7 @@ export function AgentProcess({ initialJobs, initialRadar }: { initialJobs: Array
   const liveData = liveJob?.input;
   const liveUrl = liveData?.url ?? liveData?.sourceUrl;
 
-  return <section className="card mt-6 overflow-hidden p-5 md:p-6" aria-live="polite">
+  return <Localized><section className="card mt-6 overflow-hidden p-5 md:p-6" aria-live="polite">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><div className="eyebrow text-[var(--gold-deep)]">SuperCharlie process</div><h2 className="mt-2 text-xl font-black">What SuperCharlie is doing</h2></div>
       <span className="flex items-center gap-2 rounded-full bg-black px-3 py-2 text-[.65rem] font-black uppercase tracking-[.12em] text-white"><i className={`h-2 w-2 rounded-full bg-[var(--gold-bright)] ${busy ? "animate-pulse" : ""}`} />{busy ? "Working" : "Watching 24h"}</span>
@@ -113,7 +115,7 @@ export function AgentProcess({ initialJobs, initialRadar }: { initialJobs: Array
         </div>;
       })}
     </div>}
-  </section>;
+  </section></Localized>;
 }
 
 function summarize(jobs: Job[]) {

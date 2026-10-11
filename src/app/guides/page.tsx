@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogFooter, BlogHeader } from "@/components/blog-shell";
@@ -6,7 +10,7 @@ import { getAllGuides, guideUrl } from "@/lib/guides";
 
 const canonical = `${MAIN_SITE_URL}/guides`;
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Skills, Career Change and Monetization Guides",
   description: "Evidence-led guides to identify transferable skills, plan a career change, validate market demand, and turn a distinctive skill combination into an offer.",
   alternates: { canonical },
@@ -18,7 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GuidesPage() {
+export default async function GuidesPage() {
+  const contentLocale = await getRequestLocale();
   const guides = getAllGuides();
   const jsonLd = {
     "@context": "https://schema.org",
@@ -33,8 +38,8 @@ export default function GuidesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(jsonLd, contentLocale)).replace(/</g, "\\u003c") }} />
       <BlogHeader />
       <section className="shell py-14 md:py-20">
         <header className="max-w-3xl">
@@ -66,6 +71,10 @@ export default function GuidesPage() {
         </aside>
       </section>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }

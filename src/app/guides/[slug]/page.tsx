@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -15,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guide = getGuide((await params).slug);
   if (!guide) return {};
   const canonical = guideUrl(guide);
-  return {
+  return translateMetadata({
     title: guide.title,
     description: guide.description,
     alternates: { canonical },
@@ -29,10 +33,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: guide.modifiedAt,
       authors: [EDITORIAL_AUTHOR_URL],
     },
-  };
+  }, await getRequestLocale());
 }
 
 export default async function GuidePage({ params }: Props) {
+  const contentLocale = await getRequestLocale();
+  const locale = await getRequestLocale();
   const guide = getGuide((await params).slug);
   if (!guide) notFound();
   const canonical = guideUrl(guide);
@@ -78,8 +84,8 @@ export default async function GuidePage({ params }: Props) {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(jsonLd, contentLocale)).replace(/</g, "\\u003c") }} />
       <BlogHeader cta={headerCta} />
       <article className="shell py-12 md:py-20">
         <header className="mx-auto max-w-4xl">
@@ -91,7 +97,7 @@ export default async function GuidePage({ params }: Props) {
           <p className="mt-6 max-w-3xl text-xl leading-9 text-black/65">{guide.description}</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-black/10 py-4 text-sm text-black/55">
             <span>By <Link href="/authors/monetizable-research-team" className="font-bold text-black underline underline-offset-4">{EDITORIAL_AUTHOR_NAME}</Link></span>
-            <span>Updated {formatPostDate(guide.modifiedAt)}</span>
+            <span>Updated {formatPostDate(guide.modifiedAt, locale)}</span>
             <span>Reviewed against primary sources</span>
           </div>
         </header>
@@ -171,6 +177,6 @@ export default async function GuidePage({ params }: Props) {
         </div>
       </article>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
 }

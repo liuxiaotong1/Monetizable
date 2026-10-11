@@ -329,12 +329,17 @@
   line-height: 1.55;
 }
 .roleModel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.8rem;
   margin-top: 0.8rem;
 }
+.roleModel > div { flex: 1 1 180px; min-width: 0; }
+.roleModel a { font-size: 0.8rem; text-decoration: underline; text-underline-offset: 3px; }
+.roleModelExample { margin-top: 1rem; padding: 1rem; border-radius: 0.8rem; background: var(--gold-soft); color: #111; }
+.roleModelExample p { margin: 0.5rem 0 0; font-size: 0.86rem; line-height: 1.55; }
+.roleModelNote { font-size: 0.7rem; line-height: 1.5; color: #666; }
 .roleModelAvatar {
   width: 3.5rem;
   height: 3.5rem;
@@ -345,12 +350,12 @@
 }
 .roleModel strong {
   color: #111;
-  font-size: 0.76rem;
+  font-size: 1rem;
 }
 .roleModel p {
   margin: 0.3rem 0 0;
   color: #1111119c;
-  font-size: 0.7rem;
+  font-size: 0.86rem;
   line-height: 1.45;
 }
 .cta {

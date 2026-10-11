@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { attachPendingProfile } from "@/lib/profile-submission";
 import { NextResponse } from "next/server";
 import { openAgentAccessGrant } from "@/lib/analysis-token";
 import { safeAuthRedirect } from "@/lib/auth-flow";
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
     ? await client.auth.verifyOtp({ token_hash: tokenHash, type: tokenType === "email_change" ? "email_change" : tokenType === "recovery" ? "recovery" : "signup" })
     : await client.auth.exchangeCodeForSession(code as string);
   if (result.error || !result.data.user) return NextResponse.redirect(new URL("/auth?error=callback", url.origin));
+  await attachPendingProfile(result.data.user.id);
 
   const cookieStore = await cookies();
   const grant = cookieStore.get("monetizable_agent_grant")?.value;

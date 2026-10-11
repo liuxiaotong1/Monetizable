@@ -2,7 +2,8 @@ import { after, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { config } from "@/lib/config";
 import { runOpportunityScan } from "@/lib/opportunity-agent/pipeline";
-import { agentRadarStats, subscriptionForUser } from "@/lib/opportunity-agent/storage";
+import { agentRadarStats, subscriptionForUser, analysisIdForCandidateProfile } from "@/lib/opportunity-agent/storage";
+import { canBuildSkillStack } from "@/lib/skill-stack-access";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -12,6 +13,8 @@ async function context() {
   if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   const subscription = await subscriptionForUser(user.id);
   if (!subscription?.candidate_profile_id) return { error: NextResponse.json({ error: "Active subscription required" }, { status: 403 }) };
+  const analysisId = await analysisIdForCandidateProfile(subscription.candidate_profile_id);
+  if (!analysisId || !await canBuildSkillStack(user.id, analysisId)) return { error: NextResponse.json({ error: "One-time unlock required", unlockUrl: analysisId ? `/unlock/${analysisId}` : undefined }, { status: 402 }) };
   return { user, subscription };
 }
 

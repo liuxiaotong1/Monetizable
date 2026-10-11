@@ -1,3 +1,7 @@
+import { translateMetadata } from "@/lib/localized-text";
+import { getRequestLocale } from "@/lib/request-locale";
+
+import { Localized } from "@/components/localized";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogFooter, BlogHeader } from "@/components/blog-shell";
@@ -5,7 +9,7 @@ import { SkillEvidenceWorksheet } from "@/components/skill-evidence-worksheet";
 
 const canonical = "https://getmonetizable.com/tools/skill-evidence-worksheet";
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: "Free Skill Evidence Worksheet for Career Change and Monetization",
   description: "Use this private, free worksheet to turn work examples into evidence-backed transferable skills, a skill stack, and a market hypothesis you can test.",
   alternates: { canonical },
@@ -17,7 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SkillEvidenceWorksheetPage() {
+export default async function SkillEvidenceWorksheetPage() {
+  const contentLocale = await getRequestLocale();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -56,8 +61,8 @@ export default function SkillEvidenceWorksheetPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--cream)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    <Localized><main className="min-h-screen bg-[var(--cream)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(translateMetadata(jsonLd, contentLocale)).replace(/</g, "\\u003c") }} />
       <BlogHeader />
       <section className="shell py-12 md:py-20">
         <header className="mx-auto max-w-4xl text-center">
@@ -87,6 +92,10 @@ export default function SkillEvidenceWorksheetPage() {
         </article>
       </section>
       <BlogFooter />
-    </main>
+    </main></Localized>
   );
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return translateMetadata(metadata, await getRequestLocale());
 }
