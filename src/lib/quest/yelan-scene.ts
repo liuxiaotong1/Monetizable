@@ -11,23 +11,54 @@ export async function mountYelanScene(
   callbacks: { ready(): void; failed(): void; cast(): void }, signal: AbortSignal,
 ): Promise<YelanScene | undefined> {
   if (signal.aborted) return;
-  const [THREE, { GLTFLoader }] = await Promise.all([
+  const [THREE, { GLTFLoader }, { OutlineEffect }] = await Promise.all([
     import("three"), import("three/addons/loaders/GLTFLoader.js"),
+    import("three/addons/effects/OutlineEffect.js"),
   ]);
   if (signal.aborted) return;
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  const outline = new OutlineEffect(renderer, {
+    defaultThickness: 0.0016,
+    defaultColor: [0.055, 0.06, 0.13],
+    defaultAlpha: 0.85,
+  });
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
-  const target = new THREE.Vector3(0, 0.18, 0);
+  const camera = new THREE.PerspectiveCamera(29, 1, 0.1, 50);
+  const target = new THREE.Vector3(0, 0.02, 0);
   const character = new THREE.Group(); scene.add(character);
-  scene.add(new THREE.HemisphereLight(0xc9eaff, 0x536789, 2.1));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-  keyLight.position.set(2, 4, 5); scene.add(keyLight);
-  const rimLight = new THREE.DirectionalLight(0x53bbff, 1.8);
-  rimLight.position.set(-3, 1, -2); scene.add(rimLight);
+  scene.add(new THREE.HemisphereLight(0xdbeaff, 0x403855, 0.7));
+  const keyLight = new THREE.DirectionalLight(0xfff4e8, 1.7);
+  keyLight.position.set(-3, 4, 5);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.intensity = 0.65;
+  keyLight.shadow.radius = 2;
+  keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -2.5;
+  keyLight.shadow.camera.right = keyLight.shadow.camera.top = 2.5;
+  keyLight.shadow.camera.near = 0.1;
+  keyLight.shadow.camera.far = 12;
+  keyLight.shadow.normalBias = 0.025;
+  keyLight.shadow.bias = -0.0001;
+  scene.add(keyLight);
+  const rimLight = new THREE.DirectionalLight(0x78d7ff, 1.6);
+  rimLight.position.set(3, 2, -4); scene.add(rimLight);
+  const fillLight = new THREE.DirectionalLight(0xb1baff, 0.35);
+  fillLight.position.set(3, 1, 4); scene.add(fillLight);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(5, 5),
+    new THREE.ShadowMaterial({ color: 0x080c1a, opacity: 0.2 }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -1.415;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  const gradient = new THREE.DataTexture(new Uint8Array([100, 170, 220, 255]), 4, 1, THREE.RedFormat);
+  gradient.minFilter = gradient.magFilter = THREE.NearestFilter;
+  gradient.generateMipmaps = false;
+  gradient.needsUpdate = true;
 
   const dice = new THREE.Group();
   const cubeGeometry = new THREE.BoxGeometry(0.21, 0.21, 0.21);
@@ -71,7 +102,7 @@ export async function mountYelanScene(
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
   const timer = new THREE.Timer(); timer.connect(document);
   let disposed = false, ready = false, visible = true, paused = false;
-  let raf = 0, elapsed = 0, yaw = 0, distance = 5.6, lastRendered = 0;
+  let raf = 0, elapsed = 0, yaw = 0, distance = 6.0, lastRendered = 0;
   let tossAt: number | undefined;
   let model: Object3D | undefined;
   let mixer: InstanceType<typeof THREE.AnimationMixer> | undefined;
@@ -104,12 +135,12 @@ export async function mountYelanScene(
     camera.position.set(Math.sin(yaw) * distance, 0.28, Math.cos(yaw) * distance);
     camera.lookAt(target);
   }
-  function draw() { if (canDraw()) renderer.render(scene, camera); }
+  function draw() { if (canDraw()) outline.render(scene, camera); }
   function cancelFrame() { cancelAnimationFrame(raf); raf = 0; }
   function frame(now: number) {
     raf = 0;
     if (!canAnimate()) return;
-    if (now - lastRendered < 1000 / 30) { raf = requestAnimationFrame(frame); return; }
+    if (now - lastRendered < 1000 / 60) { raf = requestAnimationFrame(frame); return; }
     lastRendered = now;
     timer.update(now);
     const delta = Math.min(timer.getDelta(), 0.05); elapsed += delta;
@@ -159,7 +190,7 @@ export async function mountYelanScene(
   const control: YelanScene = {
     rotate(degrees) { yaw += degrees * Math.PI / 180; updateCamera(); draw(); },
     zoom(factor) { distance = Math.max(3.8, Math.min(7.8, distance * factor)); updateCamera(); draw(); },
-    reset() { yaw = 0; distance = 5.6; updateCamera(); draw(); },
+    reset() { yaw = 0; distance = 6.0; updateCamera(); draw(); },
     cast() {
       if (!ready || !alive()) return;
       callbacks.cast();
@@ -182,12 +213,12 @@ export async function mountYelanScene(
       mixer?.removeEventListener("finished", onGreetingFinished);
       mixer?.stopAllAction(); if (model) mixer?.uncacheRoot(model);
       if (model && !model.parent) release(model);
-      release(scene); renderer.dispose(); renderer.forceContextLoss();
+      release(scene); gradient.dispose(); keyLight.shadow.dispose(); renderer.dispose(); renderer.forceContextLoss();
     },
   };
   signal.addEventListener("abort", () => control.dispose(), { once: true });
   try {
-    // All assets remain behind this Site's owner-only access boundary.
+    // Preserve the existing model and textures; apply lighting at runtime.
     const response = await fetch("/models/yelan/yelan.glb", { signal });
     if (!response.ok) throw new Error("Character model unavailable");
     const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), "/models/yelan/");
@@ -197,6 +228,58 @@ export async function mountYelanScene(
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     if (!Number.isFinite(size.y) || size.y <= 0) throw new Error("Character bounds invalid");
     model.position.sub(center); character.scale.setScalar(2.8 / size.y); character.add(model);
+    const replaced = new Set<Material>();
+    model.traverse(object => {
+      if (!(object instanceof THREE.Mesh)) return;
+      object.castShadow = true;
+      // Faces use a softer fill and no self-shadow to avoid harsh anime face artifacts.
+      const upgrade = (source: Material) => {
+        const original = source as InstanceType<typeof THREE.MeshBasicMaterial>;
+        const facial = /颜|目|睫|眉|齿|口/.test(source.name);
+        const skin = facial || /肌/.test(source.name);
+        const material = new THREE.MeshToonMaterial({
+          name: source.name,
+          map: original.map,
+          color: original.color,
+          opacity: source.opacity,
+          transparent: source.transparent,
+          alphaTest: source.alphaTest,
+          side: source.side,
+          depthWrite: source.depthWrite,
+          gradientMap: gradient,
+          emissive: original.color,
+          emissiveMap: original.map,
+          emissiveIntensity: skin ? 0.08 : 0.025,
+        });
+        material.userData.outlineParameters = {
+          visible: !facial && !source.transparent,
+          thickness: 0.0016,
+          color: [0.055, 0.06, 0.13],
+        };
+        if (original.map) original.map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        if (!facial) {
+          material.onBeforeCompile = shader => {
+            shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `
+              float edgeLight = pow(1.0 - max(dot(normalize(normal), normalize(vViewPosition)), 0.0), 3.0);
+              outgoingLight += vec3(0.07, 0.15, 0.22) * edgeLight;
+              #include <opaque_fragment>
+            `);
+          };
+          material.customProgramCacheKey = () => 'yelan-toon-rim-v1';
+        }
+        replaced.add(source);
+        return material;
+      };
+      object.material = Array.isArray(object.material) ? object.material.map(upgrade) : upgrade(object.material);
+    });
+    replaced.forEach(material => material.dispose());
+    // Outline only the character, never the ground or Hydro effects.
+    scene.traverse(object => {
+      if (object instanceof THREE.Mesh && !model!.getObjectById(object.id)) {
+        for (const material of Array.isArray(object.material) ? object.material : [object.material])
+          material.userData.outlineParameters = { visible: false };
+      }
+    });
     mixer = new THREE.AnimationMixer(model);
     const idleClip = gltf.animations.find(clip => /idle/i.test(clip.name));
     const greetingClip = gltf.animations.find(clip => /greet|wave|cast/i.test(clip.name));
