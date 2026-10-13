@@ -798,7 +798,7 @@ function EventMap({ state }: { state: QuestState }) {
     .filter((e) => Date.parse(e.at) > Date.parse(state.now))
     .sort((a, b) => a.at.localeCompare(b.at))[0];
   const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
-  const dailyBrief = <PremiumGate key="daily"><article className="brief-card brief-daily">
+  const dailyBrief = <PremiumGate key="daily" preview={<><span className="eyebrow">☀️ BEFORE THE BELL · WEEKDAYS 14:15 PARIS</span><h3>Your premarket power-up</h3><p>Latest verified QQQ close: {state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "awaiting data"}. Check the market map and today’s official releases before choosing your scenario.</p></>}><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
             <h3>Premarket brief</h3>
