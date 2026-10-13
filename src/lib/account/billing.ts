@@ -6,19 +6,19 @@ import { APP_URL, currentUser, isAdmin } from './auth';
 export const PREMIUM_CENTS=1990,TRIAL_DAYS=7;
 export function stripeClient(){const key=process.env.STRIPE_SECRET_KEY;if(!key)throw Error('Stripe billing is not configured.');return new Stripe(key,{timeout:20000,maxNetworkRetries:1});}
 export function learningWeek(now=new Date()) {const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}
-type BillingConfig={price:string;webhookSecret:string;portal:string;livemode:boolean;account:string};
+type BillingConfig={price:string;webhookSecret:string;portal:string;livemode:boolean;account?:string};
 export async function billingConfig():Promise<BillingConfig|undefined>{const {rows}=await database().query("SELECT body FROM quest_shared_data WHERE key='billing-config-v1'");return rows[0]?.body;}
 export async function setupBilling(){
  const previous=await billingConfig();if(previous)return {configured:true,livemode:previous.livemode};
- const stripe=stripeClient(),account=await stripe.accounts.retrieve(null);
+ const stripe=stripeClient();
  const product=await stripe.products.create({name:'Monetizable Plus',description:'Premarket briefs and unlimited investing knowledge cards.'},{idempotencyKey:'monetizable-plus-product-v1'});
  const price=await stripe.prices.create({product:product.id,currency:'usd',unit_amount:PREMIUM_CENTS,recurring:{interval:'month'}},{idempotencyKey:'monetizable-plus-1990-monthly-v1'});
  const portal=await stripe.billingPortal.configurations.create({business_profile:{headline:'Manage your Monetizable subscription'},features:{subscription_cancel:{enabled:true,mode:'at_period_end'},payment_method_update:{enabled:true},invoice_history:{enabled:true}},default_return_url:APP_URL+'/?view=learn'},{idempotencyKey:'monetizable-plus-portal-v1'});
  const webhook=await stripe.webhookEndpoints.create({url:APP_URL+'/api/billing/webhook',enabled_events:['checkout.session.completed','checkout.session.async_payment_succeeded','customer.subscription.created','customer.subscription.updated','customer.subscription.deleted','invoice.paid','invoice.payment_failed']},{idempotencyKey:'monetizable-plus-webhook-v1'});
  if(!webhook.secret)throw Error('Webhook configuration incomplete.');
- const body:BillingConfig={price:price.id,webhookSecret:webhook.secret,portal:portal.id,livemode:price.livemode,account:account.id};
+ const body:BillingConfig={price:price.id,webhookSecret:webhook.secret,portal:portal.id,livemode:price.livemode};
  await database().query("INSERT INTO quest_shared_data(key,body) VALUES('billing-config-v1',$1) ON CONFLICT(key) DO NOTHING",[JSON.stringify(body)]);
- return {configured:true,livemode:price.livemode,account:account.id};
+ return {configured:true,livemode:price.livemode};
 }
 export async function billingStatus(){
  const user=await currentUser();
