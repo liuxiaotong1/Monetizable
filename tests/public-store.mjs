@@ -16,8 +16,10 @@ const compile = async (name) =>
       },
     },
   ).outputText;
-const domain = url(await compile("domain")),
-  engine = url(await compile("learning-engine"));
+const domain = url(await compile("domain"));
+const shuffle=url(await compile("shuffle"));
+const engine=url((await compile("learning-engine")).replace(/from ["']\.\/shuffle["']/g,`from '${shuffle}'`));
+const prediction=url((await compile("prediction-window")).replace(/from ["']\.\/domain["']/g,`from '${domain}'`));
 const adventure = url(
   (await compile("adventure")).replace(
     /from ["']\.\/domain["']/g,
@@ -31,6 +33,7 @@ const tracking = url(
   ),
 );
 const code = (await compile("browser-store"))
+  .replace(/from ["']\.\/prediction-window["']/g, `from '${prediction}'`)
   .replace(/from ["']\.\/domain["']/g, `from '${domain}'`)
   .replace(/from ["']\.\/learning-engine["']/g, `from '${engine}'`)
   .replace(/from ["']\.\/adventure["']/g, `from '${adventure}'`)
@@ -216,6 +219,14 @@ assert.throws(
     ),
   /截止/,
 );
+const afterOpen={...market,now:"2026-10-12T14:00:00Z",session:sessionFor(new Date("2026-10-12T14:00:00Z")),bars:Array.from({length:25},(_,i)=>({...shared.bars[0],symbol:"QQQ",date:new Date(Date.UTC(2026,8,1+i)).toISOString().slice(0,10),open:100+i,high:103+i,low:98+i,close:101+i,volume:1000}))};
+const nextState=hydrateBrowserState(afterOpen,judgmentRecord);
+assert.equal(nextState.forecast.date,"2026-10-13");
+applyBrowserCommand(afterOpen,judgmentRecord,{...cmd,forecastId:nextState.forecast.id});
+assert.equal(judgmentRecord.judgments.length,2);
+assert.equal(judgmentRecord.judgments[0].date,"2026-10-12");
+assert.equal(judgmentRecord.judgments[1].date,"2026-10-13");
+assert.throws(()=>applyBrowserCommand(afterOpen,judgmentRecord,{...cmd,forecastId:nextState.forecast.id}),/无法覆盖/);
 for (const section of ["today", "events", "learn"])
   applyBrowserCommand(shared, a, { type: "walkthrough", section });
 assert.equal(a.adventure.sections.length, 3);

@@ -33,6 +33,8 @@ export interface Forecast {
   createdAt: string;
   dataAsOf: string;
   baselineClose: number;
+  baselineDate?: string;
+  provisional?: boolean;
   threshold: number;
   summary: string;
   weeklyView: string;

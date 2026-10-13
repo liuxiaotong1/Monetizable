@@ -91,3 +91,5 @@
   .hero.hero-yelan { padding:23px 19px 20px; }
   .yelan-viewport { height:380px; }
 }
+
+@media(min-width:761px){.hero.hero-yelan{grid-template-columns:minmax(0,1fr) minmax(340px,460px);max-width:1180px;margin-inline:auto;gap:20px}.hero-yelan .hero-copy{justify-self:end;max-width:510px}.hero-report{max-width:1180px;margin-inline:auto}.en-hero{grid-template-columns:minmax(0,1fr) minmax(340px,460px);max-width:1180px;margin-inline:auto;gap:20px}}

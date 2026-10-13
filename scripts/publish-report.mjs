@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+process.loadEnvFile(fileURLToPath(new URL('../.env.local',import.meta.url)));
+const token=process.env.QUEST_REPORT_TOKEN;
+if(!token||!process.argv[2])throw Error('Report token or JSON file is missing.');
+const payload=JSON.parse(await fs.readFile(process.argv[2],'utf8'));
+const response=await fetch('https://getmonetizable.com/api/agent-reports',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(45000)});
+const result=await response.json();
+if(!response.ok)throw Error(`Report sync failed: HTTP ${response.status}`);
+console.log(JSON.stringify({saved:result.saved,date:result.date||payload.date,version:result.version,retained:result.retained}));

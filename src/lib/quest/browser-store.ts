@@ -1,3 +1,4 @@
+import { predictionSession, preparationForecast } from "./prediction-window";
 import { sessionFor, scoreForecast, sessionReady } from "./domain";
 import {
   assignDaily,
@@ -111,15 +112,19 @@ export function hydrateBrowserState(
         !state.cards.some((s) => s.id === c.id),
     ),
   ];
+  state.cards=state.cards.map(card=>card.answerIndex===-1?record.cards.find(saved=>saved.id===card.id&&saved.answerIndex>=0)||card:card);
   state.forecasts = [
     ...record.forecasts,
     ...state.forecasts.filter(
       (f) => !record.forecasts.some((s) => s.id === f.id),
     ),
   ];
-  state.judgment = record.judgments.find((j) => j.date === date);
+  const target=predictionSession(state);
+  const prepared=preparationForecast(state.bars,target.date,new Date(state.now),state.settings.threshold);
+  if(prepared&&!state.forecasts.some(f=>f.date===target.date))state.forecasts.push(prepared);
+  state.judgment = record.judgments.find((j) => j.date === target.date);
   state.forecast = state.forecasts
-    .filter((f) => f.date === date)
+    .filter((f) => f.date === target.date)
     .sort((a, b) => b.version - a.version)
     .find((f) => !state.judgment || f.id === state.judgment.forecastId);
   state.reviews = [];
@@ -131,14 +136,16 @@ export function hydrateBrowserState(
       : state.forecasts
           .filter((f) => f.date === day)
           .sort((a, b) => b.version - a.version)[0];
+    const priorClose=state.bars.find(b=>b.symbol==="QQQ"&&b.date===sessionFor(new Date(day+"T12:00:00Z")).previousDate)?.close;
     if (
+      (!forecast?.provisional || priorClose!==undefined) &&
       actual &&
       forecast &&
       sessionReady(day, new Date(state.now)) &&
       sessionReady(day, new Date(actual.fetchedAt))
     )
       state.reviews.push({
-        ...scoreForecast(forecast, actual, judgment),
+        ...scoreForecast(forecast.provisional ? {...forecast,baselineClose:priorClose!} : forecast, actual, judgment),
         ...record.notes[`review:${day}`],
       });
   }
@@ -183,7 +190,8 @@ export function applyBrowserCommand(
       { ...shared, now, session: sessionFor(new Date(now)) },
       record,
     ),
-    date = current.session.date;
+    target = predictionSession(current),
+    date = target.date;
   const award = (id: string, xp: number) => {
     if (!record.rewards.includes(id)) {
       record.rewards.push(id);
@@ -197,15 +205,15 @@ export function applyBrowserCommand(
     }
   } else if (cmd.type === "judgment") {
     if (record.judgments.some((j) => j.date === date))
-      throw Error("今天的判断已经封存，无法覆盖。");
+      throw Error("这个交易日的判断已经封存，无法覆盖。");
     const forecast = current.forecasts.find(
       (f) => f.id === cmd.forecastId && f.date === date,
     );
     if (
       !forecast ||
-      !current.session.isTradingDay ||
-      Date.parse(now) >= Date.parse(current.session.openAt) ||
-      Date.parse(forecast.createdAt) >= Date.parse(current.session.openAt)
+      !target.isTradingDay ||
+      Date.parse(now) >= Date.parse(target.openAt) ||
+      Date.parse(forecast.createdAt) >= Date.parse(target.openAt)
     )
       throw Error("盘前判断已经截止，请等待下一交易日。");
     if (!cmd.reason.trim()) throw Error("请写一句判断理由。");
@@ -240,6 +248,7 @@ export function applyBrowserCommand(
     }
     if (!record.cards.some((c) => c.id === card.id))
       record.cards.push(structuredClone(card));
+    else if(card.answerIndex>=0)record.cards=record.cards.map(saved=>saved.id===card.id&&saved.answerIndex<0?structuredClone(card):saved);
     p.updatedAt = now;
     if (cmd.action === "bookmark") p.bookmarked = true;
     if (cmd.action === "skip") p.skipped = true;

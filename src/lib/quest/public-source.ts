@@ -1,3 +1,4 @@
+import {refreshNative} from './native-feed';
 import {unstable_cache} from 'next/cache';
 import {sessionFor,marketDate} from './domain';
 import {reportScheduleContext} from './agent-report';
@@ -19,8 +20,8 @@ const fetchShared=unstable_cache(async()=>{
  if(!response.ok)throw Error('公开资料后台暂不可用');return normalize(await response.json());
 },['qqq-public-feed-v1'],{revalidate:60});
 export async function getPublicFeed():Promise<PublicFeed> {
- try{return normalize(await fetchShared());}catch{
+ try{return await refreshNative(normalize(await fetchShared()));}catch{
   const feed=normalize(fallback);feed.stale=true;
-  feed.state.sources.push({name:'公开数据连接',status:'delayed',message:'保留上次公开快照，后台连接恢复后自动更新。',lastSuccess:feed.exportedAt});return feed;
+  feed.state.sources.push({name:'公开数据连接',status:'delayed',message:'保留上次公开快照，后台连接恢复后自动更新。',lastSuccess:feed.exportedAt});return await refreshNative(feed);
  }
 }

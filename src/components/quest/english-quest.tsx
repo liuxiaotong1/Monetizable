@@ -1,4 +1,6 @@
 "use client";
+import {useBilling,PremiumGate,LearningAllowance} from "../account/billing-access";
+import { predictionSession } from "@/lib/quest/prediction-window";
 import { shuffledIndices } from "@/lib/quest/shuffle";
 import InvestmentStyle from "./investment-style";
 import {
@@ -149,11 +151,18 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
   }
   const run = useCallback(async (command: QuestCommand) => {
     if (!signedIn && command.type === "judgment") { setGate("prediction"); return false; }
-    if (!signedIn && command.type === "card" && !trialAllows(readTrialCards(), command.cardId)) { setGate("cards"); return false; }
+    if (!signedIn && command.type === "card" && command.action === "answer") { setGate("cards"); return false; }
     if (inFlight.current || !shared.current) return false;
     inFlight.current = true;
     setBusy(true);
     try {
+      if(command.type === "card" && command.action === "answer") {
+        const response=await fetch('/api/learning/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardId:command.cardId,answerIndex:command.answerIndex})});
+        const payload=await response.json();if(!response.ok)throw Error(payload.error);
+        shared.current.cards=shared.current.cards.map(c=>c.id===payload.card.id?payload.card:c);
+        command={...command,answerIndex:payload.chosen};
+        window.dispatchEvent(new Event("quest-billing-refresh"));
+      }
       const record = readBrowserRecord(),
         next = applyBrowserCommand(
           shared.current,
@@ -350,7 +359,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
           </footer>
         </main>
       </div>
-      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Two cards explored. Keep going."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign in or create a free account to unlock more cards and save your learning progress across devices. Your two trial cards are kept in this browser."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>One email link signs you in or creates your account.</small></section></div>}
+      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Your free weekly card is waiting."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign in for one free knowledge card per week. Plus includes unlimited cards and premarket briefs, with a 7-day trial then USD $19.90/month."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>One email link signs you in or creates your account.</small></section></div>}
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
           <button
@@ -402,9 +411,10 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       setFacts(false);
     }
   }, [review?.id, review?.matched]);
-  const afterOpen = Date.parse(state.now) >= Date.parse(state.session.openAt);
+  const targetSession=predictionSession(state);
+  const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
   const locked =
-    signedIn && (!!state.judgment || !state.session.isTradingDay || afterOpen || !f);
+    signedIn && (!!state.judgment || !targetSession.isTradingDay || afterOpen || !f);
   const ma20 =
       bars.length >= 20
         ? bars.slice(-20).reduce((n, b) => n + b.close, 0) / 20
@@ -605,12 +615,15 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       <section className="en-card" id="en-judgment">
         <span className="eyebrow">LEAVE A REASON, NOT JUST A GUESS</span>
         <h2>What’s your call?</h2>
+        <p>Target trading session: <strong>{targetSession.date}</strong></p>
+        {targetSession.date!==state.session.date&&state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment&&<p>Today’s prediction is sealed and remains in your judgment journal.</p>}
         {f && (
           <>
             <p>
               Scenario v{f.version} · baseline {money(f.baselineClose)} · data
-              as of {clocks(f.dataAsOf)}
+              as of {f.dataAsOf.includes("T")?clocks(f.dataAsOf):f.dataAsOf}
             </p>
+            {f.provisional&&<p>Early preparation: the prior session has not closed. These levels use the latest completed daily candle; the direction result will use the actual prior-session close.</p>}
             <div className="en-scenarios">
               {f.scenarios.map((s) => (
                 <article key={s.direction}>
@@ -646,7 +659,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              if (!signedIn) { requireAccount("prediction", { direction, confidence, reason, date: state.session.date, at: new Date().toISOString() }); return; }
+              if (!signedIn) { requireAccount("prediction", { direction, confidence, reason, date: targetSession.date, at: new Date().toISOString() }); return; }
               if (f)
                 await run({
                   type: "judgment",
@@ -709,7 +722,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             </button>
             <p className="muted small-text">
               {!signedIn && <>Try filling in your call. An account is required when saving. Drafts entered outside the premarket window are not scored.<br/></>}
-              The call locks at 09:30 ET. Late entries do not count as premarket
+              Your call targets {targetSession.date} and locks at {clocks(targetSession.openAt)}. Today’s locked call is kept. Late entries do not count as premarket
               predictions. No precise probability is claimed.
             </p>
           </form>
@@ -785,7 +798,7 @@ function EventMap({ state }: { state: QuestState }) {
     .filter((e) => Date.parse(e.at) > Date.parse(state.now))
     .sort((a, b) => a.at.localeCompare(b.at))[0];
   const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
-  const dailyBrief = <article key="daily" className="brief-card brief-daily">
+  const dailyBrief = <PremiumGate key="daily"><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
             <h3>Premarket brief</h3>
@@ -796,11 +809,11 @@ function EventMap({ state }: { state: QuestState }) {
               stale feed pauses scoring.
             </p>
             <p>
-              Today:{" "}
+              Latest verified daily close: {state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "awaiting data"}. Today:{" "}
               {state.session.isTradingDay ? "Trading session" : "Market closed"}
               . The next session is {state.session.nextDate}.
             </p>
-          </article>;
+          </article></PremiumGate>;
   const weeklyBrief = <article key="weekly" className="brief-card brief-weekly">
             <span className="brief-emoji" aria-hidden="true">🔮 🗺️</span>
             <span className="eyebrow">YOUR NEXT WEEK’S QUEST</span>
@@ -1100,8 +1113,9 @@ function Deck({
       progress.lastDispositionVisitId !== state.learningVisitId;
   const choiceOrder = card ? shuffledIndices(card.choices.length, `${state.learningVisitId || state.session.date}:${card.id}:choices`) : [];
   const selected = progress?.lastAnswerIndex;
-  const blocked = !signedIn && !!card && !trialAllows(trialCards, card.id);
-  useEffect(() => { if (blocked) requireAccount("cards"); }, [blocked, requireAccount]);
+  const {access}=useBilling();
+  const blocked = !!card && access.status!=="loading" && !access.premium && (!signedIn || (access.remaining===0 && access.claimedCard!==card.id));
+
   const swipeHandlers = useCardSwipe(answered && !busy && !blocked, action => void disposition(action));
   async function disposition(action: "master" | "review") {
     if (card && answered) {
@@ -1131,6 +1145,7 @@ function Deck({
         </p>
       </header>
       <InvestmentStyle locale="en" />
+      <LearningAllowance/>
       <div className="en-theme-grid">
         {(Object.keys(themes) as Category[]).map((t) => (
           <button
@@ -1221,7 +1236,7 @@ function Deck({
             ))
           )}
         </section>
-      ) : blocked ? (<section className="en-card guest-deck-gate"><LockKeyhole size={30}/><h2>Your next card is waiting.</h2><p>You’ve explored two trial cards. Create a free account or sign in to continue and save your progress.</p><button className="primary" onClick={() => requireAccount("cards")}>Sign in / Create an account <ArrowRight size={17}/></button></section>) : card ? (
+      ) : blocked ? (<PremiumGate feature="learning"/>) : card ? (
         <section
           className={`en-quiz-card ${answered ? "flipped" : ""}`}
           {...swipeHandlers}
@@ -1275,7 +1290,7 @@ function Deck({
                         action: "answer",
                         answerIndex: originalIndex,
                       });
-                      if (result && originalIndex === card.answerIndex) setCelebrate(true);
+                      if (result && result.cards.find(c=>c.id===card.id)?.answerIndex === originalIndex) setCelebrate(true);
                     }}
                   >
                     <span>{String.fromCharCode(65 + i)}</span>
