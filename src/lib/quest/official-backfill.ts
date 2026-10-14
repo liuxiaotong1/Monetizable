@@ -17,7 +17,7 @@ export function parseOfficialDocument(doc:OfficialDocument,fetchedAt:string):Off
   const sector=header[3].toLowerCase() as "services"|"manufacturing",period=`${header[2]}-${String(months.indexOf(header[1].toLowerCase())+1).padStart(2,"0")}`;
   const key=sector==="services"?"Services PMI":"Manufacturing PMI";
   const actual=text.match(new RegExp(`${key}\\s+registered\\s+(\\d+(?:\\.\\d+)?)\\s+percent`,"i"));
-  const previous=text.match(new RegExp(`${key}\\s+registered.{0,220}?(?:compared to|from).{0,90}?(?:figure|reading)\\s+of\\s+(\\d+(?:\\.\\d+)?)\\s+percent`,"i"));
+  const previous=text.match(new RegExp(`${key}\\s+registered.{0,220}?(?:compared to|from|below|above).{0,90}?(?:figure|reading)\\s+of\\s+(\\d+(?:\\.\\d+)?)\\s+percent`,"i"));
   if(!actual||!previous)throw Error("ISM 总指数或前值尚未验证");
   return {...base,period,sector,actual:Number(actual[1]),previous:Number(previous[1]),sourceName:"ISM · 官方 PMI 报告"};
  }

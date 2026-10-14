@@ -3,27 +3,11 @@
   "crons": [
     {
       "path": "/api/internal/update",
-      "schedule": "15 12 * * 1-5"
+      "schedule": "*/5 11-22 * * 1-5"
     },
     {
       "path": "/api/internal/update",
-      "schedule": "15 13 * * 1-5"
-    },
-    {
-      "path": "/api/internal/update",
-      "schedule": "30 20 * * 1-5"
-    },
-    {
-      "path": "/api/internal/update",
-      "schedule": "30 21 * * 1-5"
-    },
-    {
-      "path": "/api/internal/update",
-      "schedule": "0 17 * * 0"
-    },
-    {
-      "path": "/api/internal/update",
-      "schedule": "0 18 * * 0"
+      "schedule": "*/5 17-18 * * 0"
     }
   ]
 }

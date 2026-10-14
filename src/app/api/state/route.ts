@@ -2,6 +2,7 @@ import {getPublicFeed} from '@/lib/quest/public-source';
 import {englishState} from '@/lib/quest/english-server';
 import {billingStatus} from '@/lib/account/billing';
 import {currentUser,isAdmin} from '@/lib/account/auth';
+export const maxDuration=60;
 export const dynamic='force-dynamic';
 export async function GET(){
  const user=await currentUser(),feed=await getPublicFeed();

@@ -1,4 +1,5 @@
 "use client";
+import DataFreshness from "./data-freshness";
 import AgentReports from "./agent-reports";
 import EventIntelligencePanel from "./event-intelligence";
 import { useRef, useState } from "react";
@@ -39,6 +40,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
   const acquired = coverage.ready.map(source => source.lastSuccess).filter(Boolean).sort().at(-1);
   return <>
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
+    <DataFreshness state={state}/>
     <AgentReports demo={state.mode==="demo"} now={state.now}/>
     <section className="boss-hero">
       <div className="boss-hero-icon"><Swords size={44} /><span className="orbit orbit-one" /><span className="orbit orbit-two" /></div>

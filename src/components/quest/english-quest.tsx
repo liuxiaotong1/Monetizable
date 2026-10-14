@@ -1,4 +1,5 @@
 "use client";
+import DataFreshness from "./data-freshness";
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
 import KnowledgeExplanation from "./knowledge-explanation";
 import EntryScore from "./entry-score";
@@ -133,7 +134,9 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     const timer = setInterval(() => {
       if (!document.hidden && !inFlight.current) void load();
     }, 60000);
-    return () => clearInterval(timer);
+    const onReturn=()=>{if(!document.hidden&&!inFlight.current)void load();};
+    document.addEventListener("visibilitychange",onReturn);window.addEventListener("focus",onReturn);
+    return () => {clearInterval(timer);document.removeEventListener("visibilitychange",onReturn);window.removeEventListener("focus",onReturn);};
   }, [load]);
   useEffect(() => {
     void fetch("/api/visits", {
@@ -860,6 +863,7 @@ function EventMap({ state }: { state: QuestState }) {
           picture.
         </p>
       </header>
+      <DataFreshness state={state} locale="en"/>
       <section className="en-card event-brief-hub" data-tour="briefs">
         <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
         <h2>{isSunday ? "🔮 Map your next week’s adventure." : "☀️ Your premarket power-up."}</h2>

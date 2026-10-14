@@ -1,0 +1,15 @@
+import type {QuestState,LearningCard} from './types';
+import {marketDate} from './domain';
+/** New factual exercises follow actual releases, rather than relabeling old questions with today's date. */
+export function factualCards(state:QuestState,locale:'zh'|'en'):LearningCard[]{
+ const zh=locale==='zh',cards:LearningCard[]=[];
+ const units:Partial<Record<import('./types').EventKind,string>>={CPI:'headline, year over year (%)',PCE:'headline, year over year (%)',PPI:'final demand, year over year (%)',GDP:'quarterly annualized growth (%)',NFP:'monthly change, thousands of jobs',CLAIMS:'seasonally adjusted, people',JOLTS:'thousands of job openings',TRADE:'USD billions',RETAIL:'month over month (%)',FOMC:'target range upper bound (%)'};
+ for(const e of state.events.filter(e=>e.status==='confirmed'&&e.actual!==undefined&&e.previous!==undefined).sort((a,b)=>b.at.localeCompare(a.at)).slice(0,8)){
+  const delta=e.actual!-e.previous!,date=marketDate(new Date(e.at)),concept=`release-comparison:${e.id}`;
+  cards.push({id:`${zh?'':'en:'}live:${concept}`,conceptId:concept,category:'events',title:zh?`${e.kind} · ${date} 公布后怎么读？`:`${e.kind} · Read the ${date} release`,question:zh?`${e.kind} 本次公布 ${e.actual}，前值 ${e.previous}（${e.unit}）。只比较这两个数值，可以确认什么？`:`${e.kind} was ${e.actual}, versus ${e.previous} previously (${units[e.kind]||'index / source units'}). What can this comparison establish?`,choices:zh?[delta>0?'该指标高于前值':delta<0?'该指标低于前值':'该指标与前值相同','QQQ 一定会上涨','这就是市场预期','这个数字证明盘中入场顺序']: [delta>0?'This measure increased':delta<0?'This measure decreased':'This measure was unchanged','QQQ must rise','This is the market consensus','It proves the intraday entry sequence'],answerIndex:0,answerExplanation:zh?`本次值减前值 = ${delta.toFixed(2)}。这比较的是同口径已公布数值，不是相对市场共识的意外程度。`:`Actual minus previous = ${delta.toFixed(2)}. This compares published observations, not a surprise against consensus.`,explanation:zh?'先确认同比、环比、季调与单位一致，再比较前值。如果要判断是否超预期，必须另有同口径、公布前取得的市场共识；QQQ 反应还取决于利率路径和市场已有定价。':'Match annual/monthly changes, seasonal adjustment and units first. A surprise requires separately sourced pre-release consensus. QQQ also reflects rate expectations and prior market pricing.',analogy:zh?'温度比昨天高，并不说明比医生预料的更高。':'A higher temperature than yesterday does not mean higher than the doctor expected.',example:zh?`这次 ${e.actual} 与前值 ${e.previous} 的差为 ${delta.toFixed(2)}；没有可靠共识就不填“超预期”。`:`${e.actual} versus ${e.previous} gives a difference of ${delta.toFixed(2)}; missing consensus cannot establish a forecast surprise.`,sources:[{title:e.sourceName,url:e.sourceUrl}],tags:[e.kind],difficulty:1,asOf:date,generatedAt:e.fetchedAt,topical:true});
+ }return cards;
+}
+export function updateDailyContent(state:QuestState){
+ const cards=factualCards(state,'zh');state.cards=[...cards,...state.cards.filter(c=>!cards.some(n=>n.id===c.id))];
+ state.learningUpdate={date:marketDate(new Date(state.now)),savedAt:state.now,count:cards.length,stocks:state.learningUpdate?.stocks||[],selectionBasis:'官方结果题随新公布生成；个股学习篮子沿用已有财报来源，不代表今日重新公布或客观热度排行。',status:'ready'};
+}
