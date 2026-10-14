@@ -53,7 +53,7 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date):Promise<M
   throw error;
  }
  if(event.kind==='RETAIL'){const url='https://www.census.gov/retail/marts/www/marts_current.pdf';return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
- if(event.kind==='BEIGE_BOOK'){const url=`https://www.federalreserve.gov/monetarypolicy/beigebook${date.replaceAll('-','')}.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
+ if(event.kind==='BEIGE_BOOK'){const url=`https://www.federalreserve.gov/monetarypolicy/beigebook${date.slice(0,7).replace('-','')}-summary.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
  if(['PCE','GDP','TRADE'].includes(event.kind)){
   const rss=load(await officialContent('https://apps.bea.gov/rss/rss.xml'),{xml:true});
   const match=event.kind==='PCE'?/Personal Income and Outlays/i:event.kind==='GDP'?/GDP|Gross Domestic Product/i:/International Trade in Goods and Services/i;

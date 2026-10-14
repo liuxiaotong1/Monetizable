@@ -25,6 +25,9 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
   await refreshEventData(state,now);
   try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
   updateDailyContent(state);
+  const health=await read<{completedAt:string}>('refresh-health');
+  state.sources.push({name:'后台定时更新',status:health&&now.getTime()-Date.parse(health.completedAt)<15*60000?'ready':'delayed',lastSuccess:health?.completedAt,message:health?'最近成功任务已记录；来源各自保留验证时间。':'等待数据库定时任务完成首轮；打开网站仍会检查更新。'});
+  feed.exportedAt=now.toISOString();
   const session=sessionFor(now);const forecast=preparationForecast(state.bars,session.date,now);
   if(session.isTradingDay && now.getTime()<Date.parse(session.openAt)&&forecast){const key=`forecast:${session.date}`,prior=await read<typeof state.forecasts>(key)||[];if(!prior.some(f=>f.id===forecast.id)){prior.push(forecast);await save(key,prior);}state.forecasts=[...state.forecasts.filter(f=>f.date!==session.date),...prior];}
   const date=parisDate(now),parisTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now),day=new Date(date+'T12:00:00Z').getUTCDay();
