@@ -1,3 +1,4 @@
+import {fetchBlsSeries} from './bls-api';
 import {load} from 'cheerio';
 import type {MarketEvent} from './types';
 import {marketDate} from './domain';
@@ -50,7 +51,7 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date):Promise<M
  if(bls[event.kind]){
   const prefix=bls[event.kind];let error:unknown;
   for(const url of [`https://www.bls.gov/news.release/archives/${prefix}_${stamp}.htm`,`https://www.dol.gov/newsroom/economicdata/${prefix}_${stamp}.pdf`])try{return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}catch(e){error=e;}
-  throw error;
+  try{return await fetchBlsSeries(event,now);}catch{throw error;}
  }
  if(event.kind==='RETAIL'){const url='https://www.census.gov/retail/marts/www/marts_current.pdf';return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
  if(event.kind==='BEIGE_BOOK'){const url=`https://www.federalreserve.gov/monetarypolicy/beigebook${date.slice(0,7).replace('-','')}-summary.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}

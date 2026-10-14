@@ -1,0 +1,135 @@
+{
+  "status": "REQUEST_SUCCEEDED",
+  "responseTime": 76,
+  "message": [],
+  "Results": {
+    "series": [
+      {
+        "seriesID": "CUUR0000SA0",
+        "data": [
+          {
+            "year": "2026",
+            "period": "M09",
+            "periodName": "September",
+            "latest": "true",
+            "value": "336.940",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2026",
+            "period": "M08",
+            "periodName": "August",
+            "value": "334.980",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M09",
+            "periodName": "September",
+            "value": "324.800",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M08",
+            "periodName": "August",
+            "value": "323.976",
+            "footnotes": [
+              {}
+            ]
+          }
+        ]
+      },
+      {
+        "seriesID": "CUUR0000SA0L1E",
+        "data": [
+          {
+            "year": "2026",
+            "period": "M09",
+            "periodName": "September",
+            "latest": "true",
+            "value": "339.287",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2026",
+            "period": "M08",
+            "periodName": "August",
+            "value": "338.041",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M09",
+            "periodName": "September",
+            "value": "330.804",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M08",
+            "periodName": "August",
+            "value": "329.970",
+            "footnotes": [
+              {}
+            ]
+          }
+        ]
+      },
+      {
+        "seriesID": "CUSR0000SA0",
+        "data": [
+          {
+            "year": "2026",
+            "period": "M09",
+            "periodName": "September",
+            "latest": "true",
+            "value": "336.298",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2026",
+            "period": "M08",
+            "periodName": "August",
+            "value": "334.131",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M09",
+            "periodName": "September",
+            "value": "324.245",
+            "footnotes": [
+              {}
+            ]
+          },
+          {
+            "year": "2025",
+            "period": "M08",
+            "periodName": "August",
+            "value": "323.291",
+            "footnotes": [
+              {}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

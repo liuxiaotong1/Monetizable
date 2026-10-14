@@ -1,4 +1,5 @@
 import 'server-only';
+import {enrichReleaseMetrics} from './bls-api';
 import {database} from '@/lib/account/db';
 import {fetchOfficialRelease} from './official-release';
 import {parseEventValues,applyEventValues,EVENT_VALUES_URL,type EventValuesFeed} from './event-values';
@@ -105,7 +106,7 @@ async function refreshHistory(state:QuestState,now:Date){
 export async function refreshEventData(state:QuestState,now=new Date()):Promise<void>{
  try{await refreshCalendars(state,now);await refreshAgencyCalendars(state,now);await refreshReleases(state,now);
   const [values]=await Promise.all([cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined as EventValuesFeed|undefined,now),refreshHistory(state,now)]);
-  state.events=applyEventValues(state.events,values.body);setSource(state,status('经济日历 · 前值与市场预测',values,'共识单独标注来源；不以媒体或模型预测代替调查值。'));
+  state.events=applyEventValues(state.events,values.body).map(enrichReleaseMetrics);setSource(state,status('经济日历 · 前值与市场预测',values,'共识单独标注来源；不以媒体或模型预测代替调查值。'));
   setSource(state,{name:'官方事件自动同步',status:'ready',message:'公布后每 5 分钟检查，失败保留原值并重试；正文与报告期核对后才确认。',lastSuccess:now.toISOString()});
  }catch(error){setSource(state,{name:'官方事件自动同步',status:'delayed',message:error instanceof Error?error.message:'同步暂不可用'});}
 }
