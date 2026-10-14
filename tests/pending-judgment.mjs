@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import fs from 'node:fs/promises';import ts from 'typescript';
+const code=ts.transpileModule(await fs.readFile('src/lib/quest/pending-judgment.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText;
+const {pendingJudgment}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const call={date:'2026-10-14',eligible:true,direction:'bullish',lockedAt:'2026-10-13T20:27:00.488Z'};
+const state={reviews:[{date:'2026-10-08',matched:undefined}],trackingWeeks:[{days:[{judgment:call}]}]};
+assert.equal(pendingJudgment(state),call,'An overnight eligible call must take priority over an unrelated old unscored report');
+assert.equal(pendingJudgment({...state,judgment:{date:'2026-10-15',eligible:true}}).date,'2026-10-15');
+assert.equal(pendingJudgment({...state,reviews:[{date:'2026-10-14',matched:true}]}),undefined,'A confirmed review replaces pending state');
+assert.equal(pendingJudgment({...state,trackingWeeks:[{days:[{judgment:{...call,eligible:false}}]}]}),undefined);
+assert.equal(pendingJudgment({reviews:[],trackingWeeks:[]}),undefined);
+console.log('Passed overnight-call, newer-call, confirmed-result, eligibility and empty-state cases.');

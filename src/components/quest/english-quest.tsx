@@ -1,4 +1,5 @@
 "use client";
+import { pendingJudgment } from "@/lib/quest/pending-judgment";
 import KnowledgeExplanation from "./knowledge-explanation";
 import EntryScore from "./entry-score";
 import WatchlistChart from "./watchlist-chart";
@@ -414,6 +415,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       setFacts(false);
     }
   }, [review?.id, review?.matched]);
+  const pending=pendingJudgment(state);
   const targetSession=predictionSession(state);
   const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
   const locked =
@@ -436,7 +438,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <div className="en-hero-copy">
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>
-            {review?.matched
+            {pending ? `Your ${pending.date} call is sealed.` : review?.matched
               ? "Your call matched."
               : review?.matched === false
                 ? "A new lesson unlocked."
@@ -444,11 +446,11 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                   ? "Close confirmed."
                   : "Turn your judgment"}
             <br />
-            <em>{review ? "Now follow the evidence." : "into experience."}</em>
+            <em>{pending ? "Awaiting the verified close." : review ? "Now follow the evidence." : "into experience."}</em>
           </h1>
           <p>
-            {review
-              ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched === undefined ? "No eligible prediction to score." : review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
+            {pending ? `${directions[pending.direction]} · ${pending.reason}. Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed.` : review
+              ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched === undefined ? `No eligible prediction for ${review.date}; calls for other dates are checked separately.` : review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
               : "Read the market. Make your call. Return after the close. Every better question is a step forward."}
           </p>
           <button
@@ -461,14 +463,14 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                     ?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            {review ? "Follow the facts" : "Make today’s call"}
+            {review ? pending ? `View ${review.date} historical report` : "Follow the facts" : "Make today’s call"}
             <ArrowRight size={18} />
           </button>
         </div>
         <div className="en-hero-character">
           <YelanViewer
             locale="en"
-            celebrate={celebrate}
+            celebrate={celebrate&&!pending}
             onCelebrationComplete={() => {
               setCelebrate(false);
               setFacts(true);

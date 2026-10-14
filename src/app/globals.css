@@ -52,3 +52,15 @@
 .quiz-fireworks i:nth-child(3n+1) { background:#e1c5ff; color:#e1c5ff; }
 @keyframes quiz-burst { 0% { opacity:0; transform:rotate(var(--angle)) translateX(0) scale(.3); } 15% {opacity:1;} 100% { opacity:0; transform:rotate(var(--angle)) translateX(155px) scale(.4); } }
 @media(prefers-reduced-motion:reduce) { .quiz-fireworks {display:none;} }
+
+/* The journal has its own row, so its history cannot stretch the short scenario column. */
+.journal-wide{scroll-margin-top:85px}
+@media(min-width:981px){
+ .journal-wide .weekly-tracking{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.5fr);gap:10px 28px;align-items:start}
+ .journal-wide .panel-top,.journal-wide .weekly-tracking>h3,.journal-wide .tracking-nav,.journal-wide .tracking-metrics{grid-column:1}
+ .journal-wide .tracking-nav{margin:4px 0}
+ .journal-wide .tracking-metrics{margin:4px 0}
+ .journal-wide .tracking-days{grid-column:2;grid-row:1/6}
+ .journal-wide .tracking-summary{grid-column:1/-1;margin-top:10px}
+ .admin-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+}

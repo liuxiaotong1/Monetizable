@@ -12,6 +12,8 @@ import {
 interface Dashboard {
   users: {supabaseUrl:string;hasMore:boolean;storage:string;items:{id:string;email:string;name:string;registered_at:string;last_sign_in_at?:string;last_seen_at?:string;verified:boolean;provider:string;has_profile:boolean;subscription:string}[]};
   metrics: {
+    todayVisitors: number;
+    todayDate: string;
     visitors: number;
     views: number;
     accounts: number;
@@ -92,6 +94,7 @@ export default function AdminDashboard() {
       )}
       <section className="admin-grid">
         {[
+          { label: "今日访客 · 巴黎", value: metric?.todayVisitors, icon: Users },
           { label: "近 30 天访客", value: metric?.visitors, icon: Users },
           { label: "近 30 天浏览量", value: metric?.views, icon: BarChart3 },
           { label: "Supabase 注册账户", value: metric?.accounts, icon: Users },
@@ -104,6 +107,7 @@ export default function AdminDashboard() {
           </article>
         ))}
       </section>
+      <p className="muted small-text">今日访客：{metric?.todayDate || "今天"} · 巴黎 00:00 起按匿名浏览器去重，同一浏览器访问多个页面只计一次。</p>
       <section className="admin-panel admin-users">
         <div className="admin-users-heading"><div><span className="eyebrow">EXPLORER DIRECTORY</span><h2>用户信息 · Supabase</h2></div>{data?.users?.supabaseUrl&&<a className="secondary" href={data.users.supabaseUrl} target="_blank" rel="noopener noreferrer">打开 Supabase 用户管理 ↗</a>}</div>
         <p className="muted small-text">注册、登录身份保存在 Supabase Auth；学习进度、自选股、判断与订阅记录保存在同一 Supabase 项目的数据库中。名单包含尚未验证邮箱或尚未进入网站的账户；仅管理员可见。</p>

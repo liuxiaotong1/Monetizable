@@ -2,7 +2,7 @@ import "server-only";
 import { database } from "./db";
 import { stripeAmount } from "./money";
 export async function adminMetrics() {
-  const [daily, totals, profiles] = await Promise.all([
+  const [daily, totals, profiles, today] = await Promise.all([
     database().query(
       "SELECT d::date::text AS date,COALESCE(v.visitors,0)::int AS visitors,COALESCE(v.views,0)::int AS views,COALESCE(p.signups,0)::int AS signups FROM generate_series(current_date-29,current_date,interval '1 day') d LEFT JOIN (SELECT day,count(DISTINCT visitor) visitors,sum(views) views FROM quest_visits GROUP BY day) v ON v.day=d::date LEFT JOIN (SELECT created_at::date AS day,count(*) signups FROM auth.users GROUP BY day) p ON p.day=d::date ORDER BY d",
     ),
@@ -12,11 +12,17 @@ export async function adminMetrics() {
     database().query(
       "SELECT count(*)::int accounts,count(*) FILTER(WHERE p.last_seen_at>now()-interval'7 days')::int active FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id",
     ),
+    database().query(
+      "SELECT count(DISTINCT visitor)::int AS today_visitors,(now() AT TIME ZONE 'Europe/Paris')::date::text AS today_date FROM quest_visits WHERE last_at>=((now() AT TIME ZONE 'Europe/Paris')::date::timestamp AT TIME ZONE 'Europe/Paris') AND last_at<(((now() AT TIME ZONE 'Europe/Paris')::date+1)::timestamp AT TIME ZONE 'Europe/Paris')",
+    ),
   ]);
   return {
     daily: daily.rows,
     ...totals.rows[0],
     ...profiles.rows[0],
+    todayVisitors: today.rows[0].today_visitors,
+    todayDate: today.rows[0].today_date,
+    todayTimezone: "Europe/Paris",
     timezone: "UTC",
     updatedAt: new Date().toISOString(),
   };
