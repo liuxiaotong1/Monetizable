@@ -208,7 +208,7 @@ export default function AccountShell({
             <>
               <span className="guest-dot account-status" />
               <span className="account-status">
-                Explore first. Sign in when you’re ready.
+                Sign in to save your learning progress.
               </span>
             </>
           )}

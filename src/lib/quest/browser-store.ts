@@ -6,6 +6,7 @@ import {
   classifyCard,
   conceptKey,
   beginLearningVisit,
+  migrateLearningProgress,
 } from "./learning-engine";
 import { dailyAdventure, completeAdventure } from "./adventure";
 import { weeklyTracking } from "./weekly-tracking";
@@ -112,6 +113,7 @@ export function hydrateBrowserState(
         !state.cards.some((s) => s.id === c.id),
     ),
   ];
+  migrateLearningProgress(state.cards,record.progress);
   state.cards=state.cards.map(card=>card.answerIndex===-1?record.cards.find(saved=>saved.id===card.id&&saved.answerIndex>=0)||card:card);
   state.forecasts = [
     ...record.forecasts,
@@ -200,7 +202,7 @@ export function applyBrowserCommand(
   };
   if (cmd.type === "learningVisit") {
     if (record.learningVisitId !== cmd.visitId) {
-      beginLearningVisit(record.progress, cmd.visitId);
+      beginLearningVisit(record.progress, cmd.visitId, now);
       record.learningVisitId = cmd.visitId;
     }
   } else if (cmd.type === "judgment") {
@@ -282,7 +284,7 @@ export function applyBrowserCommand(
     }
     if (cmd.action === "reset") {
       for (const item of record.progress.filter(
-        (x) => (x.conceptId || x.cardId) === conceptKey(card),
+        (x) => conceptKey({id:x.cardId,conceptId:x.conceptId}) === conceptKey(card),
       )) {
         delete item.masteredAt;
         delete item.lastDispositionAt;

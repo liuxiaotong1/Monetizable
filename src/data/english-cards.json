@@ -1706,7 +1706,8 @@
       "1907",
       "bank run"
     ],
-    "difficulty": 1
+    "difficulty": 1,
+    "conceptId": "en:history:1907"
   },
   {
     "id": "en:options:bear-put",
@@ -1734,6 +1735,7 @@
       "options",
       "BearPutSpread"
     ],
-    "difficulty": 2
+    "difficulty": 2,
+    "conceptId": "en:options:bear-put"
   }
 ]

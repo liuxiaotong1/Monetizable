@@ -1,36 +1,41 @@
 import { shuffleRank } from "./shuffle";
 import type { LearningCard, CardProgress, Category } from "./types";
 export const learningThemes: Category[] = ["earnings", "options", "history", "technical", "events"];
-export const conceptKey = (card: Pick<LearningCard, "id" | "conceptId">) => card.conceptId || card.id;
+// Publication hashes and revision suffixes identify snapshots, not new concepts.
+const stableConcept = (id:string) => id.replace(/:[0-9a-f]{8,}$/i,'').replace(/:v\d+$/i,'');
+export const conceptKey = (card: Pick<LearningCard, "id" | "conceptId">) => stableConcept(card.conceptId || card.id);
 export const questionKey = (card: LearningCard) => `${card.category}:${card.question.normalize("NFKC").toLowerCase().replace(/[\p{P}\p{Z}\s]/gu, "")}`;
 const dateAt = (at: string) => new Intl.DateTimeFormat("sv-SE", { timeZone: "America/New_York" }).format(new Date(at));
 function identities(cards: LearningCard[], progress: CardProgress[], predicate: (p: CardProgress) => boolean) {
  const byId = new Map(cards.map(c => [c.id,c]));
  const concepts = new Set<string>(), questions = new Set<string>();
- for(const p of progress.filter(predicate)) { const card=byId.get(p.cardId); concepts.add(p.conceptId || (card?conceptKey(card):p.cardId)); if(p.questionKey || card) questions.add(p.questionKey || questionKey(card!)); }
+ for(const p of progress.filter(predicate)) { const card=byId.get(p.cardId); concepts.add(stableConcept(p.conceptId || (card?conceptKey(card):p.cardId))); if(p.questionKey || card) questions.add(p.questionKey || questionKey(card!)); }
  return {has:(card:LearningCard)=>concepts.has(conceptKey(card)) || questions.has(questionKey(card))};
 }
 export function masteredConcepts(cards: LearningCard[], progress: CardProgress[]) {
  const mastered=identities(cards,progress,p=>!!p.masteredAt || p.learningStatus==="mastered");
- return new Set([...cards.filter(c=>mastered.has(c)).map(conceptKey),...progress.filter(p=>!!p.masteredAt || p.learningStatus==="mastered").map(p=>p.conceptId || p.cardId)]);
+ return new Set([...cards.filter(c=>mastered.has(c)).map(conceptKey),...progress.filter(p=>!!p.masteredAt || p.learningStatus==="mastered").map(p=>stableConcept(p.conceptId || p.cardId))]);
 }
 /** No calendar-based automatic reviews: only an explicit left swipe requests one. */
 export function migrateLearningProgress(cards:LearningCard[],progress:CardProgress[]) {
  const byId=new Map(cards.map(c=>[c.id,c]));
  for(const p of progress) {
-  const card=byId.get(p.cardId); if(card) p.questionKey=questionKey(card);
-  if(p.learningStatus==="review" && p.lastDispositionAt && !p.masteredAt) p.reviewPending=true;
-  else if(p.lastAnswerAt && !p.masteredAt) p.learningStatus="seen";
+  const card=byId.get(p.cardId); if(card) {p.questionKey ||= questionKey(card);p.conceptId=stableConcept(p.conceptId||conceptKey(card));}
+  if(p.learningStatus==="review" && p.lastDispositionAt && !p.masteredAt && p.reviewPending===undefined && !p.reviewVisitId) p.reviewPending=true;
+  else if(p.lastAnswerAt && !p.masteredAt && p.learningStatus!=="review") p.learningStatus="seen";
   delete p.dueDate;
  }
 }
 /** Only a foreground learning visit consumes a requested review. Polls/jobs do not. */
-export function beginLearningVisit(progress:CardProgress[],visitId:string) {
- for(const p of progress) if(p.reviewPending && !p.masteredAt) {p.reviewPending=false;p.reviewVisitId=visitId;}
+export function beginLearningVisit(progress:CardProgress[],visitId:string,now=new Date().toISOString()) {
+ for(const p of progress) if(p.reviewPending && !p.masteredAt) {
+  p.reviewPending=false;p.reviewVisitId=visitId;
+  p.updatedAt=new Date(Math.max(Date.parse(now),Date.parse(p.updatedAt||p.lastDispositionAt||'')+1||0)).toISOString();
+ }
 }
 export function learningQueue(cards:LearningCard[],progress:CardProgress[],date:string,assignedIds?:string[],theme?:Category,visitId?:string) {
  const mastered=identities(cards,progress,p=>!!p.masteredAt || p.learningStatus==="mastered");
- const learned=identities(cards,progress,p=>!!p.lastAnswerAt);
+ const learned=identities(cards,progress,p=>!!p.lastAnswerAt || (p.attempts>0&&p.lastAnswerIndex!==undefined));
  const byId=new Map(cards.map(c=>[c.id,c])),byProgress=new Map(progress.map(p=>[p.cardId,p]));
  const source=assignedIds?assignedIds.flatMap(id=>byId.has(id)?[byId.get(id)!]:[]):cards;
  const concepts=new Set<string>(),questions=new Set<string>();

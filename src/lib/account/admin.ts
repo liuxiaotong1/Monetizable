@@ -4,13 +4,13 @@ import { stripeAmount } from "./money";
 export async function adminMetrics() {
   const [daily, totals, profiles] = await Promise.all([
     database().query(
-      "SELECT d::date::text AS date,COALESCE(v.visitors,0)::int AS visitors,COALESCE(v.views,0)::int AS views,COALESCE(p.signups,0)::int AS signups FROM generate_series(current_date-29,current_date,interval '1 day') d LEFT JOIN (SELECT day,count(DISTINCT visitor) visitors,sum(views) views FROM quest_visits GROUP BY day) v ON v.day=d::date LEFT JOIN (SELECT joined_at::date AS day,count(*) signups FROM quest_profiles GROUP BY day) p ON p.day=d::date ORDER BY d",
+      "SELECT d::date::text AS date,COALESCE(v.visitors,0)::int AS visitors,COALESCE(v.views,0)::int AS views,COALESCE(p.signups,0)::int AS signups FROM generate_series(current_date-29,current_date,interval '1 day') d LEFT JOIN (SELECT day,count(DISTINCT visitor) visitors,sum(views) views FROM quest_visits GROUP BY day) v ON v.day=d::date LEFT JOIN (SELECT created_at::date AS day,count(*) signups FROM auth.users GROUP BY day) p ON p.day=d::date ORDER BY d",
     ),
     database().query(
       "SELECT count(DISTINCT visitor)::int visitors,COALESCE(sum(views),0)::int views FROM quest_visits WHERE day>=current_date-29",
     ),
     database().query(
-      "SELECT count(*)::int accounts,count(*) FILTER(WHERE last_seen_at>now()-interval'7 days')::int active FROM quest_profiles",
+      "SELECT count(*)::int accounts,count(*) FILTER(WHERE p.last_seen_at>now()-interval'7 days')::int active FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id",
     ),
   ]);
   return {
@@ -51,7 +51,7 @@ export async function paymentMetrics() {
     return {
       status: "ready",
       scope:
-        "Stripe 账户最近 100 笔交易，含旧 Monetizable；尚未配置 QQQ Quest 收费产品",
+        "Stripe 账户最近 100 笔交易，可能包含历史交易；按币种分别展示",
       hasMore: !!value.has_more,
       currencies,
       payments: value.data.map(
@@ -87,4 +87,11 @@ export async function paymentMetrics() {
       hasMore: false,
     };
   }
+}
+
+/** Only returned by the administrator-protected endpoint. No secrets or arbitrary metadata. */
+export async function adminUsers(){
+ const {rows}=await database().query(`SELECT u.id,u.email,left(COALESCE(u.raw_user_meta_data->>'full_name',u.raw_user_meta_data->>'name',''),100) AS name,u.created_at AS registered_at,u.last_sign_in_at,u.email_confirmed_at IS NOT NULL AS verified,COALESCE(u.raw_app_meta_data->>'provider','email') AS provider,p.last_seen_at,p.user_id IS NOT NULL AS has_profile,COALESCE(s.status,'none') AS subscription FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id LEFT JOIN quest_subscriptions s ON s.user_id=u.id ORDER BY u.created_at DESC LIMIT 101`);
+ const ref=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split('.')[0];
+ return {items:rows.slice(0,100),hasMore:rows.length>100,supabaseUrl:`https://supabase.com/dashboard/project/${encodeURIComponent(ref)}/auth/users`,storage:'Supabase Auth + Postgres'};
 }

@@ -361,7 +361,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
           </footer>
         </main>
       </div>
-      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Your next three free cards are waiting."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign up or sign in to continue cards 3–5 free today. The first two count toward your daily five. From card 6, Plus unlocks unlimited learning."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>Continue with Google / Gmail or use a secure email link.</small></section></div>}
+      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Save your learning progress."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "You need an account to save your learning progress. Sign in or create one to pick up where you left off across devices."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>Continue with Google / Gmail or use a secure email link.</small></section></div>}
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
           <button
@@ -1085,7 +1085,7 @@ function Deck({
 }) {
   const [theme, setTheme] = useState<Category>(),
     [tab, setTab] = useState<"daily" | "all" | "mastered" | "saved">("daily"),
-    [celebrate, setCelebrate] = useState(false);
+    [celebrate, setCelebrate] = useState(false),[front,setFront]=useState(false);
   const visit = useRef<string | null>(null);
   useEffect(() => {
     if (!visit.current) visit.current = crypto.randomUUID();
@@ -1117,6 +1117,7 @@ function Deck({
       progress.lastAnswerVisitId === state.learningVisitId &&
       progress.lastDispositionVisitId !== state.learningVisitId;
   const choiceOrder = card ? shuffledIndices(card.choices.length, `${state.learningVisitId || state.session.date}:${card.id}:choices`) : [];
+  useEffect(()=>setFront(false),[card?.id]);
   const selected = progress?.lastAnswerIndex;
   const {access}=useBilling();
   const blocked = access.status!=="loading" && !access.premium && access.remaining===0 && (!card || (!answered && !access.claimedCards?.includes(card.id)));
@@ -1242,7 +1243,7 @@ function Deck({
             ))
           )}
         </section>
-      ) : blocked ? (signedIn ? <PremiumGate feature="learning"/> : <section className="en-card"><span className="eyebrow">TWO DISCOVERIES DOWN · THREE MORE TO GO</span><h2>Keep your adventure going.</h2><p>You’ve tried two cards. Sign up or sign in to unlock cards 3–5 free today. Your first two count toward today’s five.</p><button className="primary" onClick={()=>requireAccount("cards")}>Sign up / sign in to continue</button></section>) : card ? (
+      ) : blocked ? (signedIn ? <PremiumGate feature="learning"/> : <section className="en-card"><span className="eyebrow">KEEP YOUR LEARNING PROGRESS</span><h2>Keep your adventure going.</h2><p>You need an account to save your learning progress. Sign in or create one to continue your adventure.</p><button className="primary" onClick={()=>requireAccount("cards")}>Sign up / sign in to continue</button></section>) : card ? (
         <div className="swipe-deck"><section
           key={card.id}
           className={`en-quiz-card ${answered ? "flipped" : ""}`}
@@ -1282,14 +1283,15 @@ function Deck({
             </button>
           </div>
           <h2>{card.title}</h2>
-          {!answered ? (
+          {answered&&front&&<button type="button" className="text-button quiz-return" onClick={()=>setFront(false)}>Return to explanation ↻</button>}
+          {!answered||front ? (
             <>
               <p className="en-question">{card.question}</p>
               <div className="en-choices">
                 {choiceOrder.map((originalIndex, i) => (
                   <button
                     key={i}
-                    disabled={busy}
+                    disabled={busy||answered}
                     onClick={async () => {
                       const result = await run({
                         type: "card",
@@ -1306,11 +1308,11 @@ function Deck({
                 ))}
               </div>
               <p className="muted small-text">
-                Choose an answer to unlock the explanation.
+                {front?"Reviewing the question. Your original answer stays saved.":"Choose an answer to unlock the explanation."}
               </p>
             </>
           ) : (
-            <div className="en-answer">
+            <div className="en-answer"><button type="button" className="text-button quiz-return" onClick={()=>setFront(true)}>↶ Back to the question</button>
               <span
                 className={selected === card.answerIndex ? "positive" : "muted"}
               >

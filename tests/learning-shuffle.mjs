@@ -34,3 +34,19 @@ for(let run=0;run<100;run++) {
  assert(styleQuestions[order[0]]);
 }
 console.log('Passed stable visits, randomized new visits, canonical answer scoring, explanation retention, mastery order, explicit review and 100 style permutations.');
+// A consumed left-swipe review must not be revived by legacy migration or cloud merge.
+const reviewed=engine.classifyCard(answered.progress,current,'review','2026-10-12T12:01:00Z',visit);
+const cloudPending=structuredClone(reviewed);
+engine.beginLearningVisit([reviewed],'return-visit','2026-10-12T12:02:00Z');
+engine.migrateLearningProgress(cards,[reviewed]);
+assert.equal(reviewed.reviewPending,false);
+assert.equal(reviewed.reviewVisitId,'return-visit');
+assert(reviewed.updatedAt>cloudPending.lastDispositionAt,'Consuming a review has a newer sync timestamp');
+const {mergeRecords}=await import(toUrl(await compile('src/lib/quest/merge-records.ts')));
+const base={judgments:[],forecasts:[],cards,progress:[],notes:{},rewards:[],xp:0,learningDays:{},readNotices:[]};
+const merged=mergeRecords({...base,progress:[cloudPending]},{...base,progress:[reviewed]});
+assert.equal(merged.progress[0].reviewPending,false,'Cloud merge cannot resurrect an older pending review');
+const versionA={...cards[0],id:'lesson:v1:aabbccddeeff',question:'First wording'},versionB={...cards[0],id:'lesson:v2:112233445566',question:'Updated wording'};
+const old=engine.answerCard({cardId:versionA.id,attempts:0,correctCount:0},versionA,0,0,4,'2026-10-12T12:00:00Z',visit).progress;
+assert.equal(engine.learningQueue([versionB],[old],'2026-10-13',undefined,undefined,'new-visit').length,0,'A publication hash or revision must not turn a learned concept into a new card');
+console.log('Passed consumed-review migration, cross-device merge and publication-version deduplication.');

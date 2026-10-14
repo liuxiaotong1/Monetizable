@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { administrator } from "@/lib/account/auth";
-import { adminMetrics, paymentMetrics } from "@/lib/account/admin";
+import { adminMetrics, paymentMetrics, adminUsers } from "@/lib/account/admin";
 export async function GET() {
   if (!(await administrator()))
     return NextResponse.json(
@@ -8,12 +8,13 @@ export async function GET() {
       { status: 403, headers: { "Cache-Control": "private, no-store" } },
     );
   try {
-    const [metrics, payments] = await Promise.all([
+    const [metrics, payments, users] = await Promise.all([
       adminMetrics(),
       paymentMetrics(),
+      adminUsers(),
     ]);
     return NextResponse.json(
-      { metrics, payments },
+      { metrics, payments, users },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch {

@@ -124,8 +124,8 @@ const cards = JSON.parse(
     "utf8",
   ),
 );
-assert.equal(cards.length, 60);
-assert.equal(new Set(cards.map((c) => c.conceptId)).size, 60);
+assert.ok(cards.length >= 60, "Keep at least the initial English inventory");
+assert.equal(new Set(cards.map((c) => c.conceptId)).size, cards.length);
 for (const c of cards) {
   assert.ok(c.answerIndex >= 0 && c.answerIndex < c.choices.length);
   assert.equal(new Set(c.choices).size, c.choices.length);
