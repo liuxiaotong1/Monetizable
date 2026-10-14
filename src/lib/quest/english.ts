@@ -104,7 +104,7 @@ export function sourceHost(url: string) {
   }
 }
 export function eventUnit(e: MarketEvent) {
-  if (e.unit.includes("%")) return "%";
+  if (e.unit.includes("%")) return `%${e.unit.includes("同比") ? " · year over year" : e.unit.includes("环比") ? " · period over period" : ""}${e.unit.includes("年化") ? " · annualized" : ""}${e.unit.includes("未季调") ? " · not seasonally adjusted" : ""}`;
   if (e.kind === "CLAIMS" || e.kind === "NFP" || e.kind === "JOLTS")
     return "people / jobs · source definition applies";
   if (e.kind === "TRADE") return "USD billions";

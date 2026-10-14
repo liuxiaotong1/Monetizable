@@ -1,3 +1,4 @@
+import { compactEventUnit } from "@/lib/quest/event-presentation";
 import type { MarketEvent } from "@/lib/quest/types";
 import { SourceLink, dualTime } from "./shared";
 
@@ -12,9 +13,9 @@ export function PublicationHistory({ event, mode }: { event: MarketEvent; mode: 
       const original = versions[0];
       return <article className="publication-record" key={date}>
         <header><strong>{new Date(date).toLocaleDateString("zh-CN", { timeZone: "America/New_York" })}</strong><small>{dualTime(date)} · 原始取得版本</small></header>
-        <p>{original.period ? `${original.period} · ` : ""}公布 {original.actual}{event.unit}{original.previous === undefined ? "" : ` · 前值 ${original.previous}${event.unit}`}{original.revised === undefined ? "" : ` · 前值修订 ${original.revised}${event.unit}`}</p>
+        <p>{original.period ? `${original.period} · ` : ""}公布 {original.actual}{compactEventUnit(event.unit)}{original.previous === undefined ? "" : ` · 前值 ${original.previous}${compactEventUnit(event.unit)}`}{original.revised === undefined ? "" : ` · 前值修订 ${original.revised}${compactEventUnit(event.unit)}`}</p>
         <SourceLink href={original.sourceUrl}>官方公布来源</SourceLink>
-        {versions.length > 1 && <details><summary>后续取得的 {versions.length - 1} 个修订版本</summary>{versions.slice(1).map(record => <p key={record.version}>v{record.version} · {record.vintage} 取得 · 公布 {record.actual}{event.unit}{record.revised === undefined ? "" : ` · 前值修订 ${record.revised}${event.unit}`}</p>)}</details>}
+        {versions.length > 1 && <details><summary>后续取得的 {versions.length - 1} 个修订版本</summary>{versions.slice(1).map(record => <p key={record.version}>v{record.version} · {record.vintage} 取得 · 公布 {record.actual}{compactEventUnit(event.unit)}{record.revised === undefined ? "" : ` · 前值修订 ${record.revised}${compactEventUnit(event.unit)}`}</p>)}</details>}
       </article>;
     })}</div> : <p className="muted">等待取得官方公布结果后建立记录。</p>}
   </section>;
