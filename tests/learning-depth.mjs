@@ -18,6 +18,7 @@ assert.ok(cardTerms(fixture('gpu','GPU and HBM')).some(t=>t.name==='HBM'));
 assert.ok(cardTerms(fixture('macro','GDP and PCE')).some(t=>t.name==='PCE'));
 const spread=detailedLesson(fixture('expanded-options-15','熊市 Put 价差：把利润空间画出来'));
 assert.equal(spread.key,'bear-put');
+assert.ok(cardTerms(fixture('expanded-options-15','熊市 Put 价差：把利润空间画出来')).some(t=>t.name.startsWith('Assignment')),'Terms introduced by the new lesson must also be explained');
 assert.equal(spread.payoff.find(r=>r.price===100).net,-200);
 assert.equal(spread.payoff.find(r=>r.price===98).net,0);
 assert.equal(spread.payoff.find(r=>r.price===95).net,300);

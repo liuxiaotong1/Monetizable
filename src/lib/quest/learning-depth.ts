@@ -41,6 +41,8 @@ const terms=[
   {name:'Consensus · 市场预期',pattern:'市场预期|共识|consensus',zh:'某来源汇总的预测，不是已经公布的事实；需确认来源、采样时间和数据口径。',en:'A sourced aggregation of forecasts, not an actual release. Check timing and definitions.',url:'https://www.bls.gov/cpi/questions-and-answers.htm'},
 ];
 export function cardTerms(card:LearningCard){
-  const text=[card.title,card.question,card.explanation,card.answerExplanation,card.tags.join(' ')].join(' ');
+  const lesson=detailedLesson(card);
+  const added=lesson?['zh','en'].flatMap(locale=>{const copy=lesson[locale as 'zh'|'en'];return [copy.intro,copy.example,copy.pitfall,...copy.steps.map(step=>step.text)];}):[];
+  const text=[card.title,card.question,card.explanation,card.answerExplanation,card.tags.join(' '),...added].join(' ');
   return terms.filter(term=>new RegExp(term.pattern,'i').test(text));
 }
