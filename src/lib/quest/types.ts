@@ -180,6 +180,7 @@ export interface CardProgress {
 }
 export interface WatchItem {
   symbol: string;
+  exchange?: "NASDAQ" | "NYSE" | "AMEX";
   irUrl: string;
   earningsAt?: string;
   weeklyNote: string;

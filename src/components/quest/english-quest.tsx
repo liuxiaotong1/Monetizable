@@ -1,5 +1,6 @@
 "use client";
 import EntryScore from "./entry-score";
+import WatchlistChart from "./watchlist-chart";
 import {useBilling,PremiumGate,LearningAllowance} from "../account/billing-access";
 import { predictionSession } from "@/lib/quest/prediction-window";
 import { shuffledIndices } from "@/lib/quest/shuffle";
@@ -389,6 +390,7 @@ interface DailyProps {
   requireAccount: (reason: "prediction" | "cards", draft?: PredictionDraft) => void;
 }
 function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
+  const [activeSymbol,setActiveSymbol]=useState("QQQ");
   const [direction, setDirection] = useState<Direction>("bullish"),
     [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
     [reason, setReason] = useState(""),
@@ -546,6 +548,8 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           )}
         </section>
       )}
+      <WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/>
+      <EntryScore symbol={activeSymbol}/>
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
         <div className="en-card-heading">
@@ -728,7 +732,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </form>
         )}
       </section>
-      <EntryScore/>
       <section className="en-card">
         <span className="eyebrow">YOUR JUDGMENT JOURNAL</span>
         <h2>Every week, a clearer picture.</h2>
