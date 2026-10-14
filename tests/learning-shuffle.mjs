@@ -50,3 +50,12 @@ const versionA={...cards[0],id:'lesson:v1:aabbccddeeff',question:'First wording'
 const old=engine.answerCard({cardId:versionA.id,attempts:0,correctCount:0},versionA,0,0,4,'2026-10-12T12:00:00Z',visit).progress;
 assert.equal(engine.learningQueue([versionB],[old],'2026-10-13',undefined,undefined,'new-visit').length,0,'A publication hash or revision must not turn a learned concept into a new card');
 console.log('Passed consumed-review migration, cross-device merge and publication-version deduplication.');
+
+const englishDelta={...cards[0],id:'en:options:01',conceptId:'en:options:01',category:'options',question:'What does Delta mean?'};
+const chineseDelta={...cards[0],id:'options-01',category:'options',question:'Delta 是什么？'};
+const trialAnswer=engine.answerCard({cardId:englishDelta.id,attempts:0,correctCount:0},englishDelta,0,0,4,'2026-10-12T12:00:00Z',visit).progress;
+assert.equal(engine.learningQueue([chineseDelta],[trialAnswer],'2026-10-13',undefined,undefined,'signed-in-visit').length,0,'English trial progress suppresses the matching Chinese concept after signing in');
+console.log('Passed cross-language trial-to-account concept deduplication.');
+
+const freshTopic={...chineseDelta,id:'new-options-topic',question:'A different options question'};
+assert(engine.assignDaily([chineseDelta,freshTopic],[trialAnswer],'2026-10-13',[chineseDelta.id]).includes(freshTopic.id),'An old translated card in daily assignments cannot prevent a fresh topic from being added');

@@ -2,7 +2,8 @@ import { shuffleRank } from "./shuffle";
 import type { LearningCard, CardProgress, Category } from "./types";
 export const learningThemes: Category[] = ["earnings", "options", "history", "technical", "events"];
 // Publication hashes and revision suffixes identify snapshots, not new concepts.
-const stableConcept = (id:string) => id.replace(/:[0-9a-f]{8,}$/i,'').replace(/:v\d+$/i,'');
+const aliases:Record<string,string>={'en:earnings:01':'earnings-01','en:options:01':'options-01','en:options:02':'options-02','en:options:03':'options-03','en:options:bear-put':'expanded-options-15','en:history:1907':'expanded-history-01'};
+const stableConcept = (id:string) => {const key=id.replace(/:[0-9a-f]{8,}$/i,'').replace(/:v\d+$/i,'');return aliases[key]||key;};
 export const conceptKey = (card: Pick<LearningCard, "id" | "conceptId">) => stableConcept(card.conceptId || card.id);
 export const questionKey = (card: LearningCard) => `${card.category}:${card.question.normalize("NFKC").toLowerCase().replace(/[\p{P}\p{Z}\s]/gu, "")}`;
 const dateAt = (at: string) => new Intl.DateTimeFormat("sv-SE", { timeZone: "America/New_York" }).format(new Date(at));
@@ -60,8 +61,9 @@ export function assignDaily(cards:LearningCard[],progress:CardProgress[],date:st
  const eligible=learningQueue(cards,progress,date,undefined,undefined,visitId);
  const append=(card:LearningCard)=>{if(!output.some(id=>conceptKey(byId.get(id)!)===conceptKey(card)||questionKey(byId.get(id)!)===questionKey(card)))output.push(card.id);};
  for(const card of eligible) if(progress.some(p=>p.cardId===card.id && p.reviewVisitId===visitId && !!visitId))append(card);
+ const priorFor=(id:string)=>{const card=byId.get(id)!;return progress.find(p=>conceptKey({id:p.cardId,conceptId:p.conceptId})===conceptKey(card)||p.questionKey===questionKey(card));};
  for(const theme of learningThemes) {
-  if(output.some(id=>byId.get(id)?.category===theme && (!progress.find(p=>p.cardId===id)?.lastAnswerAt || dateAt(progress.find(p=>p.cardId===id)!.lastAnswerAt!)===date)))continue;
+  if(output.some(id=>byId.get(id)?.category===theme && (!priorFor(id)?.lastAnswerAt || dateAt(priorFor(id)!.lastAnswerAt!)===date)))continue;
   const candidates=eligible.filter(c=>c.category===theme && !progress.some(p=>p.cardId===c.id && p.lastAnswerAt)).sort((a,b)=>Number(!!b.generatedAt && dateAt(b.generatedAt)===date)-Number(!!a.generatedAt && dateAt(a.generatedAt)===date)||relevance(b)-relevance(a)||a.difficulty-b.difficulty||a.id.localeCompare(b.id));
   if(candidates[0])append(candidates[0]);
  }
