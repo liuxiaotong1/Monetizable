@@ -145,7 +145,7 @@ export default function AdminDashboard() {
             <p>等待真实数据…</p>
           )}
           <p className="muted small-text">
-            只统计新 Quest 账号，不混入旧站的业务用户。
+            按 Supabase Auth 注册日期统计，包含尚未验证邮箱的账户。
           </p>
         </article>
       </section>
