@@ -16,3 +16,6 @@ SELECT cron.schedule('monetizable-sunday-outlook','*/5 17-18 * * 0',$job$
   timeout_milliseconds := 60000
  );
 $job$);
+-- pg_net's transient request queue contains Authorization headers. Keep it private.
+REVOKE SELECT ON TABLE net.http_request_queue FROM PUBLIC, anon, authenticated;
+REVOKE SELECT ON TABLE net._http_response FROM PUBLIC, anon, authenticated;
