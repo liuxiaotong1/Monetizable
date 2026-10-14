@@ -1,4 +1,5 @@
 "use client";
+import EntryScore from "./entry-score";
 import {useBilling,PremiumGate,LearningAllowance} from "../account/billing-access";
 import { predictionSession } from "@/lib/quest/prediction-window";
 import { shuffledIndices } from "@/lib/quest/shuffle";
@@ -46,7 +47,7 @@ import {
   readableError,
 } from "@/lib/quest/english";
 import { useCardSwipe } from "./use-card-swipe";
-import { draftKey, transferKey, trialKey, trialAllows, readTrialCards, readPredictionDraft, type PredictionDraft } from "@/lib/quest/guest-access";
+import { draftKey, transferKey, trialKey, readTrialCards, readPredictionDraft, type PredictionDraft } from "@/lib/quest/guest-access";
 import { useDialogFocus } from "./use-dialog-focus";
 import { X, LockKeyhole } from "lucide-react";
 import { learningQueue, masteredConcepts } from "@/lib/quest/learning-engine";
@@ -151,14 +152,13 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
   }
   const run = useCallback(async (command: QuestCommand) => {
     if (!signedIn && command.type === "judgment") { setGate("prediction"); return false; }
-    if (!signedIn && command.type === "card" && command.action === "answer") { setGate("cards"); return false; }
     if (inFlight.current || !shared.current) return false;
     inFlight.current = true;
     setBusy(true);
     try {
       if(command.type === "card" && command.action === "answer") {
         const response=await fetch('/api/learning/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardId:command.cardId,answerIndex:command.answerIndex})});
-        const payload=await response.json();if(!response.ok)throw Error(payload.error);
+        const payload=await response.json();if(!response.ok){window.dispatchEvent(new Event("quest-billing-refresh"));if(response.status===401&&!signedIn)setGate("cards");throw Error(payload.error);}
         shared.current.cards=shared.current.cards.map(c=>c.id===payload.card.id?payload.card:c);
         command={...command,answerIndex:payload.chosen};
         window.dispatchEvent(new Event("quest-billing-refresh"));
@@ -359,7 +359,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
           </footer>
         </main>
       </div>
-      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Your free weekly card is waiting."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign in for one free knowledge card per week. Plus includes unlimited cards and premarket briefs, with a 7-day trial then USD $19.90/month."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>One email link signs you in or creates your account.</small></section></div>}
+      {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Your next three free cards are waiting."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "Sign up or sign in to continue cards 3–5 free today. The first two count toward your daily five. From card 6, Plus unlocks unlimited learning."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>Continue with Google / Gmail or use a secure email link.</small></section></div>}
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
           <button
@@ -728,6 +728,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </form>
         )}
       </section>
+      <EntryScore/>
       <section className="en-card">
         <span className="eyebrow">YOUR JUDGMENT JOURNAL</span>
         <h2>Every week, a clearer picture.</h2>
@@ -1114,7 +1115,7 @@ function Deck({
   const choiceOrder = card ? shuffledIndices(card.choices.length, `${state.learningVisitId || state.session.date}:${card.id}:choices`) : [];
   const selected = progress?.lastAnswerIndex;
   const {access}=useBilling();
-  const blocked = !!card && access.status!=="loading" && !access.premium && (!signedIn || (access.remaining===0 && access.claimedCard!==card.id));
+  const blocked = access.status!=="loading" && !access.premium && access.remaining===0 && (!card || (!answered && !access.claimedCards?.includes(card.id)));
 
   const swipeHandlers = useCardSwipe(answered && !busy && !blocked, action => void disposition(action));
   async function disposition(action: "master" | "review") {
@@ -1236,7 +1237,7 @@ function Deck({
             ))
           )}
         </section>
-      ) : blocked ? (<PremiumGate feature="learning"/>) : card ? (
+      ) : blocked ? (signedIn ? <PremiumGate feature="learning"/> : <section className="en-card"><span className="eyebrow">TWO DISCOVERIES DOWN · THREE MORE TO GO</span><h2>Keep your adventure going.</h2><p>You’ve tried two cards. Sign up or sign in to unlock cards 3–5 free today. Your first two count toward today’s five.</p><button className="primary" onClick={()=>requireAccount("cards")}>Sign up / sign in to continue</button></section>) : card ? (
         <section
           className={`en-quiz-card ${answered ? "flipped" : ""}`}
           {...swipeHandlers}

@@ -3,7 +3,7 @@ import cards from "@/data/english-cards.json";
 import type {QuestState,LearningCard} from "./types";
 export function englishState(input: QuestState): QuestState {
   const state = structuredClone(input);
-  state.cards = cards as LearningCard[];
+  state.cards = structuredClone(cards) as LearningCard[];
   const latest = state.bars
     .filter((b) => b.symbol === "QQQ")
     .sort((a, b) => b.date.localeCompare(a.date));

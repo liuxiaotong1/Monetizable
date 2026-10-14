@@ -2,6 +2,7 @@ import 'server-only';
 import Stripe from 'stripe';
 import { randomBytes } from 'node:crypto';
 import { database } from './db';
+import { learningUsage } from './learning-access';
 import { APP_URL, currentUser, isAdmin } from './auth';
 export const PREMIUM_CENTS=1990,TRIAL_DAYS=7;
 export function stripeClient(){const key=process.env.STRIPE_SECRET_KEY;if(!key)throw Error('Stripe billing is not configured.');return new Stripe(key,{timeout:20000,maxNetworkRetries:1});}
@@ -23,11 +24,11 @@ export async function setupBilling(){
 export async function billingStatus(){
  const user=await currentUser();
  if(isAdmin(user))return {premium:true,admin:true,signedIn:true,status:'admin',remaining:1,configured:!!await billingConfig(),trialUsed:false};
- const config=await billingConfig();if(!user)return {premium:false,admin:false,signedIn:false,status:'free',remaining:0,configured:!!config,trialUsed:false};
+ const config=await billingConfig();if(!user){const claimedCards=await learningUsage();return {premium:false,admin:false,signedIn:false,status:'free',remaining:Math.max(0,2-claimedCards.length),claimedCards,configured:!!config,trialUsed:false};}
  const {rows}=await database().query('SELECT * FROM quest_subscriptions WHERE user_id=$1',[user.id]);const sub=rows[0];
  const premium=!!sub&&['active','trialing'].includes(sub.status)&&!!sub.access_until&&Date.parse(sub.access_until)>Date.now();
- const usage=await database().query('SELECT card_id FROM quest_learning_allowance WHERE user_id=$1 AND week=$2',[user.id,learningWeek()]);
- return {premium,admin:false,signedIn:true,status:sub?.status||'free',remaining:usage.rows.length?0:1,claimedCard:usage.rows[0]?.card_id,configured:!!config,trialUsed:!!sub?.trial_used,trialEnd:sub?.trial_end,accessUntil:sub?.access_until,cancelAtPeriodEnd:!!sub?.cancel_at_period_end};
+ const claimedCards=await learningUsage(user.id);
+ return {premium,admin:false,signedIn:true,status:sub?.status||'free',remaining:Math.max(0,5-claimedCards.length),claimedCards,configured:!!config,trialUsed:!!sub?.trial_used,trialEnd:sub?.trial_end,accessUntil:sub?.access_until,cancelAtPeriodEnd:!!sub?.cancel_at_period_end};
 }
 export async function synchronizeSubscription(id:string){
  const stripe=stripeClient(),sub=await stripe.subscriptions.retrieve(id);
