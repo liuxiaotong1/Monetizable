@@ -2,7 +2,7 @@ import { load } from "cheerio";
 import { marketDate } from "./domain";
 import type { MarketEvent } from "./types";
 export interface OfficialDocument {kind:"ISM"|"TRADE"|"MINUTES"|"CLAIMS"|"CONFIDENCE";url:string;content:string;calendarContent?:string}
-export interface OfficialRecord {kind:OfficialDocument["kind"];date?:string;period?:string;sector?:"services"|"manufacturing";phase?:"preliminary"|"final";actual?:number;previous?:number;revised?:number;sourceUrl:string;sourceName:string;fetchedAt:string;report?:{title:string;summary:string[];bodyUrl:string}}
+export interface OfficialRecord {kind:OfficialDocument["kind"];date?:string;period?:string;sector?:"services"|"manufacturing";phase?:"preliminary"|"final";actual?:number;previous?:number;revised?:number;sourceUrl:string;sourceName:string;fetchedAt:string;report?:{title:string;summary:string[];bodyUrl:string;metrics?:{kind:"headline-mom"|"core-yoy";value:number;unit:"%"}[]}}
 const months=["january","february","march","april","may","june","july","august","september","october","november","december"];
 function englishDate(text:string){const m=text.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})/i);return m?`${m[3]}-${String(months.indexOf(m[1].toLowerCase())+1).padStart(2,"0")}-${m[2].padStart(2,"0")}`:undefined;}
 export function parseOfficialDocument(doc:OfficialDocument,fetchedAt:string):OfficialRecord{

@@ -1039,6 +1039,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
             ? ` Revised previous: ${numbers(e.revised)}.`
             : ""}
         </p>
+        {!!e.report?.metrics?.length&&<><h4>Official release breakdown</h4>{e.report.metrics.map(metric=><p key={metric.kind}>{metric.kind==="headline-mom"?"Headline CPI · monthly, seasonally adjusted":"Core CPI · year over year"}: {metric.value}{metric.unit}</p>)}</>}
         <h4>Why it matters for QQQ</h4>
         <p>{text.impact}</p>
         <p>

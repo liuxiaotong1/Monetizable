@@ -25,7 +25,8 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
   await refreshEventData(state,now);
   try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
   updateDailyContent(state);
-  const health=await read<{completedAt:string}>('refresh-health');
+  const healthRow=(await database().query('SELECT max(r.created) AS completed_at FROM public.quest_update_requests q JOIN net._http_response r ON r.id=q.id WHERE r.status_code=200 AND NOT COALESCE(r.timed_out,false)')).rows[0];
+  const health=healthRow?.completed_at?{completedAt:new Date(healthRow.completed_at).toISOString()}:await read<{completedAt:string}>('refresh-health');
   state.sources.push({name:'后台定时更新',status:health&&now.getTime()-Date.parse(health.completedAt)<15*60000?'ready':'delayed',lastSuccess:health?.completedAt,message:health?'最近成功任务已记录；来源各自保留验证时间。':'等待数据库定时任务完成首轮；打开网站仍会检查更新。'});
   feed.exportedAt=now.toISOString();
   const session=sessionFor(now);const forecast=preparationForecast(state.bars,session.date,now);

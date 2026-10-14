@@ -22,7 +22,7 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
   const core=number(/all items less food and energy index (?:rose|increased) ([\d.]+) percent over the year/i);
   if(actual===undefined)throw Error('总体 CPI 同比尚未验证');
   const period=text.match(/CONSUMER PRICE INDEX\s*-\s*(\w+)\s+(20\d{2})/i),month=period&&months.indexOf(period[1].toLowerCase());
-  return {...base,actual,previous:previous??event.previous,period:period&&month!==-1?`${period[2]}-${String(month!+1).padStart(2,'0')}`:event.period,report:{title:'CPI · 官方公布摘要',summary:[`总体 CPI 同比 ${actual}%；${previous===undefined?'前值尚待官方核对。':`前值 ${previous}%。`}`,...(mom===undefined?[]:[`总体 CPI 季调环比 ${mom}%。同比和环比不可直接混用。`]),...(core===undefined?[]:[`核心 CPI 同比 ${core}%，排除食品与能源。`])],bodyUrl:url}};
+  return {...base,actual,previous:previous??event.previous,period:period&&month!==-1?`${period[2]}-${String(month!+1).padStart(2,'0')}`:event.period,report:{title:'CPI · 官方公布摘要',metrics:[...(mom===undefined?[]:[{kind:'headline-mom' as const,value:mom,unit:'%' as const}]),...(core===undefined?[]:[{kind:'core-yoy' as const,value:core,unit:'%' as const}])],summary:[`总体 CPI 同比 ${actual}%；${previous===undefined?'前值尚待官方核对。':`前值 ${previous}%。`}`,...(mom===undefined?[]:[`总体 CPI 季调环比 ${mom}%。同比和环比不可直接混用。`]),...(core===undefined?[]:[`核心 CPI 同比 ${core}%，排除食品与能源。`])],bodyUrl:url}};
  }
  let actual:number|undefined;
  if(event.kind==='NFP'&&/THE EMPLOYMENT SITUATION/i.test(text))actual=number(/Total nonfarm payroll employment (?:increased|rose|changed little|declined|fell|decreased).{0,40}?([+-]?[\d,]+)/i); // direction validated below

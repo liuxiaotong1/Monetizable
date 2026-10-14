@@ -8,7 +8,7 @@ const releases=url((await compile('official-release')).replace("'./domain'",JSON
 const {parseStatisticalRelease}=await import(releases);
 const {state}=JSON.parse(await fs.readFile('src/data/public-feed.json','utf8')),cpi=state.events.find(e=>e.id==='cpi-2026-10-14'),text=await fs.readFile('tests/fixtures/cpi-2026-10-14.txt','utf8');
 const result=parseStatisticalRelease(cpi,`<body>${text}</body>`,'https://www.dol.gov/newsroom/economicdata/cpi_10142026.pdf','2026-10-14T20:40:00Z');
-assert.equal(result.actual,3.7);assert.equal(result.previous,3.4);assert.equal(result.period,'2026-09');assert.equal(result.status,'confirmed');assert(result.report.summary.some(s=>s.includes('0.6')));assert(result.report.summary.some(s=>s.includes('2.6')));
+assert.equal(result.actual,3.7);assert.equal(result.previous,3.4);assert.equal(result.period,'2026-09');assert.equal(result.status,'confirmed');assert.equal(result.report.metrics[0].value,0.6);assert.equal(result.report.metrics[1].value,2.6);assert(result.report.summary.some(s=>s.includes('0.6')));assert(result.report.summary.some(s=>s.includes('2.6')));
 assert.throws(()=>parseStatisticalRelease({...cpi,at:'2026-11-10T13:30:00Z'},`<body>${text}</body>`,result.sourceUrl,'2026-11-10T20:40:00Z'));
 assert.throws(()=>parseStatisticalRelease(cpi,`<body>${text}</body>`,result.sourceUrl,'2026-10-14T12:29:00Z'));
 assert.throws(()=>parseStatisticalRelease(cpi,'<body>October 14, 2026 Calendar only: CPI release at 8:30</body>',result.sourceUrl,'2026-10-14T20:40:00Z'));
