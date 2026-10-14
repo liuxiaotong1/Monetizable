@@ -1678,5 +1678,62 @@
       "events"
     ],
     "difficulty": 2
+  },
+  {
+    "id": "en:history:1907",
+    "category": "history",
+    "title": "1907: why the system needed a fire station",
+    "question": "Why is the Panic of 1907 part of the story of the Federal Reserve?",
+    "analogy": "Borrowing a private fire truck during repeated fires is different from having a permanent fire station.",
+    "explanation": "A failed stock speculation spread into withdrawals from financial institutions and disruption to credit. The experience encouraged monetary reform.",
+    "example": "The panic happened in 1907; the Federal Reserve was established by law in 1913.",
+    "choices": [
+      "It encouraged reform of the monetary and central-banking system",
+      "The Federal Reserve already operated throughout the panic",
+      "It eliminated all bank runs permanently",
+      "It was only a modern technology-stock correction"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "It helped motivate reform; the later institution did not appear on the day of the panic.",
+    "sources": [
+      {
+        "title": "Federal Reserve History · 1907",
+        "url": "https://www.federalreservehistory.org/essays/panic-of-1907"
+      }
+    ],
+    "tags": [
+      "history",
+      "1907",
+      "bank run"
+    ],
+    "difficulty": 1
+  },
+  {
+    "id": "en:options:bear-put",
+    "category": "options",
+    "title": "Bear put spread: two legs, one capped payoff",
+    "question": "Assume a 100 / 95 put debit spread costs $2 per share, with a 100 multiplier. What is the theoretical maximum expiration profit before fees?",
+    "analogy": "A five-floor payout corridor, minus a two-floor entry cost.",
+    "explanation": "Buy a higher-strike put and sell a lower-strike put on the same underlying and expiration, in equal quantities.",
+    "example": "(100 − 95 − 2) × 100 = $300, assuming both legs are correctly handled together at expiration.",
+    "choices": [
+      "$300",
+      "$500",
+      "Unlimited profit",
+      "$200"
+    ],
+    "answerIndex": 0,
+    "answerExplanation": "The $5 strike width caps the spread value; subtract the $2 net debit before multiplying by 100.",
+    "sources": [
+      {
+        "title": "OIC · Bear put spread",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/bear-put-spread"
+      }
+    ],
+    "tags": [
+      "options",
+      "BearPutSpread"
+    ],
+    "difficulty": 2
   }
 ]

@@ -1,4 +1,5 @@
 "use client";
+import KnowledgeExplanation from "./knowledge-explanation";
 import EntryScore from "./entry-score";
 import WatchlistChart from "./watchlist-chart";
 import {useBilling,PremiumGate,LearningAllowance} from "../account/billing-access";
@@ -1226,6 +1227,7 @@ function Deck({
                 <p>{c.question}</p>
                 <strong>Answer: {c.choices[c.answerIndex]}</strong>
                 <p>{c.answerExplanation}</p>
+                <KnowledgeExplanation card={c}/>
                 {tab === "mastered" && (
                   <button
                     className="secondary"
@@ -1325,7 +1327,7 @@ function Deck({
               {card.explanation !== card.answerExplanation && (
                 <p>{card.explanation}</p>
               )}
-              {card.asOf && <small>Data as of {card.asOf}</small>}
+              <KnowledgeExplanation card={card}/>{card.asOf && <small>Data as of {card.asOf}</small>}
               {card.sources.map((s) => (
                 <a
                   className="source-link"

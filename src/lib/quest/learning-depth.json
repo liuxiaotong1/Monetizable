@@ -1,0 +1,684 @@
+[
+  {
+    "key": "1907",
+    "patterns": [
+      "1907",
+      "expanded-history-01"
+    ],
+    "zh": {
+      "intro": "1907 年 10 月，美国没有今天的美联储，也没有联邦存款保险。纽约信托公司吸收存款、向市场放贷，却不都能得到银行清算组织的支援。这里的“信托公司”是当时的金融机构，不能直接套用今天某个理财产品的定义。",
+      "steps": [
+        {
+          "title": "导火索：铜业股票投机失败",
+          "text": "10 月 16 日，United Copper 的股票操纵企图失败。人们担心相关人物控制或关联的银行也有损失，开始取走存款。"
+        },
+        {
+          "title": "恐慌扩散：为什么大家一起取钱？",
+          "text": "存款人未必能查清机构资产，只知道“别人正在取钱”。Knickerbocker Trust 管理层与投机者的关系引起担忧；10 月 22 日，挤兑迫使它暂停营业。"
+        },
+        {
+          "title": "传导：银行问题怎样影响企业？",
+          "text": "机构需要现金应付取款，于是减少向券商和企业放贷。证券融资更难，卖资产换现金又可能压低价格，形成信用收缩。"
+        },
+        {
+          "title": "救助与后来改革",
+          "text": "J.P. Morgan 协调私人资金支援部分机构和市场，清算组织也采取救助。依赖临时协调暴露制度缺口，危机推动货币改革讨论；美联储是在 1913 年依法成立，不是 1907 年当天出现。"
+        }
+      ],
+      "example": "教学假设：一家机构有 100 元资产，其中 90 元是不能马上收回的贷款、10 元是现金。如果储户同时要取 30 元，即使贷款最终能收回，它今天也可能缺现金。这叫流动性压力；资产总价值已不足偿债才是另一类问题。",
+      "pitfall": "Knickerbocker 是暂停营业，后来于 1908 年重开，并非从此永久消失。“救急现金”与“弥补资产损失”也不能混为一谈。"
+    },
+    "en": {
+      "intro": "In October 1907 the US had neither today’s Federal Reserve nor federal deposit insurance. New York trust companies took deposits and made loans, but many lacked clearinghouse support.",
+      "steps": [
+        {
+          "title": "A failed speculation",
+          "text": "An attempt to corner United Copper stock collapsed on October 16. Depositors questioned institutions associated with the speculators."
+        },
+        {
+          "title": "Withdrawals spread",
+          "text": "Connections between Knickerbocker Trust’s leadership and the speculators undermined confidence. A run forced Knickerbocker to suspend operations on October 22."
+        },
+        {
+          "title": "A wider credit squeeze",
+          "text": "Institutions needed cash for withdrawals. Reduced lending disrupted securities financing and business credit; asset sales could intensify the pressure."
+        },
+        {
+          "title": "Emergency support, then reform",
+          "text": "J.P. Morgan coordinated private assistance for parts of the system. Reliance on emergency coordination encouraged monetary reform. The Federal Reserve was established by law in 1913, not during the panic itself."
+        }
+      ],
+      "example": "Illustration: an institution with $100 in assets, including $90 in slow-to-repay loans and $10 cash, may be unable to meet $30 in immediate withdrawals even if its loans are ultimately sound.",
+      "pitfall": "Illiquidity is not automatically insolvency. Knickerbocker suspended operations and reopened in 1908; it did not simply vanish permanently."
+    },
+    "sources": [
+      {
+        "title": "Federal Reserve History · Panic of 1907",
+        "url": "https://www.federalreservehistory.org/essays/panic-of-1907"
+      },
+      {
+        "title": "Federal Reserve · Discount window history",
+        "url": "https://www.federalreserve.gov/newsevents/speech/jefferson20241008a.htm"
+      },
+      {
+        "title": "FDIC · 1900–1919",
+        "url": "https://www.fdic.gov/history/1900-1919"
+      }
+    ]
+  },
+  {
+    "key": "bear-put",
+    "patterns": [
+      "BearPutSpread",
+      "bear put spread",
+      "熊市 Put",
+      "熊市看跌"
+    ],
+    "zh": {
+      "intro": "熊市 Put 价差（Bear Put Spread）用于表达“在指定期限内看跌”的想法。Put 是按执行价卖出标的的权利。组合用一条买入 Put 获得下跌敞口，再卖出更低执行价 Put 减少成本，代价是盈利封顶。",
+      "steps": [
+        {
+          "title": "先认清两条腿",
+          "text": "同一标的、同一到期日、等数量：买较高执行价 Put，卖较低执行价 Put。下述全部是假设教学报价，不是当前可交易合约。"
+        },
+        {
+          "title": "例子：买 100 Put，卖 95 Put",
+          "text": "假设买入每股付 5，卖出每股收 3，净付 2。标准乘数假设为 100，一组初始支出是 200 美元。两张不同期权合起来才是一组价差。"
+        },
+        {
+          "title": "为什么涨跌都会有边界？",
+          "text": "到期时，100 Put 的价值为 max(100−股价, 0)；95 Put 是卖出的，所以要减去 max(95−股价, 0)。再扣每股 2 的成本。股价跌到 95 以下，两腿的价值差始终是 5。"
+        },
+        {
+          "title": "怎样理解开仓与退出？",
+          "text": "在模拟券商中识别“买入看跌价差”：买入开仓高执行价 Put，同时卖出开仓低执行价 Put，检查净支出。平仓时反过来：卖出平仓长腿、买回平仓短腿。不同券商用词和组合成交方式可能不同。"
+        },
+        {
+          "title": "到期前不能照搬到期表",
+          "text": "尚未到期时两腿还有时间价值，价格也受 IV 和流动性影响。方向看对也可能尚未盈利；提前平仓看组合实际成交差价，而不是只看一条腿。"
+        }
+      ],
+      "example": "最大理论到期亏损 = 净支出 × 100 = 200 美元；最大理论到期利润 = (100−95−2) × 100 = 300 美元；盈亏平衡股价 = 100−2 = 98。以下到期表假设双腿按组合正确处理，均未计费用。",
+      "pitfall": "卖出的美式 Put 可能提前被指派，产生接收股票与资金需求；长腿不会因为短腿被指派就自动替你处理。到期附近还可能留下意外股票仓位。组合理论亏损上限不等于无需管理交割。"
+    },
+    "en": {
+      "intro": "A bear put spread expresses a bearish view over a specified term. A put grants the right to sell at its strike. Selling a lower-strike put offsets some of a purchased put’s cost, but caps the payoff.",
+      "steps": [
+        {
+          "title": "Two legs, one position",
+          "text": "Use the same underlying and expiration, with equal quantities: buy the higher-strike put and sell the lower-strike put. All prices here are invented teaching assumptions."
+        },
+        {
+          "title": "Build a 100 / 95 example",
+          "text": "Pay $5 per share for the 100 put and collect $3 for the 95 put. Net debit: $2. With an assumed 100-share multiplier, one spread costs $200."
+        },
+        {
+          "title": "Calculate the expiration result",
+          "text": "Per-share profit = max(100−S, 0) − max(95−S, 0) − 2. Below $95, both puts have intrinsic value and their difference stays $5."
+        },
+        {
+          "title": "Opening and closing in a simulator",
+          "text": "Identify a put debit spread: buy to open the higher strike, sell to open the lower strike, and verify the net debit. Closing reverses both legs. Broker terminology and execution vary."
+        },
+        {
+          "title": "Before expiration",
+          "text": "Time value, IV and liquidity still affect prices. An early exit uses the actual spread sale price; the expiration table is not a quote for today."
+        }
+      ],
+      "example": "Assuming both legs are handled together, before fees: maximum expiration loss $200, maximum profit $300, breakeven underlying price $98.",
+      "pitfall": "An American-style short put can be assigned early, creating stock and funding obligations. The long put is not automatically exercised to handle that assignment. Expiration can also leave unintended stock exposure."
+    },
+    "sources": [
+      {
+        "title": "OIC · Bear put spread",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/bear-put-spread"
+      },
+      {
+        "title": "OIC · Long put",
+        "url": "https://www.optionseducation.org/strategies/all-strategies/long-put"
+      },
+      {
+        "title": "FINRA · Assignment",
+        "url": "https://www.finra.org/investors/insights/trading-options-understanding-assignment"
+      }
+    ],
+    "payoff": [
+      {
+        "price": 105,
+        "long": 0,
+        "short": 0,
+        "net": -200
+      },
+      {
+        "price": 100,
+        "long": 0,
+        "short": 0,
+        "net": -200
+      },
+      {
+        "price": 99,
+        "long": 100,
+        "short": 0,
+        "net": -100
+      },
+      {
+        "price": 98,
+        "long": 200,
+        "short": 0,
+        "net": 0
+      },
+      {
+        "price": 97,
+        "long": 300,
+        "short": 0,
+        "net": 100
+      },
+      {
+        "price": 95,
+        "long": 500,
+        "short": 0,
+        "net": 300
+      },
+      {
+        "price": 90,
+        "long": 1000,
+        "short": -500,
+        "net": 300
+      }
+    ]
+  },
+  {
+    "key": "2008",
+    "patterns": [
+      "history-01",
+      "en:history:01",
+      "expanded-history-04",
+      "2008：",
+      "2008:"
+    ],
+    "zh": {
+      "intro": "2008 年危机不只是股市下跌。房贷损失、证券化、金融机构融资和企业信贷相互连接。",
+      "steps": [
+        {
+          "title": "从房贷到证券",
+          "text": "一些房贷被汇集成抵押贷款支持证券，再出售给投资者。房贷违约增加时，损失与估值疑虑会影响持有人。"
+        },
+        {
+          "title": "从损失到融资压力",
+          "text": "资金提供者担心机构能否偿还，减少短期贷款；机构被迫卖资产，压力扩散。2008 年 9 月 Lehman 申请破产，是重要节点而非唯一原因。"
+        }
+      ],
+      "example": "假设机构用 5 元自有资本加 95 元借款买 100 元资产。资产跌 5 元，就可能耗尽这 5 元资本；资产只跌 5%，对资本却是巨大冲击。",
+      "pitfall": "区分资产损失、缺现金与股价下跌；也不能把所有救助都当成同一种工具。"
+    },
+    "en": {
+      "intro": "The 2008 crisis linked mortgage losses, securitization, funding markets and business credit.",
+      "steps": [
+        {
+          "title": "Mortgages became securities",
+          "text": "Mortgages were pooled into securities. Rising defaults damaged cash flows and made valuations uncertain."
+        },
+        {
+          "title": "Funding amplified the shock",
+          "text": "Lenders pulled back short-term funding. Forced asset sales added pressure. Lehman’s September 2008 bankruptcy was a major milestone, not the only cause."
+        }
+      ],
+      "example": "If $5 of equity and $95 of borrowing fund $100 of assets, a $5 asset loss can wipe out the equity. A small asset decline becomes a large capital loss.",
+      "pitfall": "Asset losses, cash shortages and stock-price declines are different. Rescue tools also served different purposes."
+    },
+    "sources": [
+      {
+        "title": "Federal Reserve History · Great Recession",
+        "url": "https://www.federalreservehistory.org/essays/great-recession-of-200709"
+      }
+    ]
+  },
+  {
+    "key": "1929",
+    "patterns": [
+      "history-02",
+      "en:history:03",
+      "1929"
+    ],
+    "zh": {
+      "intro": "1929 年股市崩盘与大萧条有关，但大萧条是持续多年的经济危机，不是一根暴跌 K 线。",
+      "steps": [
+        {
+          "title": "先有股市冲击",
+          "text": "1929 年 10 月股市剧烈下跌，影响投资者财富与信心。"
+        },
+        {
+          "title": "再看后续传导",
+          "text": "此后的银行恐慌、信用收缩与政策问题让经济困境加深。企业融资、生产和就业会相互影响。"
+        }
+      ],
+      "example": "假设居民因资产缩水减少消费，商店收入下降；银行又减少贷款，企业就更难维持生产和雇人。这说明金融冲击怎样进入日常生活。",
+      "pitfall": "不要只用一个交易日解释整个萧条；“股市反弹”也不代表经济已经全面恢复。"
+    },
+    "en": {
+      "intro": "The 1929 crash and the Great Depression are related, but the depression was a prolonged economic crisis.",
+      "steps": [
+        {
+          "title": "The initial market shock",
+          "text": "The October crash damaged wealth and confidence."
+        },
+        {
+          "title": "The later transmission",
+          "text": "Banking panics, contracting credit and policy problems deepened the downturn, affecting production and employment."
+        }
+      ],
+      "example": "Imagine households cut spending after losses while banks restrict loans. Shops lose revenue and businesses struggle to finance hiring.",
+      "pitfall": "One trading day cannot explain the entire depression. A market rebound need not mean a complete economic recovery."
+    },
+    "sources": [
+      {
+        "title": "Federal Reserve History · 1929 crash",
+        "url": "https://www.federalreservehistory.org/essays/stock-market-crash-of-1929"
+      }
+    ]
+  },
+  {
+    "key": "bank-run",
+    "patterns": [
+      "history-03",
+      "en:history:10",
+      "挤兑",
+      "Bank runs"
+    ],
+    "zh": {
+      "intro": "挤兑是许多储户集中要求取回存款。银行把一部分钱放成长期贷款，通常不会把所有存款都留成柜台现金。",
+      "steps": [
+        {
+          "title": "先看时间不匹配",
+          "text": "储户可以马上取钱，但贷款要慢慢收回；资产可能有价值，却不能立即变现。"
+        },
+        {
+          "title": "恐慌如何自我强化",
+          "text": "担心取不到钱的人先来提款，迫使机构筹现金；其他人看到排队，更想先取。"
+        }
+      ],
+      "example": "有 10 元现金、90 元贷款，却突然要支付 30 元取款：今天缺 20 元现金，不必然意味着全部资产只值 10 元。",
+      "pitfall": "流动性不足是“现在付不出”；资不抵债是“资产价值不足以偿债”。两者可能相互影响，但不是同义词。"
+    },
+    "en": {
+      "intro": "A bank run means many depositors demand cash together. Deposits fund loans as well as cash reserves.",
+      "steps": [
+        {
+          "title": "Different clocks",
+          "text": "Withdrawals may be immediate; loan repayment takes time."
+        },
+        {
+          "title": "A feedback loop",
+          "text": "Fear triggers withdrawals; withdrawals force cash-raising; visible stress encourages more withdrawals."
+        }
+      ],
+      "example": "$10 cash plus $90 loans may not meet $30 in immediate withdrawals even if the loans are sound.",
+      "pitfall": "Illiquidity means a current cash shortage; insolvency means insufficient asset value to cover obligations."
+    },
+    "sources": [
+      {
+        "title": "Federal Reserve History · Banking panics",
+        "url": "https://www.federalreservehistory.org/essays/banking-panics-of-the-gilded-age"
+      }
+    ]
+  },
+  {
+    "key": "eps",
+    "patterns": [
+      "earnings-01",
+      "en:earnings:01",
+      "EPS"
+    ],
+    "zh": {
+      "intro": "EPS 是“每股盈利”，先把公司属于普通股股东的利润，除以这一期间的加权平均普通股数。它不是你会收到的分红。",
+      "steps": [
+        {
+          "title": "为什么看加权平均？",
+          "text": "年中发行或回购股票，只影响部分时间的股数；不能随便拿年末股数代替整个期间的分母。"
+        },
+        {
+          "title": "稀释后为什么可能更低？",
+          "text": "潜在新增股份可能分摊利润。稀释 EPS 的具体计算还需按会计规则处理相关利润调整与反稀释项目。"
+        }
+      ],
+      "example": "简化假设：利润 100 美元、平均 50 股，EPS = 2 美元。利润不变、股数变为 100 股，EPS = 1 美元。比较 EPS 时也要看利润与股数各自变化。",
+      "pitfall": "回购可能提高 EPS，但不证明总利润增长；会计利润也不等于经营现金流。"
+    },
+    "en": {
+      "intro": "EPS divides earnings attributable to common shareholders by weighted-average common shares. It is not a dividend payment.",
+      "steps": [
+        {
+          "title": "Why average shares?",
+          "text": "Shares issued or repurchased partway through a period affect only part of that period."
+        },
+        {
+          "title": "Why dilution matters",
+          "text": "Potential extra shares may spread earnings more thinly. Accounting rules also govern numerator adjustments and anti-dilutive instruments."
+        }
+      ],
+      "example": "Simplified: $100 earnings / 50 shares = $2 EPS; with unchanged earnings and 100 shares, EPS is $1.",
+      "pitfall": "Buybacks can lift EPS without growing total profit. Earnings and operating cash flow are different."
+    },
+    "sources": [
+      {
+        "title": "SEC · Financial statements",
+        "url": "https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide"
+      }
+    ]
+  },
+  {
+    "key": "delta",
+    "patterns": [
+      "options-01",
+      "en:options:01",
+      "Delta",
+      "delta"
+    ],
+    "zh": {
+      "intro": "Delta 衡量标的价格小幅变化时，期权报价大约变化多少。它是局部、随时会变的敏感度。",
+      "steps": [
+        {
+          "title": "先确认单位",
+          "text": "标准股票期权报价通常按每股显示；一张合约的变化还要乘实际合约乘数。"
+        },
+        {
+          "title": "再确认方向",
+          "text": "持有 Call 的 Delta 通常为正，持有 Put 通常为负；卖出仓位的敞口符号反过来。"
+        }
+      ],
+      "example": "假设 Call Delta = 0.40，股票上涨 1 美元，其他条件不变，报价近似上涨 0.40 美元；乘数 100 时一张约增加 40 美元。",
+      "pitfall": "大幅波动时 Delta 会改变；时间和 IV 也影响报价。Delta 不是实际盈利概率。"
+    },
+    "en": {
+      "intro": "Delta estimates the premium response to a small underlying-price move. It is a changing local sensitivity.",
+      "steps": [
+        {
+          "title": "Check units",
+          "text": "A per-share premium change must be multiplied by the actual contract multiplier."
+        },
+        {
+          "title": "Check direction",
+          "text": "Long calls usually have positive delta; long puts negative delta. Short positions reverse that exposure."
+        }
+      ],
+      "example": "At 0.40 call delta, a $1 stock rise suggests about $0.40 more per share, or $40 with a 100 multiplier, other factors unchanged.",
+      "pitfall": "Large moves change delta. Time and IV also matter; delta is not your actual probability of profit."
+    },
+    "sources": [
+      {
+        "title": "OIC · Delta",
+        "url": "https://www.optionseducation.org/advancedconcepts/delta"
+      }
+    ]
+  },
+  {
+    "key": "gamma",
+    "patterns": [
+      "options-02",
+      "en:options:02",
+      "Gamma",
+      "gamma"
+    ],
+    "zh": {
+      "intro": "Gamma 衡量 Delta 怎样随标的价格改变。如果 Delta 是当前速度，Gamma 就描述速度变化。",
+      "steps": [
+        {
+          "title": "为什么临近到期要留意？",
+          "text": "临近到期、接近平值的期权，Delta 可能对小幅价格变化非常敏感。"
+        },
+        {
+          "title": "组合需要合并计算",
+          "text": "买入与卖出的期权可有相反的 Gamma 敞口，要看全部腿而非只看买入的那张。"
+        }
+      ],
+      "example": "假设 Call Delta 为 0.40、Gamma 为 0.08，股票上涨 1 美元后，Delta 局部近似变为 0.48；这是敏感度估计，不是固定承诺。",
+      "pitfall": "Gamma 也会变化，不能用一次近似无限外推；高敏感度也意味着仓位可能快速偏离原计划。"
+    },
+    "en": {
+      "intro": "Gamma measures how delta changes as the underlying moves.",
+      "steps": [
+        {
+          "title": "Near expiration",
+          "text": "Near-the-money options can become especially sensitive to small price moves."
+        },
+        {
+          "title": "Use the whole position",
+          "text": "Long and short legs can have opposite gamma exposures."
+        }
+      ],
+      "example": "If call delta is 0.40 and gamma 0.08, a $1 stock rise locally suggests delta near 0.48, other factors unchanged.",
+      "pitfall": "Gamma changes too. Do not extend a local approximation indefinitely."
+    },
+    "sources": [
+      {
+        "title": "OIC · Gamma",
+        "url": "https://www.optionseducation.org/advancedconcepts/gamma"
+      }
+    ]
+  },
+  {
+    "key": "theta",
+    "patterns": [
+      "options-03",
+      "en:options:03",
+      "Theta",
+      "theta"
+    ],
+    "zh": {
+      "intro": "Theta 描述剩余时间减少时，期权理论报价的变化。期权还有多久到期，会影响市场为未来可能性付多少钱。",
+      "steps": [
+        {
+          "title": "不等于每天固定扣费",
+          "text": "Theta 是模型敏感度，会随价格、IV 与到期距离变化。"
+        },
+        {
+          "title": "方向对也可能亏",
+          "text": "标的缓慢朝预期方向走，带来的价格收益可能小于时间价值减少或 IV 下跌的影响。"
+        }
+      ],
+      "example": "假设报价 3 美元、Theta = −0.04，其他条件不变，一天时间减少的局部估计是每股约 −0.04；乘数 100 时约 −4 美元。",
+      "pitfall": "不能把当天 Theta × 剩余天数当成精确损失。组合卖出腿也可能抵消部分时间敞口。"
+    },
+    "en": {
+      "intro": "Theta estimates the premium change as time to expiration decreases.",
+      "steps": [
+        {
+          "title": "Not a daily bill",
+          "text": "It is a model sensitivity, changing with price, IV and time remaining."
+        },
+        {
+          "title": "Direction alone is insufficient",
+          "text": "A slow favorable stock move may be outweighed by lost time value or lower IV."
+        }
+      ],
+      "example": "At a $3 premium and −0.04 theta, one day less time locally suggests about −$0.04 per share, or −$4 with a 100 multiplier, other factors unchanged.",
+      "pitfall": "Today’s theta multiplied by every remaining day is not an exact forecast."
+    },
+    "sources": [
+      {
+        "title": "OIC · Theta",
+        "url": "https://www.optionseducation.org/advancedconcepts/theta"
+      }
+    ]
+  },
+  {
+    "key": "iv",
+    "patterns": [
+      "en:options:04",
+      "隐含波动",
+      "IV crush",
+      "IV Crush",
+      "IV："
+    ],
+    "zh": {
+      "intro": "IV（隐含波动率）是从期权价格反推的波动输入，不是对涨跌方向的预测。事件前的不确定性可能让期权更贵。",
+      "steps": [
+        {
+          "title": "为什么事件后会压价？",
+          "text": "财报公布后，一部分未知变成已知，IV 可能下降；这会影响期权价格。"
+        },
+        {
+          "title": "同时看三个变化",
+          "text": "标的方向、时间流逝和 IV 变化共同影响持仓，不要只看股价是否上涨。"
+        }
+      ],
+      "example": "假设你买 Call 后股价上涨，方向给报价带来 +0.30，但 IV 下跌带来 −0.50，时间变化带来 −0.05，简化合计仍是 −0.25。这里只用于说明因素叠加。",
+      "pitfall": "事件后 IV 不保证下降，也不能把高 IV 解读成“股票一定大涨”。"
+    },
+    "en": {
+      "intro": "Implied volatility is inferred from option prices. It concerns modeled movement size, not a predicted direction.",
+      "steps": [
+        {
+          "title": "After an event",
+          "text": "Resolved uncertainty can lower IV and option premiums."
+        },
+        {
+          "title": "Track multiple inputs",
+          "text": "Underlying price, time and IV affect the position together."
+        }
+      ],
+      "example": "Illustration: +$0.30 from direction, −$0.50 from IV, −$0.05 from time gives a simplified −$0.25 total.",
+      "pitfall": "IV need not fall after every event. High IV does not guarantee an upward stock move."
+    },
+    "sources": [
+      {
+        "title": "OIC · Volatility & Greeks",
+        "url": "https://www.optionseducation.org/advancedconcepts/volatility-the-greeks"
+      }
+    ]
+  },
+  {
+    "key": "rsi",
+    "patterns": [
+      "RSI",
+      "en:technical:04"
+    ],
+    "zh": {
+      "intro": "RSI 把近期上涨与下跌的相对力度压成 0–100 的指标。它描述已经发生的动量，不知道下一根 K 线。",
+      "steps": [
+        {
+          "title": "先看周期",
+          "text": "14 周期 RSI 在日线看 14 根日 K，在 5 分钟图看 14 根 5 分钟 K，时间跨度不同。"
+        },
+        {
+          "title": "再看环境",
+          "text": "常见 70 / 30 阈值只是参考。在强趋势中，RSI 可以长期停留在较高或较低区域。"
+        }
+      ],
+      "example": "假设股价持续抬高，RSI 处于 75；这不等于“下一刻必须下跌”。需结合趋势、价位与明确失效条件理解。",
+      "pitfall": "“超买”不是自动卖出指令；一个指标也不能单独证明入场胜率。"
+    },
+    "en": {
+      "intro": "RSI summarizes recent upward versus downward momentum on a 0–100 scale.",
+      "steps": [
+        {
+          "title": "Check the timeframe",
+          "text": "Fourteen daily bars and fourteen five-minute bars cover different spans."
+        },
+        {
+          "title": "Check the regime",
+          "text": "Common 70 / 30 reference levels are not automatic reversal triggers; strong trends can remain stretched."
+        }
+      ],
+      "example": "A stock making higher highs with RSI 75 need not fall on the next bar.",
+      "pitfall": "Overbought is not an automatic sell instruction or a measured win rate."
+    },
+    "sources": [
+      {
+        "title": "Fidelity · RSI",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/RSI"
+      }
+    ]
+  },
+  {
+    "key": "atr",
+    "patterns": [
+      "ATR",
+      "en:technical:05"
+    ],
+    "zh": {
+      "intro": "ATR 是平均真实波幅：测近期价格通常波动多大，包含跳空带来的变化，不预测涨跌方向。",
+      "steps": [
+        {
+          "title": "为什么不只看日内高低？",
+          "text": "高低价差会漏掉相对前收盘的跳空。真实波幅还比较本期高 / 低与前收盘的距离。"
+        },
+        {
+          "title": "怎么读数值？",
+          "text": "ATR 通常与价格同单位，比较不同价格的股票时，还可看 ATR ÷ 股价的比例。"
+        }
+      ],
+      "example": "假设前收盘 100、今日最高 106、最低 104。日内范围只有 2，但真实波幅是 max(2, 6, 4) = 6；向上跳空被算进来了。",
+      "pitfall": "ATR = 6 不代表明天一定涨或跌 6，也不保证按某个 ATR 距离设置止损就一定成交。"
+    },
+    "en": {
+      "intro": "ATR averages true range, a measure of movement size that includes gaps, not direction.",
+      "steps": [
+        {
+          "title": "Why include the prior close?",
+          "text": "High minus low alone misses overnight gaps."
+        },
+        {
+          "title": "Read the units",
+          "text": "ATR is generally in price units. ATR / price helps compare differently priced instruments."
+        }
+      ],
+      "example": "Prior close $100; high $106; low $104. True range = max(2, 6, 4) = $6, despite a $2 intraday range.",
+      "pitfall": "An ATR of $6 does not predict tomorrow’s direction or guarantee stop execution."
+    },
+    "sources": [
+      {
+        "title": "Fidelity · ATR",
+        "url": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atr"
+      }
+    ]
+  },
+  {
+    "key": "cpi",
+    "patterns": [
+      "CPI",
+      "en:events:01",
+      "en:events:02"
+    ],
+    "zh": {
+      "intro": "CPI 衡量城市消费者一篮子商品和服务的价格变化。先确认数据的时期、单位与口径，再解释数字。",
+      "steps": [
+        {
+          "title": "同比和环比不是一回事",
+          "text": "同比比较上年同月，环比比较上月。核心 CPI 排除食物与能源，整体 CPI 包含它们。"
+        },
+        {
+          "title": "判断公布值要有参照",
+          "text": "前值、修订值与有来源的市场预期分别回答不同问题；没有共识来源时，不能自己编“超预期”。"
+        }
+      ],
+      "example": "教学假设：整体 CPI 同比 3%、核心环比 0.3%。这不是两个同口径数字，不能直接说 3 比 0.3 高十倍所以更糟。",
+      "pitfall": "通胀增速下降不等于物价水平下降；市场反应还取决于事前定价、增长与利率环境。"
+    },
+    "en": {
+      "intro": "CPI measures changes in prices of a consumer basket. Check period, unit and definition before interpreting it.",
+      "steps": [
+        {
+          "title": "Year-on-year versus month-on-month",
+          "text": "They compare different periods. Core CPI excludes food and energy; headline CPI includes them."
+        },
+        {
+          "title": "Choose the comparison",
+          "text": "Previous values, revisions and sourced consensus answer different questions. Missing consensus is not permission to invent a surprise."
+        }
+      ],
+      "example": "Hypothetical headline inflation of 3% year-on-year and core inflation of 0.3% month-on-month are not directly comparable.",
+      "pitfall": "Slower inflation is not necessarily falling prices. Market response also depends on prior pricing and broader conditions."
+    },
+    "sources": [
+      {
+        "title": "BLS · CPI FAQs",
+        "url": "https://www.bls.gov/cpi/questions-and-answers.htm"
+      },
+      {
+        "title": "BLS · CPI misconceptions",
+        "url": "https://www.bls.gov/cpi/factsheets/common-misconceptions-about-cpi.htm"
+      }
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import ts from 'typescript';
+const lessons=JSON.parse(await readFile('src/lib/quest/learning-depth.json','utf8'));
+const source=(await readFile('src/lib/quest/learning-depth.ts','utf8')).replace("import lessons from './learning-depth.json';",'const lessons='+JSON.stringify(lessons)+';');
+const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {detailedLesson,cardTerms}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const fixture=(id,title,tags=[])=>({id,title,tags,question:'',explanation:'',answerExplanation:''});
+const historic=fixture('expanded-history-01:8ffe5bb5de24','1907：金融系统也需要消防站');
+const before=structuredClone(historic);
+assert.equal(detailedLesson(historic).key,'1907','Existing versioned cards get the new explanation');
+assert.deepEqual(historic,before,'Lesson lookup must not change mastery identities');
+assert.equal(detailedLesson(fixture('en:history:1907','1907: why the system needed a fire station')).key,'1907');
+assert.equal(detailedLesson(fixture('en:options:02','Gamma: changing gears',['Delta','Gamma'])).key,'gamma','The card topic takes priority over incidental terms');
+assert.equal(detailedLesson(fixture('unrelated','A new unrelated concept')),undefined);
+assert.equal(cardTerms(fixture('a','Dividend policy')).some(t=>t.name.startsWith('IV')),false);
+assert.ok(cardTerms(fixture('gpu','GPU and HBM')).some(t=>t.name==='HBM'));
+assert.ok(cardTerms(fixture('macro','GDP and PCE')).some(t=>t.name==='PCE'));
+const spread=detailedLesson(fixture('expanded-options-15','熊市 Put 价差：把利润空间画出来'));
+assert.equal(spread.key,'bear-put');
+assert.equal(spread.payoff.find(r=>r.price===100).net,-200);
+assert.equal(spread.payoff.find(r=>r.price===98).net,0);
+assert.equal(spread.payoff.find(r=>r.price===95).net,300);
+assert.equal(spread.payoff.find(r=>r.price===90).net,300,'Profits stay capped below the short strike');
+assert.equal(spread.payoff.find(r=>r.price===99).net,-100,'A price fall alone does not guarantee profit');
+for(const lesson of lessons){for(const locale of ['en','zh']){assert.ok(lesson[locale].intro);assert.ok(lesson[locale].steps.length>=2);assert.ok(lesson[locale].example);assert.ok(lesson[locale].pitfall);}assert.ok(lesson.sources.every(s=>new URL(s.url).protocol==='https:'));}
+console.log('Passed versioned-card matching, bilingual lessons, unchanged mastery identity, term boundaries and capped spread expiration math.');

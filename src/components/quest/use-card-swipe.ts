@@ -52,7 +52,7 @@ export function useCardSwipe(enabled:boolean,classify:(action:Action)=>Promise<b
   },[swipe,clear]);
   useEffect(()=>{
     if(!element)return;
-    const interactive=(target:EventTarget|null)=>target instanceof Element&&!!target.closest('button,a,input,select,textarea');
+    const interactive=(target:EventTarget|null)=>target instanceof Element&&!!target.closest('button,a,input,select,textarea,summary');
     const start=(event:TouchEvent)=>{if(event.touches.length!==1||interactive(event.target)){if(!locked.current)clear();return;}const t=event.touches[0];begin(t.clientX,t.clientY,t.identifier);};
     const drag=(event:TouchEvent)=>{if(event.touches.length!==1){if(!locked.current)clear();return;}const t=Array.from(event.touches).find(t=>t.identifier===origin.current?.id);if(t&&move(t.clientX,t.clientY)&&event.cancelable)event.preventDefault();};
     const end=(event:TouchEvent)=>{const t=Array.from(event.changedTouches).find(t=>t.identifier===origin.current?.id);if(t)finish(t.clientX,t.clientY);};
@@ -61,7 +61,7 @@ export function useCardSwipe(enabled:boolean,classify:(action:Action)=>Promise<b
     return()=>{element.removeEventListener('touchstart',start);element.removeEventListener('touchmove',drag);element.removeEventListener('touchend',end);element.removeEventListener('touchcancel',cancel);};
   },[element,begin,move,finish,clear]);
   return {pending,swipe,handlers:{ref:setElement,
-    onPointerDown(event:PointerEvent<HTMLElement>){if(event.pointerType==='touch'||event.button!==0||(event.target as HTMLElement).closest('button,a,input,select,textarea'))return;if(begin(event.clientX,event.clientY,event.pointerId)){event.currentTarget.setPointerCapture(event.pointerId);event.preventDefault();}},
+    onPointerDown(event:PointerEvent<HTMLElement>){if(event.pointerType==='touch'||event.button!==0||(event.target as HTMLElement).closest('button,a,input,select,textarea,summary'))return;if(begin(event.clientX,event.clientY,event.pointerId)){event.currentTarget.setPointerCapture(event.pointerId);event.preventDefault();}},
     onPointerMove(event:PointerEvent<HTMLElement>){if(event.pointerType!=='touch')move(event.clientX,event.clientY);},
     onPointerUp(event:PointerEvent<HTMLElement>){if(event.pointerType!=='touch'&&origin.current?.id===event.pointerId)finish(event.clientX,event.clientY);},
     onPointerCancel(event:PointerEvent<HTMLElement>){if(event.pointerType!=='touch'&&!locked.current)clear();},
