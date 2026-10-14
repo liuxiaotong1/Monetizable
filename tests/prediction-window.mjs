@@ -8,3 +8,11 @@ const bars=Array.from({length:25},(_,i)=>({symbol:'QQQ',date:domain.addDays('202
 const forecast=prediction.preparationForecast(bars,'2026-10-14',new Date('2026-10-13T15:00:00Z'));
 assert.equal(forecast.date,'2026-10-14');assert.equal(forecast.provisional,true);assert.equal(forecast.baselineDate,bars.at(-1).date);assert(forecast.scenarios.every(s=>Number.isFinite(s.low)&&s.low<=s.high));
 console.log('Passed opening cutoff, next session, Friday/weekend, holiday and provisional forecast checks.');
+
+const freeURL=url((await compile('src/lib/quest/free-market.ts')).replace('"./domain"',JSON.stringify(domainURL))),free=await import(freeURL);
+const saved={fetchedAt:'2026-10-14T20:13:09Z',bars:[{symbol:'QQQ',date:'2026-10-13'}]};
+assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T20:19:59Z')),false);
+assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T20:20:00Z')),true);
+assert.equal(free.freeBarsNeedRefresh({...saved,fetchedAt:'2026-10-14T20:21:00Z'},new Date('2026-10-14T20:22:00Z')),false,'An after-close attempt should respect the retry interval');
+assert.equal(free.freeBarsNeedRefresh({...saved,bars:[{symbol:'QQQ',date:'2026-10-14'}]},new Date('2026-10-14T20:22:00Z')),false);
+console.log('Passed close-confirmation cache boundary and retry checks.');

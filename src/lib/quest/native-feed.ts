@@ -1,7 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
 import { database } from '@/lib/account/db';
-import { parseFreeBars } from './free-market';
+import { parseFreeBars, freeBarsNeedRefresh } from './free-market';
 import { marketDate, nyTimeToUtc, sessionFor } from './domain';
 import { parisDate, reportWeekStart } from './agent-report';
 import { preparationForecast } from './prediction-window';
@@ -13,7 +13,7 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
  const now=new Date(),state=feed.state;
  try {
   let saved=await read<{fetchedAt:string;bars:typeof state.bars}>('market-bars');
-  if(force||!saved||now.getTime()-Date.parse(saved.fetchedAt)>15*60000){
+  if(force||freeBarsNeedRefresh(saved,now)){
    try{const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ?range=6mo&interval=1d&includePrePost=false',{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error();const bars=parseFreeBars(await r.json(),'QQQ',now);saved={fetchedAt:now.toISOString(),bars};await save('market-bars',saved);}catch{/* Preserve verified bars and their original timestamps. */}
   }
   if(saved){const byDate=new Map(state.bars.map(b=>[`${b.symbol}:${b.date}`,b]));for(const bar of saved.bars)byDate.set(`${bar.symbol}:${bar.date}`,bar);state.bars=[...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));}

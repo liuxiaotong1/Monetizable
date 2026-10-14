@@ -31,3 +31,10 @@ export function parseFreeBars(payload: unknown, symbol: string, now: Date, overr
   if (!bars.length) throw new Error("尚未取得可核对的完整交易日日线");
   return bars.sort((a, b) => a.date.localeCompare(b.date));
 }
+
+/** Cross the close-confirmation boundary immediately, even if the pre-close cache is young. */
+export function freeBarsNeedRefresh(saved: {fetchedAt: string;bars: Bar[]} | undefined, now: Date): boolean {
+ if(!saved || now.getTime()-Date.parse(saved.fetchedAt)>15*60_000)return true;
+ const session=sessionFor(now),confirmedAt=Date.parse(session.closeAt)+20*60_000;
+ return session.isTradingDay && now.getTime()>=confirmedAt && Date.parse(saved.fetchedAt)<confirmedAt && !saved.bars.some(b=>b.symbol==='QQQ'&&b.date===session.date);
+}
