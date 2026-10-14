@@ -549,7 +549,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         </section>
       )}
       <WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/>
-      <EntryScore symbol={activeSymbol}/>
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
         <div className="en-card-heading">
@@ -779,6 +778,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           Draw a knowledge card <ArrowRight size={17} />
         </button>
       </div>
+      <EntryScore symbol={activeSymbol}/>
     </>
   );
 }
@@ -1120,11 +1120,11 @@ function Deck({
   const {access}=useBilling();
   const blocked = access.status!=="loading" && !access.premium && access.remaining===0 && (!card || (!answered && !access.claimedCards?.includes(card.id)));
 
-  const swipeHandlers = useCardSwipe(answered && !busy && !blocked, action => void disposition(action));
+  const swipeHandlers = useCardSwipe(answered && !busy && !blocked, action => disposition(action), card?.id);
   async function disposition(action: "master" | "review") {
     if (card && answered) {
       setCelebrate(false);
-      await run({ type: "card", cardId: card.id, action });
+      return !!(await run({ type: "card", cardId: card.id, action }));
     }
   }
   const list = state.cards.filter(
@@ -1241,9 +1241,10 @@ function Deck({
           )}
         </section>
       ) : blocked ? (signedIn ? <PremiumGate feature="learning"/> : <section className="en-card"><span className="eyebrow">TWO DISCOVERIES DOWN · THREE MORE TO GO</span><h2>Keep your adventure going.</h2><p>You’ve tried two cards. Sign up or sign in to unlock cards 3–5 free today. Your first two count toward today’s five.</p><button className="primary" onClick={()=>requireAccount("cards")}>Sign up / sign in to continue</button></section>) : card ? (
-        <section
+        <div className="swipe-deck"><section
+          key={card.id}
           className={`en-quiz-card ${answered ? "flipped" : ""}`}
-          {...swipeHandlers}
+          {...swipeHandlers.handlers}
         >
           {celebrate && (
             <div className="quiz-fireworks" aria-hidden="true">
@@ -1341,22 +1342,22 @@ function Deck({
           <div className="en-disposition">
             <button
               className="secondary"
-              disabled={!answered || busy}
-              onClick={() => void disposition("review")}
+              disabled={!answered || busy || swipeHandlers.pending}
+              onClick={() => swipeHandlers.swipe("review")}
             >
               <ArrowLeft size={17} />
               Not yet · review next visit
             </button>
             <button
               className="primary"
-              disabled={!answered || busy}
-              onClick={() => void disposition("master")}
+              disabled={!answered || busy || swipeHandlers.pending}
+              onClick={() => swipeHandlers.swipe("master")}
             >
               Got it · no repeats
               <ArrowRight size={17} />
             </button>
           </div>
-        </section>
+        </section></div>
       ) : (
         <section className="en-card en-deck-done">
           <Sparkles size={35} />

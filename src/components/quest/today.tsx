@@ -24,7 +24,6 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  {review?<HeroReview key={`${state.mode}:${review.id}:${review.matched}`} review={review} state={state} onNotes={()=>setReviewing(review)}/>:(<section className="hero hero-yelan"><div className="hero-copy"><span className="eyebrow"><span className="tiny-star">✦</span> YOUR DAILY QUEST</span><h1>把每一次判断，<br/>变成你的<span>经验值。</span></h1><p>看懂市场，留下判断，收盘后回来验证。<br className="desktop-break"/>今天的冒险，从一个好问题开始。</p><button className="primary" onClick={()=>document.getElementById("judgment")?.scrollIntoView({behavior:"smooth",block:"center"})}>开始今日任务 <ArrowUpRight size={17}/></button></div><YelanViewer/></section>)}
  <div className="daily-progress"><div className="progress-title"><Flag size={17}/><strong>今日任务</strong><span>{tasks.filter(t=>t.done).length} / 3 完成</span></div><div className="task-checks">{tasks.map((t,i)=><button key={t.label} onClick={()=>i===2?navigate("learn"):i===1&&review?setReviewing(review):document.getElementById("judgment")?.scrollIntoView({behavior:"smooth"})}><span className={t.done?"task-dot done":"task-dot"}>{t.done?<Check size={10}/>:i+1}</span>{t.label}<span className="task-xp">{i===2?"答对 +5 XP":`+${i===0?10:20} XP`}</span></button>)}</div></div>
  <WatchlistChart locale="zh" settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/>
- <EntryScore locale="zh" symbol={activeSymbol}/>
  {state.mode==="live"&&state.session.isTradingDay&&state.now>=state.session.closeAt&&review?.date!==state.session.date&&<section className="empty-inline" role="status"><Clock3 size={20}/><div><strong>{state.session.date} 已收盘 · 等待完整日线确认</strong><p>收盘 20 分钟后自动尝试同步，取得有效数据就核对今天封存的判断。下方保留最近一次战报。</p></div></section>}
  <div className="today-columns"><div className="today-main">
  <SectionHeading index="02" title="本周地图" subtitle="先看方向，再看脚下"/>
@@ -40,6 +39,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  <section className="learning-teaser"><div className="panel-top"><BookOpen size={21}/><span className="badge gold">五个方向 · 每日新题</span></div><h3>今天，点亮一点新技能。</h3><p>把市场里的问号，变成你的知识装备。</p><div className="mini-cards"><span>δ</span><span>EPS</span><span>✦</span></div><button className="text-button" onClick={()=>navigate("learn")}>抽取今日卡牌 <ArrowUpRight size={15}/></button></section>
  <section className="next-boss"><div className="panel-top"><span className="eyebrow">NEXT CHALLENGE</span><Swords size={17}/></div>{next?<><h3>{next.title}</h3><p>{new Date(next.at).toLocaleDateString("zh-CN",{month:"long",day:"numeric",timeZone:"America/New_York"})} · {dualTime(next.at)}</p></>:<><h3>下一场事件正在确认</h3><p>官方日历同步后展示。</p></>}<button className="text-button" onClick={()=>navigate("events")}>打开事件地图 <ChevronRight size={14}/></button></section>
  </aside></div>
+ <EntryScore locale="zh" symbol={activeSymbol}/>
  {reviewing&&<ReviewDialog review={reviewing} state={state} onClose={()=>setReviewing(null)} run={run} busy={busy}/>}
  </>;
 }
