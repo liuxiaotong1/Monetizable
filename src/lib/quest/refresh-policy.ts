@@ -28,3 +28,9 @@ export function refreshIssues(sources:SourceStatus[],events:MarketEvent[],now:Da
  const overdue=events.filter(e=>e.kind!=='EARNINGS'&&e.status!=='confirmed'&&Date.parse(e.at)<=+now&&Date.parse(e.at)>+now-45*86400_000).map(e=>e.id);
  return {sources:sourcesWithIssues,overdue};
 }
+
+/** Retire an unverified imported meeting only when the official year has all eight regular meetings. Confirmed emergency decisions and manual sources stay intact. */
+export function reconcileFomcCalendar(events:MarketEvent[],calendar:MarketEvent[]){
+ const meetings=calendar.filter(e=>e.kind==='FOMC'),years=new Map<string,Set<string>>();for(const e of meetings){const year=e.at.slice(0,4);if(!years.has(year))years.set(year,new Set());years.get(year)!.add(e.at.slice(0,10));}
+ return events.filter(e=>e.kind!=='FOMC'||e.status==='confirmed'||!/^https:\/\/www\.federalreserve\.gov\/newsevents\/pressreleases\/monetary\d{8}a\.htm$/.test(e.sourceUrl)||(years.get(e.at.slice(0,4))?.size||0)<8||years.get(e.at.slice(0,4))!.has(e.at.slice(0,10)));
+}

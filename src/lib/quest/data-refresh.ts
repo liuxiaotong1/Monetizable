@@ -1,5 +1,5 @@
 import 'server-only';
-import {cacheDue,releaseCandidates,releaseParserVersion,refreshIssues} from './refresh-policy';
+import {cacheDue,releaseCandidates,releaseParserVersion,refreshIssues,reconcileFomcCalendar} from './refresh-policy';
 import {enrichReleaseMetrics} from './bls-api';
 import {database} from '@/lib/account/db';
 import {fetchOfficialRelease} from './official-release';
@@ -66,11 +66,11 @@ async function refreshAgencyCalendars(state:QuestState,now:Date){
  }},{key:'fed-calendar-native',name:'Fed 日历',url:'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',parse:(raw:string)=>{
   const $=load(raw),result:MarketEvent[]=[],names=['january','february','march','april','may','june','july','august','september','october','november','december'];
   $('.fomc-meeting').each((_,el)=>{const row=$(el),year=row.closest('.panel').find('.panel-heading').first().text().match(/20\d{2}/)?.[0],month=names.indexOf(row.find('.fomc-meeting__month').text().trim().toLowerCase()),day=row.find('.fomc-meeting__date').text().match(/(?:\d+-)?(\d{1,2})/);if(!year||month<0||!day)return;const date=`${year}-${String(month+1).padStart(2,'0')}-${day[1].padStart(2,'0')}`;
-   if(Date.parse(date)>now.getTime()-45*86400_000&&Date.parse(date)<now.getTime()+90*86400_000){const event=calendarEvent(state,'FOMC',nyTimeToUtc(date,'14:00'),'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',now);if(event)result.push(event);}
+   if(Number(year)>=now.getUTCFullYear()-1&&Date.parse(date)<now.getTime()+90*86400_000){const event=calendarEvent(state,'FOMC',nyTimeToUtc(date,'14:00'),'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',now);if(event)result.push(event);}
    const minutes=row.find('.fomc-meeting__minutes'),released=minutes.text().match(/Released (\w+) (\d{1,2}), (20\d{2})/),href=minutes.find('a[href$=".htm"]').attr('href');if(released&&href){const m=names.indexOf(released[1].toLowerCase()),day=`${released[3]}-${String(m+1).padStart(2,'0')}-${released[2].padStart(2,'0')}`;if(m>=0&&Date.parse(day)>now.getTime()-45*86400_000){const event=calendarEvent(state,'MINUTES',nyTimeToUtc(day,'14:00'),new URL(href,'https://www.federalreserve.gov').href,now);if(event)result.push({...event,sourceUrl:new URL(href,'https://www.federalreserve.gov').href});}}
   });return result;
  }}];
- await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events;},[],now);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
+ await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events;},[],now,spec.key==='fed-calendar-native'?2:1);if(spec.key==='fed-calendar-native'&&!result.error)state.events=reconcileFomcCalendar(state.events,result.body);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
 }
 async function refreshReleases(state:QuestState,now:Date){
  const parserVersion=releaseParserVersion;

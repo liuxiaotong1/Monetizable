@@ -59,3 +59,8 @@ test('combined PCE publication uses the later month rather than silently taking 
  const result=parseStatisticalRelease(pce,'<body>January 22, 2026 Personal Income and Outlays, October and November 2025. From the same month one year ago, the PCE price index increased 2.7 percent in October, followed by an increase of 2.8 percent in November.</body>','https://www.bea.gov/news/2026/personal-income-and-outlays-october-and-november-2025','2026-01-22T16:00:00Z');
  assert.equal(result.actual,2.8);assert.equal(result.previous,2.7);
 });
+test('BEA RSS links without a scheme are normalized before fetching',async()=>{
+ const eventGDP={...event,id:'gdp-2026-02-20',kind:'GDP',at:'2026-02-20T13:30:00Z',sourceUrl:'https://apps.bea.gov/API/signup/release_dates.json'};
+ const result=await fetchOfficialRelease(eventGDP,new Date('2026-02-20T15:00:00Z'),async url=>url.includes('/rss/')?'<rss><channel><item><title>GDP (Advance Estimate)</title><pubDate>Fri, 20 Feb 2026 08:30:00 EST</pubDate><link>www.bea.gov/news/2026/gdp-advance</link></item></channel></rss>':(assert.equal(url,'https://www.bea.gov/news/2026/gdp-advance'),'<body>February 20, 2026 Real gross domestic product increased at an annual rate of 1.4 percent.</body>'));
+ assert.equal(result.actual,1.4);
+});

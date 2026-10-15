@@ -22,3 +22,12 @@ test('one failed provider makes overall data health partial even if all events a
  assert.equal(refreshIssues([{name:'FRED CPI 历史',status:'delayed',message:'failed'}],[],now).sources.length,1);
  assert.equal(refreshIssues([{name:'Massive 日线',status:'missing',message:'optional'}],[],now).sources.length,0);
 });
+test('full official FOMC year retires misclassified imported dates, while incomplete calendars and confirmed emergency decisions stay intact',async()=>{
+ const {reconcileFomcCalendar}=await jiti.import('../src/lib/quest/refresh-policy.ts');
+ const calendar=['01-29','03-19','05-07','06-18','07-30','09-17','10-29','12-10'].map(day=>({kind:'FOMC',at:`2025-${day}T18:00:00Z`}));
+ const bad={id:'bad',kind:'FOMC',at:'2025-08-22T18:00:00Z',status:'pending',sourceUrl:'https://www.federalreserve.gov/newsevents/pressreleases/monetary20250822a.htm'};
+ assert.equal(reconcileFomcCalendar([bad],calendar).length,0);
+ assert.equal(reconcileFomcCalendar([bad],calendar.slice(0,7)).length,1);
+ assert.equal(reconcileFomcCalendar([{...bad,status:'confirmed'}],calendar).length,1);
+ assert.equal(reconcileFomcCalendar([{...bad,sourceUrl:'https://example.test/manual'}],calendar).length,1);
+});
