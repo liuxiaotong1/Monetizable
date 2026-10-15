@@ -72,18 +72,19 @@ async function refreshAgencyCalendars(state:QuestState,now:Date){
  await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events;},[],now);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
 }
 async function refreshReleases(state:QuestState,now:Date){
+ const parserVersion=(event:MarketEvent)=>event.kind==='CLAIMS'?5:4;
  const stored=(await database().query("SELECT key,body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
  const byId=new Map(stored.map(row=>[row.key.slice('release-native:'.length),row.body]));
  for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
  state.events=state.events.map(e=>{const prior=byId.get(e.id);return prior?.body.status==='confirmed'?{...e,...prior.body}:e;});
  const latestByKind=new Map<string,string>();for(const e of [...state.events].sort((a,b)=>a.at.localeCompare(b.at)))if(Date.parse(e.at)<=now.getTime())latestByKind.set(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''),e.id);
  const candidates=state.events.filter(e=>e.kind!=='EARNINGS'&&(e.status!=='confirmed'||latestByKind.get(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''))===e.id)&&Date.parse(e.at)<=now.getTime()&&Date.parse(e.at)>now.getTime()-45*86400_000)
-  .filter(e=>{const prior=byId.get(e.id),ttl=e.status==='confirmed'?24*3600_000:now.getTime()-Date.parse(e.at)<24*3600_000?5*60_000:3600_000;return !prior||prior.version!==4||now.getTime()-Date.parse(prior.attemptedAt)>=ttl;})
+  .filter(e=>{const prior=byId.get(e.id),ttl=e.status==='confirmed'?24*3600_000:now.getTime()-Date.parse(e.at)<24*3600_000?5*60_000:3600_000;return !prior||prior.version!==parserVersion(e)||now.getTime()-Date.parse(prior.attemptedAt)>=ttl;})
   .sort((a,b)=>b.at.localeCompare(a.at)).slice(0,6);
  // Each source has its own retry clock; one failed document cannot block the other releases.
  const results=await Promise.allSettled(candidates.map(async event=>{
   const due=now.getTime()-Date.parse(event.at)<24*3600_000;const ttl=event.status==='confirmed'?24*3600_000:due?5*60_000:60*60_000;
-  const result=await cached(`release-native:${event.id}`,ttl,async()=>{const next=await fetchOfficialRelease(event,now);return {...next,releaseHistory:publicationVersion(event,next)};},event,now,4);
+  const result=await cached(`release-native:${event.id}`,ttl,async()=>{const next=await fetchOfficialRelease(event,now);return {...next,releaseHistory:publicationVersion(event,next)};},event,now,parserVersion(event));
   setSource(state,status(`官方更新 · ${event.kind} · ${marketDate(new Date(event.at))}`,result,`${event.kind} 已核对官方文档与发布日期`));
   return result.body;
  }));

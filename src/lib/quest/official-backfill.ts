@@ -7,7 +7,7 @@ const months=["january","february","march","april","may","june","july","august",
 function englishDate(text:string){const m=text.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})/i);return m?`${m[3]}-${String(months.indexOf(m[1].toLowerCase())+1).padStart(2,"0")}-${m[2].padStart(2,"0")}`:undefined;}
 export function parseOfficialDocument(doc:OfficialDocument,fetchedAt:string):OfficialRecord{
  const url=new URL(doc.url);if(url.protocol!=="https:"||url.username||url.password||doc.content.length>2_000_000)throw Error("官方文档无效");
- const $=load(doc.content);$("script,style,nav,footer").remove();const text=$('body').text().replace(/\^\{[®™]\}/g,"").replace(/[®™]/g,"").replace(/\s+/g," ");
+ const $=load(doc.content);$("script,style,nav,footer").remove();const text=$('body').text().replace(/\^\{[®™]\}/g,"").replace(/[®™]/g,"").replace(/[’‘]/g,"'").replace(/\s+/g," ");
  const base={kind:doc.kind,sourceUrl:doc.url,fetchedAt};
  if(doc.kind==="ISM"){
   if(url.hostname!=="www.ismworld.org"||!url.pathname.startsWith("/supply-management-news-and-reports/reports/ism-pmi-reports/"))throw Error("ISM 官方来源不匹配");
@@ -22,10 +22,13 @@ export function parseOfficialDocument(doc:OfficialDocument,fetchedAt:string):Off
   return {...base,period,sector,actual:Number(actual[1]),previous:Number(previous[1]),sourceName:"ISM · 官方 PMI 报告"};
  }
  if(doc.kind==="CLAIMS"){
-  if(url.hostname!=="www.dol.gov"||url.pathname!=="/ui/data.pdf")throw Error("DOL 官方来源不匹配");
-  const date=englishDate(text),actual=text.match(/seasonally adjusted initial claims was ([\d,]+)/i),prior=text.match(/previous week's level was revised.{0,70}?from ([\d,]+) to ([\d,]+)/i);
-  if(!date||!actual||!prior||!text.includes("UNEMPLOYMENT INSURANCE WEEKLY CLAIMS"))throw Error("初请官方发布日期或季调数值尚未验证");
-  return {...base,date,actual:Number(actual[1].replace(/,/g,"")),previous:Number(prior[1].replace(/,/g,"")),revised:Number(prior[2].replace(/,/g,"")),sourceName:"U.S. Department of Labor · 官方周度初请"};
+  const archive=url.hostname==='oui.doleta.gov'&&/^\/press\/20\d{2}\/\d{6}\.pdf$/.test(url.pathname);
+  if(!archive&&(url.hostname!=="www.dol.gov"||url.pathname!=="/ui/data.pdf"))throw Error("DOL 官方来源不匹配");
+  const date=englishDate(text),actual=text.match(/seasonally adjusted initial claims was ([\d,]+)/i),prior=text.match(/previous week's level was revised.{0,80}?from ([\d,]+) to ([\d,]+)/i),unrevised=text.match(/previous week's (?:unrevised )?level (?:of |was (?:unrevised (?:at |from ))?)([\d,]+)/i);
+  if(!date||!actual||(!prior&&!unrevised)||!text.includes("UNEMPLOYMENT INSURANCE WEEKLY CLAIMS"))throw Error("初请官方发布日期或季调数值尚未验证");
+  const observed=text.match(/In the week ending (\w+) (\d{1,2}),/i);let period:string|undefined;
+  if(observed){const month=months.indexOf(observed[1].toLowerCase());if(month>=0){period=`${date.slice(0,4)}-${String(month+1).padStart(2,'0')}-${observed[2].padStart(2,'0')}`;if(period>date)period=`${Number(date.slice(0,4))-1}${period.slice(4)}`;}}
+  return {...base,date,period,actual:Number(actual[1].replace(/,/g,"")),previous:Number((prior?.[1]||unrevised![1]).replace(/,/g,"")),revised:prior?Number(prior[2].replace(/,/g,"")):undefined,sourceName:"U.S. Department of Labor · 官方周度初请"};
  }
  if(doc.kind==="CONFIDENCE"){
   if(url.hostname!=="www.sca.isr.umich.edu"||url.pathname!=="/")throw Error("密歇根调查官方来源不匹配");

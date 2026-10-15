@@ -39,13 +39,13 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
  return {...base,actual};
 }
 export async function officialContent(url:string):Promise<string>{
- const u=new URL(url);if(u.protocol!=='https:'||!['www.bls.gov','www.dol.gov','www.census.gov','www.bea.gov','bea.gov','apps.bea.gov','www.federalreserve.gov','www.ismworld.org','www.sca.isr.umich.edu'].includes(u.hostname))throw Error('官方来源不在允许列表');
+ const u=new URL(url);if(u.protocol!=='https:'||!['www.bls.gov','www.dol.gov','oui.doleta.gov','www.census.gov','www.bea.gov','bea.gov','apps.bea.gov','www.federalreserve.gov','www.ismworld.org','www.sca.isr.umich.edu'].includes(u.hostname))throw Error('官方来源不在允许列表');
  const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(7000),redirect:'error',headers:{'User-Agent':'Monetizable/1.0 public economic research'}});if(!r.ok)throw Error(`官方来源 HTTP ${r.status}`);
  const bytes=new Uint8Array(await r.arrayBuffer());if(bytes.length>6_000_000)throw Error('官方文档超过大小限制');
  if(url.endsWith('.pdf')){if(new TextDecoder().decode(bytes.slice(0,5))!=='%PDF-')throw Error('官方 PDF 格式不匹配');const {extractText}=await import('unpdf');const {text}=await extractText(bytes,{mergePages:true});return `<body>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body>`;}
  return new TextDecoder().decode(bytes);
 }
-export async function fetchOfficialRelease(event:MarketEvent,now:Date):Promise<MarketEvent>{
+export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoader=officialContent):Promise<MarketEvent>{
  const date=marketDate(new Date(event.at)),stamp=date.slice(5,7)+date.slice(8,10)+date.slice(0,4),nowISO=now.toISOString();
  const bls:Record<string,string>={CPI:'cpi',NFP:'empsit',PPI:'ppi',JOLTS:'jolts'};
  if(bls[event.kind]){
@@ -66,10 +66,17 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date):Promise<M
  if(event.kind==='FOMC'){
   const url=`https://www.federalreserve.gov/newsevents/pressreleases/monetary${date.replaceAll('-','')}a.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);
  }
- if(event.kind==='CLAIMS'){const url=`https://www.dol.gov/newsroom/releases/eta/eta${date.replaceAll('-','')}`;try{return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}catch{/* The current official PDF is an independent fallback; its release date must still match. */}}
- if(event.kind==='ISM'||event.kind==='CONFIDENCE'||event.kind==='CLAIMS'||event.kind==='MINUTES'){
+ if(event.kind==='CLAIMS'){
+  // The dated ETA archive is on an independent official host. The current PDF
+  // can be blocked by DOL's CDN and changes when the next release is published.
+  const archived=`https://oui.doleta.gov/press/${date.slice(0,4)}/${date.slice(5,7)}${date.slice(8,10)}${date.slice(2,4)}.pdf`;
+  const urls=[archived,'https://www.dol.gov/ui/data.pdf'];const errors:string[]=[];
+  for(const url of urls)try{const record=parseOfficialDocument({kind:'CLAIMS',url,content:await contentLoader(url)},nowISO),result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed'||record.date!==date)throw Error('官方报告发布日期与目标初请事件不匹配');return result;}catch(error){errors.push(`${new URL(url).hostname}: ${error instanceof Error?error.message:'未能核实'}`);}
+  throw Error(errors.join('；'));
+ }
+ if(event.kind==='ISM'||event.kind==='CONFIDENCE'||event.kind==='MINUTES'){
   const prior=new Date(date.slice(0,7)+'-01T12:00:00Z');prior.setUTCMonth(prior.getUTCMonth()-1);
-  const url=event.kind==='CLAIMS'?'https://www.dol.gov/ui/data.pdf':event.kind==='CONFIDENCE'?'https://www.sca.isr.umich.edu/':event.kind==='ISM'?`https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/${/服务/.test(event.title)?'services':'pmi'}/${months[prior.getUTCMonth()]}/`:event.sourceUrl;
+  const url=event.kind==='CONFIDENCE'?'https://www.sca.isr.umich.edu/':event.kind==='ISM'?`https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/${/服务/.test(event.title)?'services':'pmi'}/${months[prior.getUTCMonth()]}/`:event.sourceUrl;
   const record=parseOfficialDocument({kind:event.kind,url,content:await officialContent(url),...(event.kind==='MINUTES'?{calendarContent:await officialContent('https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm')}:{})},nowISO);
   const result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed')throw Error('官方报告期与目标事件不匹配');return result;
  }
