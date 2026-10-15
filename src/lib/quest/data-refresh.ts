@@ -76,7 +76,7 @@ async function refreshReleases(state:QuestState,now:Date){
  const stored=(await database().query("SELECT key,body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
  const byId=new Map(stored.map(row=>[row.key.slice('release-native:'.length),row.body]));
  for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
- state.events=state.events.map(e=>{const prior=byId.get(e.id);return prior?.body.status==='confirmed'?{...e,...prior.body}:e;});
+ state.events=state.events.map(e=>{const prior=byId.get(e.id),next=prior?.body.status==='confirmed'?{...e,...prior.body}:e;return next.kind==='CLAIMS'&&next.status==='confirmed'?{...next,description:'每周首次申请失业保险的人数，是就业变化的高频线索；本次官方发布已核对，结合前值修订与四周均值观察。'}:next;});
  const latestByKind=new Map<string,string>();for(const e of [...state.events].sort((a,b)=>a.at.localeCompare(b.at)))if(Date.parse(e.at)<=now.getTime())latestByKind.set(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''),e.id);
  const candidates=state.events.filter(e=>e.kind!=='EARNINGS'&&(e.status!=='confirmed'||latestByKind.get(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''))===e.id)&&Date.parse(e.at)<=now.getTime()&&Date.parse(e.at)>now.getTime()-45*86400_000)
   .filter(e=>{const prior=byId.get(e.id),ttl=e.status==='confirmed'?24*3600_000:now.getTime()-Date.parse(e.at)<24*3600_000?5*60_000:3600_000;return !prior||prior.version!==parserVersion(e)||now.getTime()-Date.parse(prior.attemptedAt)>=ttl;})
