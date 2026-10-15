@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useEffect, useState } from "react";
 import { LineChart } from "@/components/quest/charts";
 import {
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
     void load();
   }, []);
   const metric = data?.metrics;
-  return (
+  return <LocalizeTree>{(
     <main className="admin-shell" lang="zh-CN">
       <header className="admin-top">
         <a className="brand" href="/">
@@ -269,5 +270,5 @@ export default function AdminDashboard() {
           : "正在连接"}
       </footer>
     </main>
-  );
+  )}</LocalizeTree>;
 }

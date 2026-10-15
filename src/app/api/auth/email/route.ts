@@ -1,3 +1,4 @@
+import {requestLocale} from '@/lib/i18n/server-locale';
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { authAdmin, APP_URL, sameOrigin } from "@/lib/account/auth";
@@ -9,6 +10,7 @@ export async function POST(request: Request) {
       { status: 403 },
     );
   try {
+    const fr=(await requestLocale())==='fr';
     const body = await request.json(),
       email = String(body.email || "")
         .trim()
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         from,
         to: [email],
-        subject: "Your Monetizable sign-in link",
-        html: `<div style="font-family:Arial;max-width:520px;padding:32px;background:#101522;color:#edf2f8;border-radius:20px"><img src="https://getmonetizable.com/brand/monetizable-bull-blue-violet.svg" width="72" height="72" alt="Monetizable"/><h1>Welcome, market explorer.</h1><p>Sign in to Monetizable to keep your judgments and learning progress with your account.</p><a href="${url.toString()}" style="display:inline-block;padding:16px 24px;background:linear-gradient(120deg,#63a8ff,#b18bfa);color:#101522;border-radius:14px;text-decoration:none;font-weight:700">Continue your quest</a><p style="color:#94a3b8;font-size:13px">This link is single-use. If you did not request it, ignore this email. We will never ask you to send us the link.</p></div>`,
+        subject: fr?"Votre lien de connexion Monetizable":"Your Monetizable sign-in link",
+        html: fr?`<div lang="fr" style="font-family:Arial;max-width:520px;padding:32px;background:#101522;color:#edf2f8;border-radius:20px"><h1>Bienvenue dans votre aventure.</h1><p>Connectez-vous à Monetizable pour sauvegarder vos prévisions et votre progression.</p><a href="${url.toString()}" style="display:inline-block;padding:16px 24px;background:#9e8bfa;color:#101522;border-radius:14px;text-decoration:none;font-weight:700">Continuer mon aventure</a><p>Ce lien est à usage unique. Si vous ne l’avez pas demandé, ignorez cet e-mail. Ne partagez jamais ce lien.</p></div>`:`<div style="font-family:Arial;max-width:520px;padding:32px;background:#101522;color:#edf2f8;border-radius:20px"><img src="https://getmonetizable.com/brand/monetizable-bull-blue-violet.svg" width="72" height="72" alt="Monetizable"/><h1>Welcome, market explorer.</h1><p>Sign in to Monetizable to keep your judgments and learning progress with your account.</p><a href="${url.toString()}" style="display:inline-block;padding:16px 24px;background:linear-gradient(120deg,#63a8ff,#b18bfa);color:#101522;border-radius:14px;text-decoration:none;font-weight:700">Continue your quest</a><p style="color:#94a3b8;font-size:13px">This link is single-use. If you did not request it, ignore this email. We will never ask you to send us the link.</p></div>`,
       }),
     });
     if (!sent.ok) throw Error("delivery");

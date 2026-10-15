@@ -1,0 +1,7 @@
+const fs=require('node:fs'),path=require('node:path'),ts=require('typescript');const out=new Set();
+function add(s){s=s.replace(/\s+/g,' ').trim();if(s.length<2||!/[A-Za-z]{2}/.test(s)||/[\u3400-\u9fff]/.test(s)||s.startsWith('/')||s.startsWith('http')||s.includes('@/')||s.includes('var(--')||/^[a-z0-9_./:#-]+$/.test(s))return;out.add(s);}
+function walk(d){return fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);}
+for(const file of [...walk('src/components'),...walk('src/lib/quest'),...walk('src/app')].filter(f=>/\.(ts|tsx)$/.test(f))){const sf=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true);function visit(n){if(ts.isJsxText(n)||ts.isStringLiteral(n)||ts.isNoSubstitutionTemplateLiteral(n))add(n.text);if(ts.isTemplateExpression(n)){let key=n.head.text;n.templateSpans.forEach((span,i)=>{key+='{'+i+'}'+span.literal.text;});add(key);}ts.forEachChild(n,visit);}visit(sf);}
+function strings(v){if(typeof v==='string')add(v);else if(Array.isArray(v))v.forEach(strings);else if(v&&typeof v==='object')for(const [k,value]of Object.entries(v))if(!['id','conceptId','category','tags','url','patterns','zh','sourceUrl'].includes(k))strings(value);}
+strings(JSON.parse(fs.readFileSync('src/data/english-cards.json')));strings(JSON.parse(fs.readFileSync('src/lib/quest/learning-depth.json')));
+fs.writeFileSync('scripts/i18n/quest-source.json',JSON.stringify([...out].sort(),null,2));console.log(out.size,'translation strings');

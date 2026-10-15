@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import {
@@ -183,7 +184,7 @@ export default function YelanViewer({
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
   }
-  return (
+  return <LocalizeTree>{(
     <div
       className={`yelan-stage ${celebrate && status === "ready" && !paused ? "yelan-victory" : ""}`}
       ref={host}
@@ -371,5 +372,5 @@ export default function YelanViewer({
         </a>
       </div>
     </div>
-  );
+  )}</LocalizeTree>;
 }

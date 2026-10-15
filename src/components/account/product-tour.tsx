@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 
@@ -66,7 +67,7 @@ export default function ProductTour({ zh, onFinish }: { zh: boolean; onFinish: (
     setPosition({ top, left });
   }, [bounds, index]);
   useEffect(() => { panel.current?.querySelector<HTMLButtonElement>(".tour-next")?.focus({ preventScroll: true }); }, [index]);
-  return <div className="product-tour">
+  return <LocalizeTree>{<div className="product-tour">
     {bounds && bounds.height > 0 ? <>
       <div className="tour-shade" style={{ top: 0, left: 0, width: "100%", height: bounds.top }} />
       <div className="tour-shade" style={{ top: bounds.top, left: 0, width: bounds.left, height: bounds.height }} />
@@ -82,5 +83,5 @@ export default function ProductTour({ zh, onFinish }: { zh: boolean; onFinish: (
       <div className="tour-controls"><button className="tour-back" disabled={index === 0} onClick={() => setIndex(index - 1)}><ArrowLeft size={15}/>{zh ? "上一步" : "Back"}</button><button className="primary tour-next" onClick={next}>{index === steps.length - 1 ? (zh ? "开始探索" : "Start exploring") : (zh ? "下一步" : "Next")}<ArrowRight size={15}/></button></div>
       <button className="tour-skip" onClick={onFinish}>{zh ? "跳过引导" : "Skip tour"}</button>
     </section>
-  </div>;
+  </div>}</LocalizeTree>;
 }

@@ -1,13 +1,16 @@
+import {LocaleProvider} from '@/components/i18n/locale-provider';
+import {requestLocale} from '@/lib/i18n/server-locale';
+import {currentUser,isAdmin} from '@/lib/account/auth';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./account.css";
 import AnalyticsTracker from "@/components/account/analytics";
-export const metadata: Metadata = {
+const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
   alternates: { canonical: "https://getmonetizable.com" },
-  title: "Monetizable · Make investing a little more playful",
+  title: "Monetizable · Apprendre à investir en s’amusant",
   description:
-    "Your daily investing adventure: make a call, understand market events, and level up with bite-size learning.",
+    "Votre aventure d’investissement : formulez une prévision, comprenez les événements et progressez avec des cartes pédagogiques.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -23,7 +26,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Monetizable",
-    description: "Investing. A little more playful.",
+    description: "Investir devient plus ludique.",
     images: [
       {
         url: "/brand/social-preview.png",
@@ -40,21 +43,27 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
 };
+export async function generateMetadata():Promise<Metadata>{
+ const locale=await requestLocale(isAdmin(await currentUser()));
+ if(locale==='en')return {...frenchMetadata,title:'Monetizable · Make investing an adventure',description:'Prepare your market view, understand major events and build investing knowledge with interactive cards.',openGraph:{...frenchMetadata.openGraph,description:'Make investing an adventure.'}};
+ return frenchMetadata;
+}
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#0c101b",
   viewportFit: "cover",
 };
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale=await requestLocale(isAdmin(await currentUser()));
   return (
-    <html lang="en">
+    <html lang={locale==='zh'?'zh-CN':locale}>
       <body>
-        {children}
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
         <AnalyticsTracker />
       </body>
     </html>

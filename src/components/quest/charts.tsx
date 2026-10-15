@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useId, useState } from "react";
 import type { HistoryPoint } from "@/lib/quest/types";
 export function LineChart({
@@ -17,18 +18,18 @@ export function LineChart({
   const uid = useId().replace(/:/g, "");
   const [hover, setHover] = useState<number | null>(null);
   if (!values.length)
-    return (
+    return <LocalizeTree>{(
       <div className="chart-empty">
         {locale === "en" ? "Waiting for historical data" : "历史数据待同步"}
       </div>
-    );
+    )}</LocalizeTree>;
   const points = values.filter((p) => Number.isFinite(p.value));
   if (!points.length)
-    return (
+    return <LocalizeTree>{(
       <div className="chart-empty">
         {locale === "en" ? "No verified observations" : "暂无有效数据"}
       </div>
-    );
+    )}</LocalizeTree>;
   const width = 640,
     pad = labels ? 32 : 6,
     min = Math.min(...points.map((p) => p.value)),
@@ -43,7 +44,7 @@ export function LineChart({
     )
     .join(" ");
   const area = `${path} L${x(points.length - 1)},${height - 8} L${pad},${height - 8} Z`;
-  return (
+  return <LocalizeTree>{(
     <div className="line-chart">
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -124,7 +125,7 @@ export function LineChart({
         </span>
       </div>
     </div>
-  );
+  )}</LocalizeTree>;
 }
 export function MacroChart({
   history,
@@ -134,7 +135,7 @@ export function MacroChart({
   unit: string;
 }) {
   const [span, setSpan] = useState<"all" | "12">("all");
-  return (
+  return <LocalizeTree>{(
     <>
       <div className="chart-toolbar">
         <span>历史观察值 · {unit}</span>
@@ -160,5 +161,5 @@ export function MacroChart({
         labels
       />
     </>
-  );
+  )}</LocalizeTree>;
 }

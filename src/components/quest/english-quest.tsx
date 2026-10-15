@@ -1,4 +1,6 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
+import {clientLocale} from "@/lib/i18n/locale";
 import EventTakeaway from "./event-takeaway";
 import DataFreshness from "./data-freshness";
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
@@ -81,7 +83,7 @@ const navigation = [
   },
 ];
 const money = (n: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+  new Intl.NumberFormat(clientLocale(), { style: "currency", currency: "USD" }).format(
     n,
   );
 const clocks = (at: string) => {
@@ -91,7 +93,7 @@ const clocks = (at: string) => {
 const numbers = (n: number | undefined) =>
   n === undefined
     ? "—"
-    : new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }).format(n);
+    : new Intl.NumberFormat(clientLocale(), { maximumFractionDigits: 3 }).format(n);
 export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean }) {
   const [view, setView] = useState<View>("today"),
     [state, setState] = useState<QuestState>(),
@@ -200,7 +202,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     }
   }, [signedIn]);
   if (!state)
-    return (
+    return <LocalizeTree>{(
       <main className="loading-screen">
         <img src="/brand/monetizable-bull-blue-violet.svg" width="48" height="48" alt="" />
         <h1>Monetizable</h1>
@@ -211,7 +213,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
           </button>
         )}
       </main>
-    );
+    )}</LocalizeTree>;
   const market = marketContext(state),
     complete = state.adventure?.sections || [];
   async function completeStop() {
@@ -223,7 +225,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
       if (next) navigate(next.id);
     }
   }
-  return (
+  return <LocalizeTree>{(
     <div className="app-shell english-app">
       <aside className="sidebar">
         <button className="brand" onClick={() => navigate("today")}>
@@ -385,7 +387,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
         </div>
       )}
     </div>
-  );
+  )}</LocalizeTree>;
 }
 interface DailyProps {
   state: QuestState;
@@ -436,7 +438,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       bars.length >= 5
         ? Math.max(...bars.slice(-5).map((b) => b.high))
         : undefined;
-  return (
+  return <LocalizeTree>{(
     <>
       <section className="en-hero">
         <div className="en-hero-copy">
@@ -453,7 +455,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             <em>{pending ? "Awaiting the verified close." : review ? "Now follow the evidence." : "into experience."}</em>
           </h1>
           <p>
-            {pending ? `${directions[pending.direction]} · ${pending.reason}. Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed.` : review
+            {pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
               ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched === undefined ? `No eligible prediction for ${review.date}; calls for other dates are checked separately.` : review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
               : "Read the market. Make your call. Return after the close. Every better question is a step forward."}
           </p>
@@ -660,7 +662,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         {state.judgment && signedIn ? (
           <div className="account-success">
             <strong>Locked: {directions[state.judgment.direction]}</strong>
-            <p>{state.judgment.reason}</p>
+            <p translate="no">{state.judgment.reason}</p>
             <small>
               {clocks(state.judgment.lockedAt)} · original scenario preserved
             </small>
@@ -766,7 +768,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                       ? "Awaiting verified close"
                       : "—"}
                 </span>
-                {day.judgment && <p>{day.judgment.reason}</p>}
+                {day.judgment && <p translate="no">{day.judgment.reason}</p>}
               </div>
             ))}
           </details>
@@ -787,7 +789,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       </div>
       <EntryScore symbol={activeSymbol}/>
     </>
-  );
+  )}</LocalizeTree>;
 }
 function EventMap({ state }: { state: QuestState }) {
   const [filter, setFilter] = useState<"week" | "upcoming" | "all">("week");
@@ -850,7 +852,7 @@ function EventMap({ state }: { state: QuestState }) {
                 ))}
             </ul>
           </article>;
-  return (
+  return <LocalizeTree>{(
     <>
       <header className="en-page-title">
         <span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span>
@@ -879,7 +881,7 @@ function EventMap({ state }: { state: QuestState }) {
             <span className="eyebrow">NEXT BOSS</span>
             <h2>{eventText(next).title}</h2>
             <p>
-              {new Date(next.at).toLocaleDateString("en-US", {
+              {new Date(next.at).toLocaleDateString(clientLocale(), {
                 month: "short",
                 day: "numeric",
                 timeZone: "America/New_York",
@@ -967,7 +969,7 @@ function EventMap({ state }: { state: QuestState }) {
         </p>
       </details>
     </>
-  );
+  )}</LocalizeTree>;
 }
 function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
   const text = eventText(e),
@@ -980,7 +982,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
           : passed
             ? "Awaiting source confirmation"
             : "Upcoming";
-  return (
+  return <LocalizeTree>{(
     <details className="en-event">
       <summary>
         <span className="en-event-icon">
@@ -999,7 +1001,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
           )}
         </div>
         <div className="en-event-date">
-          {new Date(e.at).toLocaleDateString("en-US", {
+          {new Date(e.at).toLocaleDateString(clientLocale(), {
             month: "short",
             day: "numeric",
             timeZone: "America/New_York",
@@ -1071,7 +1073,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
         {e.fetchedAt && (
           <p className="muted small-text">
             Retrieved{" "}
-            {new Date(e.fetchedAt).toLocaleString("en-US", {
+            {new Date(e.fetchedAt).toLocaleString(clientLocale(), {
               timeZone: "America/New_York",
             })}{" "}
             ET
@@ -1079,7 +1081,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
         )}
       </div>
     </details>
-  );
+  )}</LocalizeTree>;
 }
 function Deck({
   state,
@@ -1145,7 +1147,7 @@ function Deck({
         ? mastered.has(c.conceptId || c.id)
         : state.progress.find((p) => p.cardId === c.id)?.bookmarked),
   );
-  return (
+  return <LocalizeTree>{(
     <>
       <header className="en-page-title">
         <span className="eyebrow">FIVE PATHS · ONE CURIOUS MIND</span>
@@ -1396,5 +1398,5 @@ function Deck({
         concepts; only an explicit review request brings a card back.
       </p>
     </>
-  );
+  )}</LocalizeTree>;
 }

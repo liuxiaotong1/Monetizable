@@ -1,4 +1,6 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
+import {LanguageSwitcher} from '@/components/i18n/locale-provider';
 import { useState } from "react";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { useEffect } from "react";
@@ -16,8 +18,8 @@ export default function Login() {
       ? 'Google sign-in is temporarily unavailable. You can use an email link below.'
       : 'Google sign-in was canceled or expired. Please try again.');
   }, []);
-  return (
-    <main className="auth-screen">
+  return <LocalizeTree>{(
+    <main className="auth-screen"><LanguageSwitcher/>
       <a className="brand" href="/">
         <img src="/brand/monetizable-bull-blue-violet.svg" width="44" height="44" alt="" />
         Monetizable
@@ -103,5 +105,5 @@ export default function Login() {
         </p>
       </section>
     </main>
-  );
+  )}</LocalizeTree>;
 }

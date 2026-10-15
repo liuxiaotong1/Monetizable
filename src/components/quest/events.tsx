@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import EventTakeaway from "./event-takeaway";
 import { compactEventUnit } from "@/lib/quest/event-presentation";
 import DataFreshness from "./data-freshness";
@@ -40,7 +41,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
   const week = eventWeek(state.now);
   const coverage = calendarCoverage(state.sources, state.now);
   const acquired = coverage.ready.map(source => source.lastSuccess).filter(Boolean).sort().at(-1);
-  return <>
+  return <LocalizeTree>{<>
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
     <DataFreshness state={state}/>
     <AgentReports demo={state.mode==="demo"} now={state.now}/>
@@ -68,13 +69,13 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
     <section className="event-learning"><div><Sparkles size={22} /><h3>数字不只是数字。</h3><p>不懂 CPI、就业或利率？用一张卡牌补上背景。</p></div><button className="secondary" onClick={() => navigate("learn")}>去点亮技能 <ArrowRight size={15} /></button></section>
     <details className="panel event-information-sources"><summary>事件信息来源 · 预测、解读与市场情绪 <ChevronRight size={16}/></summary><EventIntelligencePanel now={state.now}/></details>
     {selected && <EventDialog event={selected} now={state.now} mode={state.mode} onClose={() => setSelectedId(null)} />}
-  </>;
+  </>}</LocalizeTree>;
 }
 function EventDialog({ event, now, mode, onClose }: { event: MarketEvent; now: string; mode: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLElement>(null);
   useDialogFocus(dialogRef, true, onClose);
   const status = eventStatusAt(event, now), numeric = numericEvent(event);
-  return <div className="modal-backdrop" onClick={onClose}><section ref={dialogRef} className="modal event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" onClick={e => e.stopPropagation()}>
+  return <LocalizeTree>{<div className="modal-backdrop" onClick={onClose}><section ref={dialogRef} className="modal event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" onClick={e => e.stopPropagation()}>
     <button className="modal-close" onClick={onClose} aria-label="关闭事件">×</button><span className="eyebrow">BOSS INTELLIGENCE · {event.kind}</span><h2 id="event-title">{event.title}</h2>
     <p className="muted"><Clock3 size={14} /> {status === "unconfirmed" ? "日期与时间等待官方公告" : `${eventDate(event.at)} · ${dualTime(event.at)}`}{mode === "demo" ? " · 示例事件" : ""}</p>
     <div className="analogy-box"><Sparkles size={20} /><p>{event.analogy}</p></div><p>{event.description}</p>
@@ -86,12 +87,12 @@ function EventDialog({ event, now, mode, onClose }: { event: MarketEvent; now: s
     {numeric && <><h3>把今天放回历史里</h3>{mode === "demo" && <p className="demo-chart-label">以下曲线是示例数据，用于展示交互。</p>}{event.historySource&&<div className="event-history-source"><SourceLink href={event.historySource.url}>{event.historySource.name}</SourceLink><p>最新历史观察：{event.history.at(-1)?.date} · {event.history.at(-1)?.value}{compactEventUnit(event.unit)}。这是当前取得版本，不是本次事件的公布值，也不是原始发布时的版本。</p><p>取得于 {new Date(event.historySource.fetchedAt).toLocaleString("zh-CN",{timeZone:"Europe/Paris"})} 巴黎时间。{event.kind==="CONFIDENCE"?"密歇根调查在 FRED 的授权数据有延迟，初值请查看官方公布。":""}</p></div>}<MacroChart history={event.history} unit={compactEventUnit(event.unit)} /><PublicationHistory event={event} mode={mode} /></>}
     {!!event.qqqReactions?.length && <details className="week-details"><summary>已取得的 QQQ 事件日表现</summary>{event.qqqReactions.slice(-12).map(reaction => <div className="watch-row" key={reaction.date}><span>{reaction.date}</span><strong>{reaction.returnPct >= 0 ? "+" : ""}{reaction.returnPct.toFixed(2)}%</strong></div>)}<p className="muted">展示关联背景，不将同日涨跌归因为单一事件。</p></details>}
     <div className="event-source"><SourceLink href={event.sourceUrl}>{event.sourceName}</SourceLink><small>{event.fetchedAt ? `取得于 ${new Date(event.fetchedAt).toLocaleString("zh-CN", { timeZone: "Europe/Paris" })} 巴黎时间` : "等待官方结果确认"}</small></div>
-  </section></div>;
+  </section></div>}</LocalizeTree>;
 }
 
 function EventNumbers({event}:{event:MarketEvent}) {
  const values=event.calendarValues;
  const format=(value:number|undefined)=>value===undefined?"—":`${value.toLocaleString("zh-CN",{maximumFractionDigits:3})}${compactEventUnit(event.unit)}`;
- return <><p className="event-measurement">指标口径：{event.unit}{event.period ? ` · 观察期 ${event.period}` : ""}</p><div className="event-data"><div><span>公布值{event.period?` · ${event.period}`:""}</span><strong>{event.actual===undefined?(Date.parse(event.at)>Date.now()?"待公布":"官方待确认"):format(event.actual)}</strong><small>{event.actual===undefined?"待核实官方发布":"官方结果"}</small></div><div><span>前值</span><strong>{format(event.previous)}</strong><small>{event.previous===undefined?"尚未取得对应口径的上期值":values?.previous===event.previous?"公开日历中的上期值（可含修订）":"官方发布中的前值"}</small>{values?.previousOriginal!==undefined&&<small>修订前：{format(values.previousOriginal)}</small>}</div><div><span>市场预期 · 共识</span><strong>{format(event.consensus)}</strong><small>{event.consensus===undefined?"来源尚未提供本次共识":event.consensusSource}</small></div></div>
- <EventTakeaway event={event} locale="zh"/>{values&&<details className="event-values-context"><summary>数据来源与预测详情</summary>{values.forecast!==undefined&&<p><strong>数据商预测：</strong>{format(values.forecast)} · Trading Economics 自有预测</p>}{event.actual===undefined&&values.reported!==undefined&&Date.parse(event.at)<=Date.parse(values.fetchedAt)&&<p><strong>公开日历已报告：</strong>{format(values.reported)} · 官方发布仍待核实</p>}<SourceLink href={values.sourceUrl}>前值 / 共识 / 数据商预测来源：Trading Economics</SourceLink><small>本次发布日期 {values.date} · 取得于 {dualTime(values.fetchedAt)} · {values.fetchedAt.slice(0,10)}{Date.now()-Date.parse(values.fetchedAt)>86400000?" · 保留上次数据，待更新":""}</small><p>市场共识与数据商预测分别展示；空白表示来源尚未提供。公开日历报告值不替代官方确认。</p></details>}</>;
+ return <LocalizeTree>{<><p className="event-measurement">指标口径：{event.unit}{event.period ? ` · 观察期 ${event.period}` : ""}</p><div className="event-data"><div><span>公布值{event.period?` · ${event.period}`:""}</span><strong>{event.actual===undefined?(Date.parse(event.at)>Date.now()?"待公布":"官方待确认"):format(event.actual)}</strong><small>{event.actual===undefined?"待核实官方发布":"官方结果"}</small></div><div><span>前值</span><strong>{format(event.previous)}</strong><small>{event.previous===undefined?"尚未取得对应口径的上期值":values?.previous===event.previous?"公开日历中的上期值（可含修订）":"官方发布中的前值"}</small>{values?.previousOriginal!==undefined&&<small>修订前：{format(values.previousOriginal)}</small>}</div><div><span>市场预期 · 共识</span><strong>{format(event.consensus)}</strong><small>{event.consensus===undefined?"来源尚未提供本次共识":event.consensusSource}</small></div></div>
+ <EventTakeaway event={event} locale="zh"/>{values&&<details className="event-values-context"><summary>数据来源与预测详情</summary>{values.forecast!==undefined&&<p><strong>数据商预测：</strong>{format(values.forecast)} · Trading Economics 自有预测</p>}{event.actual===undefined&&values.reported!==undefined&&Date.parse(event.at)<=Date.parse(values.fetchedAt)&&<p><strong>公开日历已报告：</strong>{format(values.reported)} · 官方发布仍待核实</p>}<SourceLink href={values.sourceUrl}>前值 / 共识 / 数据商预测来源：Trading Economics</SourceLink><small>本次发布日期 {values.date} · 取得于 {dualTime(values.fetchedAt)} · {values.fetchedAt.slice(0,10)}{Date.now()-Date.parse(values.fetchedAt)>86400000?" · 保留上次数据，待更新":""}</small><p>市场共识与数据商预测分别展示；空白表示来源尚未提供。公开日历报告值不替代官方确认。</p></details>}</>}</LocalizeTree>;
 }

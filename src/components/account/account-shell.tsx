@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
@@ -8,6 +9,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { transferKey } from "@/lib/quest/guest-access";
+import {useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
@@ -29,7 +31,7 @@ export default function AccountShell({
   user: AccountUser | null;
   children: React.ReactNode;
 }) {
-  const zh = !!user?.admin;
+  const locale=useLocale(),zh = locale==='zh';
   const [ready, setReady] = useState(false),
     [sync, setSync] = useState(""),
     [tutorial, setTutorial] = useState(false);
@@ -44,7 +46,7 @@ export default function AccountShell({
   useEffect(() => {
     let active = true;
     setBrowserIdentity(user?.id);
-    document.documentElement.lang = zh ? "zh-CN" : "en";
+    document.documentElement.lang = zh ? "zh-CN" : locale;
     const tutorialKey = `quest-tutorial:${user?.id || "guest"}:v1`;
     async function bootstrap() {
       try {
@@ -167,7 +169,7 @@ export default function AccountShell({
       enabled.current = false;
       window.removeEventListener("quest-progress", change);
     };
-  }, [user?.id, zh]);
+  }, [user?.id, zh,locale]);
   const finish = useCallback(async () => {
     localStorage.setItem(`quest-tutorial:${user?.id || "guest"}:v1`, "done");
     setTutorial(false);
@@ -176,7 +178,7 @@ export default function AccountShell({
       await requestSync.current();
     }
   }, [user?.id]);
-  return (
+  return <LocalizeTree>{(
     <>
       <div className="account-bar">
         <div>
@@ -214,6 +216,7 @@ export default function AccountShell({
           )}
         </div>
         <nav>
+          <LanguageSwitcher admin={!!user?.admin}/>
           <button
             onClick={() => {
               setTutorial(true);
@@ -266,5 +269,5 @@ export default function AccountShell({
       )}
       {ready && tutorial && <ProductTour zh={zh} onFinish={finish} />}
     </>
-  );
+  )}</LocalizeTree>;
 }

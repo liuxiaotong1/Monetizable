@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 
 import { useEffect, useRef, useState } from "react";
 import { CandlestickChart, ExternalLink, RefreshCw, Telescope } from "lucide-react";
@@ -90,7 +91,7 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
   const brief = feed?.brief;
   const stale = !!brief && brief.date !== (readDate || feed?.expectedDate);
   const failed = !!feed?.lastAttempt && feed.lastAttempt.date === feed.expectedDate && feed.lastAttempt.status === "unavailable";
-  return <section className="panel market-observatory" aria-labelledby="market-title">
+  return <LocalizeTree>{<section className="panel market-observatory" aria-labelledby="market-title">
     <div className="market-heading"><div><span className="eyebrow"><Telescope size={13}/> MARKET OBSERVATORY</span><h2 id="market-title">QQQ · 市场望远镜</h2></div><span className="badge purple">免费图表</span></div>
     {!demo&&latest&&<div className="market-brief"><div className="market-brief-heading"><strong>最近已确认收盘</strong><span>{latest.date} · 常规交易时段</span></div><div className="brief-quote"><strong>${latest.close.toFixed(2)}</strong><small>日内 ${latest.low.toFixed(2)} — ${latest.high.toFixed(2)} · USD</small></div><small className="brief-time">{latest.source} · 取得于 {dualTime(latest.fetchedAt)}</small></div>}
     <div className="market-brief">
@@ -112,5 +113,5 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
     </div>
     <div className="chart-attribution"><a href={chartUrl} target="_blank" rel="noopener noreferrer">QQQ chart by TradingView <ExternalLink size={11}/></a><span>美东时间 · 延迟状态以图表标识为准</span></div>
     <p className="chart-note">{demo ? "这里的图表与行情早报使用真实公开资料；下方演示剧本和战报仍为示例。" : "图表随行情来源更新。早报按日保存，来源数据可能延迟。"} 下单时请核对老虎证券报价。搜索摘要与图表不参与判断评分。</p>
-  </section>;
+  </section>}</LocalizeTree>;
 }

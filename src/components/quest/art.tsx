@@ -1,5 +1,6 @@
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 export function QuestArt({ small = false }: { small?: boolean }) {
-  return <svg className={small ? "quest-art small" : "quest-art"} viewBox="0 0 520 310" fill="none" role="img" aria-label="背着书包的星际研究员，站在浮岛上观察市场星图">
+  return <LocalizeTree>{<svg className={small ? "quest-art small" : "quest-art"} viewBox="0 0 520 310" fill="none" role="img" aria-label="背着书包的星际研究员，站在浮岛上观察市场星图">
     <defs><linearGradient id="island" x1="210" y1="211" x2="320" y2="300" gradientUnits="userSpaceOnUse"><stop stopColor="#3e5965"/><stop offset="1" stopColor="#172432"/></linearGradient><linearGradient id="cape" x1="260" y1="160" x2="322" y2="224"><stop stopColor="#b7dff1"/><stop offset="1" stopColor="#5d8bba"/></linearGradient><radialGradient id="orb"><stop stopColor="#c7fab6" stopOpacity=".38"/><stop offset="1" stopColor="#94b8ec" stopOpacity="0"/></radialGradient></defs>
     <circle cx="330" cy="150" r="140" fill="url(#orb)"/><ellipse cx="309" cy="274" rx="142" ry="10" fill="#020a17" opacity=".24"/>
     <path d="m130 210 47-29 44 20-40 32z" fill="#394958"/><path d="m130 210 51 23 19 24-46-13z" fill="#192d41"/><path d="m181 233 40-32-21 56z" fill="#304259"/><path d="m178 171 15-8 4 28-19 10z" fill="#e0cf94"/><path d="m178 171 10 8v24l-10-3z" fill="#827958"/>
@@ -14,5 +15,5 @@ export function QuestArt({ small = false }: { small?: boolean }) {
     <path d="m124 66 11 7-1 13-11-7z" stroke="#9da8d5"/><path d="m432 155 11 7-1 13-11-7z" stroke="#9da8d5"/>
     <path d="M222 51v11m-5-5h10M434 76v9m-4-5h8M197 126v8m-4-4h8" stroke="#adb9d9" strokeLinecap="round"/>
     <circle cx="160" cy="117" r="2" fill="#96a2c5"/><circle cx="371" cy="29" r="2" fill="#96a2c5"/><circle cx="462" cy="131" r="2" fill="#96a2c5"/><path d="M115 147c26-51 92-86 165-96" stroke="#627891" strokeDasharray="3 9" opacity=".4"/>
-  </svg>;
+  </svg>}</LocalizeTree>;
 }

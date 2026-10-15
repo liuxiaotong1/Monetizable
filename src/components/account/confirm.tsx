@@ -1,4 +1,5 @@
 "use client";
+import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useState } from "react";
 export default function Confirm() {
   const [busy, setBusy] = useState(false),
@@ -25,7 +26,7 @@ export default function Confirm() {
       setBusy(false);
     }
   }
-  return (
+  return <LocalizeTree>{(
     <main className="auth-screen">
       <a className="brand" href="/">
         <img src="/brand/monetizable-bull-blue-violet.svg" width="44" height="44" alt="" />
@@ -48,5 +49,5 @@ export default function Confirm() {
         )}
       </section>
     </main>
-  );
+  )}</LocalizeTree>;
 }
