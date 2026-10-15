@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, useId } from 'react';
 import {knownStock,type StockMatch} from '@/lib/quest/stock-symbols';
 import type { Bar, Settings, WatchItem } from '@/lib/quest/types';
 import './watchlist-chart.css';
+import DxyChart from './dxy-chart';
+import {DXY_SOURCE} from '@/lib/quest/dollar-index';
 type Exchange = NonNullable<WatchItem['exchange']>;
 const legacyExchange=(symbol:string):Exchange=>['IBM','JPM','DIS','KO','BAC','XOM','V','BRK.B'].includes(symbol)?'NYSE':'NASDAQ';
 export default function WatchlistChart({settings,onSave,selected,onSelect,locale='en',latest,busy=false}:{settings:Settings;onSave:(settings:Settings)=>Promise<unknown>;selected:string;onSelect:(symbol:string)=>void;locale?:'en'|'zh';latest?:Bar;busy?:boolean}) {
@@ -14,10 +16,10 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
   const canonicalSelected=knownStock(selected)?.symbol||selected;
   useEffect(()=>{const key=JSON.stringify(settings.watchlist);if(busy||repairAttempt.current===key||key===JSON.stringify(watch))return;repairAttempt.current=key;void onSave({...settings,watchlist:watch});},[settings,watch,busy,onSave]);
   const active=watch.find(item=>item.symbol===canonicalSelected),symbol=canonicalSelected==='QQQ'||active?canonicalSelected:'QQQ',venue=symbol==='QQQ'?'NASDAQ':active?.exchange||legacyExchange(symbol),chartSymbol=venue+':'+symbol;
-  const url='https://www.tradingview.com/symbols/'+venue+'-'+encodeURIComponent(symbol)+'/';
+  const url=symbol==='DXY'?DXY_SOURCE:'https://www.tradingview.com/symbols/'+venue+'-'+encodeURIComponent(symbol)+'/';
   useEffect(()=>{if(selected!==symbol)onSelect(symbol);},[selected,symbol,onSelect]);
   useEffect(()=>{
-    const container=host.current;if(!container)return;let disposed=false,frame:HTMLIFrameElement|null=null;
+    const container=host.current;if(!container||symbol==='DXY')return;let disposed=false,frame:HTMLIFrameElement|null=null;
     setLoading(true);setFailed(false);
     const ready=()=>{if(!disposed){setLoading(false);setFailed(false);clearTimeout(timer);}};
     const observer=new MutationObserver(()=>{const next=container.querySelector('iframe');if(next&&next!==frame){frame=next;frame.title=(zh?'参考行情图表：':'Reference price chart: ')+chartSymbol;frame.addEventListener('load',ready);}});
@@ -27,7 +29,7 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
     const timeout=()=>{if(!disposed){setLoading(false);setFailed(true);}};script.onerror=timeout;const timer=setTimeout(timeout,25000);
     const widget=document.createElement('div');widget.className='tradingview-widget-container__widget';widget.style.height='100%';container.replaceChildren(widget,script);
     return()=>{disposed=true;clearTimeout(timer);observer.disconnect();frame?.removeEventListener('load',ready);container.replaceChildren();};
-  },[chartSymbol,interval,zh,attempt]);
+  },[chartSymbol,symbol,interval,zh,attempt]);
   async function saveMatch(match:StockMatch){
     setError('');
     if(match.symbol==='QQQ'||watch.some(item=>item.symbol===match.symbol)){onSelect(match.symbol);setTicker('');setMatches([]);return;}
@@ -57,10 +59,10 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
     {!!matches.length&&<div className="watchlist-search-results" aria-label={zh?'选择搜索结果':'Choose a search result'}>{matches.map(match=><button type="button" key={match.exchange+match.symbol} disabled={busy||searching} onClick={()=>void saveMatch(match)}><strong>{match.symbol}</strong><span>{match.name} · {match.exchange}</span></button>)}</div>}
     {error&&<p className="watchlist-error" role="alert">{error}</p>}
     <div className="watchlist-symbols"><button type="button" aria-pressed={symbol==='QQQ'} onClick={()=>onSelect('QQQ')}>QQQ</button>{watch.map(item=><div key={item.symbol}><button type="button" aria-pressed={symbol===item.symbol} onClick={()=>onSelect(item.symbol)}>{item.symbol}</button><button className="watch-remove" type="button" disabled={busy} aria-label={(zh?'移除 ':'Remove ')+item.symbol} onClick={()=>void remove(item)}>×</button></div>)}</div>
-    <div className="watchlist-toolbar"><strong>{chartSymbol}</strong><div aria-label={zh?'图表周期':'Chart interval'}>{[['D',zh?'日线':'Daily'],['60',zh?'1 小时':'1 hour'],['15',zh?'15 分钟':'15 min']].map(([value,label])=><button type="button" key={value} aria-pressed={interval===value} onClick={()=>setInterval(value)}>{label}</button>)}</div></div>
+    <div className="watchlist-toolbar"><strong>{symbol==='DXY'?'DXY · Yahoo Finance':chartSymbol}</strong><div aria-label={zh?'图表周期':'Chart interval'}>{[['D',zh?'日线':'Daily'],['60',zh?'1 小时':'1 hour'],['15',zh?'15 分钟':'15 min']].map(([value,label])=><button type="button" key={value} aria-pressed={interval===value} onClick={()=>setInterval(value)}>{label}</button>)}</div></div>
     {symbol==='QQQ'&&latest&&<p className="watchlist-caption">{zh?'QQQ 最近确认收盘：':'QQQ latest verified close: '} ${latest.close.toFixed(2)} · {latest.date}</p>}
-    <div className="watchlist-chart-stage"><div ref={host} className="tradingview-widget-container watchlist-chart-host"/>{(loading||failed)&&<div className="watchlist-chart-status" role="status">{failed?<><strong>{zh?'参考图表暂时无法加载':'Reference chart unavailable'}</strong><button className="secondary" type="button" onClick={()=>retry(n=>n+1)}>{zh?'重试连接':'Retry'}</button><a href={url} target="_blank" rel="noopener noreferrer">{zh?'打开行情来源 ↗':'Open price source ↗'}</a></>:<span>{zh?'正在连接图表…':'Connecting chart…'}</span>}</div>}</div>
-    <footer><a href={url} target="_blank" rel="noopener noreferrer">{symbol} {zh?'参考图表':'chart'} ↗</a><span>TradingView · {zh?'参考行情可能延迟':'Reference prices may be delayed'}</span></footer>
+    <div className="watchlist-chart-stage">{symbol==='DXY'?<DxyChart key={interval} interval={interval} locale={locale}/>:<><div ref={host} className="tradingview-widget-container watchlist-chart-host"/>{(loading||failed)&&<div className="watchlist-chart-status" role="status">{failed?<><strong>{zh?'参考图表暂时无法加载':'Reference chart unavailable'}</strong><button className="secondary" type="button" onClick={()=>retry(n=>n+1)}>{zh?'重试连接':'Retry'}</button><a href={url} target="_blank" rel="noopener noreferrer">{zh?'打开行情来源 ↗':'Open price source ↗'}</a></>:<span>{zh?'正在连接图表…':'Connecting chart…'}</span>}</div>}</>}</div>
+    <footer><a href={url} target="_blank" rel="noopener noreferrer">{symbol} {zh?'参考图表':'chart'} ↗</a><span>{symbol==='DXY'?'Yahoo Finance':'TradingView'} · {zh?'参考行情可能延迟':'Reference prices may be delayed'}</span></footer>
     <p className="watchlist-caption">{zh?'切换标的同步页面末尾的交易前 checklist；今日判断、剧本与战报仍以 QQQ 为准。自选股保存到当前浏览器，登录后随账号同步。':'Switch the chart underlying to update the pre-trade checklist at the end of this page. Daily predictions and reviews remain tied to QQQ. Your watchlist stays in this browser and syncs with your account when signed in.'}</p>
   </section>;
 }

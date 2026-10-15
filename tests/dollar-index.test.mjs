@@ -1,0 +1,7 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {createJiti} from 'jiti';
+const jiti=createJiti(import.meta.url);const {parseDollarIndex}=await jiti.import('../src/lib/quest/dollar-index.ts');
+const now=new Date('2026-10-15T16:00:00Z');
+const fixture=(granularity='1d')=>({chart:{result:[{meta:{symbol:'DX-Y.NYB',dataGranularity:granularity},timestamp:[+now/1000-86400,+now/1000-3600,+now/1000+3600],indicators:{quote:[{close:[102,102.5,999]}]}}]}});
+test('uses dollar index points, discards future candles, and keeps the original timestamp',()=>{const r=parseDollarIndex(fixture(),'D',now);assert.equal(r.symbol,'DXY');assert.equal(r.points.length,2);assert.equal(r.points.at(-1).value,102.5);assert.equal(r.fetchedAt,now.toISOString());});
+test('rejects unrelated symbols, mismatched intervals, invalid quotes and duplicates',()=>{const wrong=fixture();wrong.chart.result[0].meta.symbol='QQQ';assert.throws(()=>parseDollarIndex(wrong,'D',now));assert.throws(()=>parseDollarIndex(fixture(),'15',now));const missing=fixture();missing.chart.result[0].indicators.quote[0].close=[null,-1,999];assert.throws(()=>parseDollarIndex(missing,'D',now));const dup=fixture();dup.chart.result[0].timestamp[1]=dup.chart.result[0].timestamp[0];assert.throws(()=>parseDollarIndex(dup,'D',now));});
+test('supports both intraday granularities',()=>{assert.equal(parseDollarIndex(fixture('15m'),'15',now).interval,'15');assert.equal(parseDollarIndex(fixture('60m'),'60',now).interval,'60');assert.equal(parseDollarIndex(fixture('1h'),'60',now).interval,'60');});
