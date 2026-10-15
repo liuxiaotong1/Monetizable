@@ -31,7 +31,7 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
   async function saveMatch(match:StockMatch){
     setError('');
     if(match.symbol==='QQQ'||watch.some(item=>item.symbol===match.symbol)){onSelect(match.symbol);setTicker('');setMatches([]);return;}
-    if(watch.length>=5){setError(zh?'最多 5 个自选股，请先移除一个。':'Up to five watchlist stocks. Remove one first.');return;}
+    if(watch.length>=5){setError(zh?'最多 5 个自选标的，请先移除一个。':'Up to five watchlist symbols. Remove one first.');return;}
     const result=await onSave({...settings,watchlist:[...watch,{symbol:match.symbol,exchange:match.exchange,irUrl:'',weeklyNote:''}]});
     if(result!==false){onSelect(match.symbol);setTicker('');setMatches([]);}else setError(zh?'保存失败，请重试。':'Could not save. Please retry.');
   }
@@ -45,15 +45,15 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
       const exact=data.matches.find(m=>m.symbol===ticker.trim().toUpperCase());
       if(exact||data.matches.length===1)await saveMatch(exact||data.matches[0]);
       else if(data.matches.length)setMatches(data.matches);
-      else setError(zh?'未找到美股或 ETF，请检查公司名称或股票代码。':'No US stock or ETF found. Check the name or ticker.');
+      else setError(zh?'未找到标的；支持美股、ETF 和 DXY 美元指数。':'No symbol found. Try a US stock, ETF, or DXY dollar index.');
     }catch{setError(zh?'暂时无法确认标的，请稍后重试。':'Could not verify the underlying. Please retry.');}
     finally{setSearching(false);}
   }
   async function remove(item:WatchItem){const result=await onSave({...settings,watchlist:watch.filter(w=>w.symbol!==item.symbol)});if(result!==false&&symbol===item.symbol)onSelect('QQQ');}
-  return <section className="watchlist-observatory" aria-label={zh?'自选股与行情图表':'Watchlist & price chart'}>
-    <header><div><span className="eyebrow">🔭 {zh?'市场望远镜':'MARKET OBSERVATORY'}</span><h2>{zh?'自选股与图表':'Your watchlist & chart'}</h2></div><span>{zh?'QQQ + 最多 5 个自选股':'QQQ + up to 5 stocks'}</span></header>
-    <form className="watchlist-add" onSubmit={event=>{event.preventDefault();void add();}}><label htmlFor={id+'-ticker'}>{zh?'添加自选股':'Add a stock'}<input id={id+'-ticker'} value={ticker} onChange={event=>setTicker(event.target.value)} maxLength={60} placeholder={zh?"Apple / 苹果 / AAPL":"Apple / AAPL / NVDA"} autoCapitalize="characters" autoComplete="off" /></label><button className="primary" type="submit" disabled={busy||searching||!ticker.trim()}>{searching?(zh?'确认标的…':'Finding stock…'):(zh?'+ 添加并查看':'+ Add & view')}</button></form>
-    <p className="watchlist-caption">{zh?'支持公司名称或股票代码，自动匹配交易所。':'Enter a company name or ticker. The exchange is matched automatically.'}</p>
+  return <section className="watchlist-observatory" aria-label={zh?'自选标的与行情图表':'Watchlist & price chart'}>
+    <header><div><span className="eyebrow">🔭 {zh?'市场望远镜':'MARKET OBSERVATORY'}</span><h2>{zh?'自选标的与图表':'Your watchlist & chart'}</h2></div><span>{zh?'QQQ + 最多 5 个自选标的':'QQQ + up to 5 symbols'}</span></header>
+    <form className="watchlist-add" onSubmit={event=>{event.preventDefault();void add();}}><label htmlFor={id+'-ticker'}>{zh?'添加自选标的':'Add a symbol'}<input id={id+'-ticker'} value={ticker} onChange={event=>setTicker(event.target.value)} maxLength={60} placeholder={zh?"AAPL / DXY / 美元指数":"Apple / AAPL / DXY"} autoCapitalize="characters" autoComplete="off" /></label><button className="primary" type="submit" disabled={busy||searching||!ticker.trim()}>{searching?(zh?'确认标的…':'Finding symbol…'):(zh?'+ 添加并查看':'+ Add & view')}</button></form>
+    <p className="watchlist-caption">{zh?'支持公司名称、股票代码或 DXY / 美元指数，自动匹配图表来源。':'Enter a company name, stock ticker, or DXY dollar index. The chart source is matched automatically.'}</p>
     {!!matches.length&&<div className="watchlist-search-results" aria-label={zh?'选择搜索结果':'Choose a search result'}>{matches.map(match=><button type="button" key={match.exchange+match.symbol} disabled={busy||searching} onClick={()=>void saveMatch(match)}><strong>{match.symbol}</strong><span>{match.name} · {match.exchange}</span></button>)}</div>}
     {error&&<p className="watchlist-error" role="alert">{error}</p>}
     <div className="watchlist-symbols"><button type="button" aria-pressed={symbol==='QQQ'} onClick={()=>onSelect('QQQ')}>QQQ</button>{watch.map(item=><div key={item.symbol}><button type="button" aria-pressed={symbol===item.symbol} onClick={()=>onSelect(item.symbol)}>{item.symbol}</button><button className="watch-remove" type="button" disabled={busy} aria-label={(zh?'移除 ':'Remove ')+item.symbol} onClick={()=>void remove(item)}>×</button></div>)}</div>

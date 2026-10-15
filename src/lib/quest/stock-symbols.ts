@@ -1,5 +1,6 @@
-export type StockMatch = {symbol:string; exchange:'NASDAQ'|'NYSE'|'AMEX'; name:string};
+export type StockMatch = {symbol:string; exchange:'NASDAQ'|'NYSE'|'AMEX'|'TVC'; name:string};
 const stocks: [string, StockMatch['exchange'], string, string[]][] = [
+  ['DXY','TVC','U.S. Dollar Index',['tvc:dxy','美元指数','美元指數','dollar index','us dollar index','u.s. dollar index','dx-y.nyb','^dxy']],
   ['AAPL','NASDAQ','Apple',['apple','苹果']], ['NVDA','NASDAQ','NVIDIA',['nvidia','英伟达']],
   ['MSFT','NASDAQ','Microsoft',['microsoft','微软']], ['TSLA','NASDAQ','Tesla',['tesla','特斯拉']],
   ['AMZN','NASDAQ','Amazon',['amazon','亚马逊']], ['GOOGL','NASDAQ','Alphabet',['google','alphabet','谷歌']],
