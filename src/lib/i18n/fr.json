@@ -703,7 +703,7 @@
   "Invalidation, exit levels or time limit": "Invalidation, niveaux de sortie ou délai",
   "Inventory can reflect a launch, supply buffers or slower sales. Compare turns, revenue, backlog quality and management explanation.": "La hausse des stocks peut préparer un lancement, sécuriser l’approvisionnement ou signaler un ralentissement des ventes. Le chiffre seul ne tranche pas : comparez-le à la demande et aux commentaires de l’entreprise.",
   "Invesco QQQ": "Invesco QQQQ",
-  "Invest in your": "Investir dans votre",
+  "Invest in your": "Développez votre",
   "Investing style quiz": "Quiz de style investissement",
   "Investing. A little more playful.": "Investir, un peu plus ludique.",
   "Investir devient plus ludique.": "Investir devient plus ludique.",
@@ -1888,5 +1888,9 @@
   "In line with consensus · {0}": "Conforme au consensus · {0}",
   "Above the previous reading · {0}": "Supérieur au précédent · {0}",
   "Below the previous reading · {0}": "Inférieur au précédent · {0}",
-  "In line with the previous reading · {0}": "Identique au précédent · {0}"
+  "In line with the previous reading · {0}": "Identique au précédent · {0}",
+  "understanding.": "compréhension.",
+  "Your next level starts here.": "Votre prochain niveau commence ici.",
+  "/ 100 XP to next level": "/ 100 XP pour le prochain niveau",
+  "observations": "observations"
 }
