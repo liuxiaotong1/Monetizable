@@ -38,3 +38,24 @@ test('a BEA RSS outage does not block its date-verified PCE article',async()=>{
  const result=await fetchOfficialRelease(pce,new Date('2026-09-30T13:00:00Z'),async url=>{if(url.includes('/rss/'))throw Error('RSS unavailable');assert.equal(url,'https://www.bea.gov/news/2026/personal-income-and-outlays-august-2026');return '<body>September 30, 2026 Personal Income and Outlays From the same month one year ago the PCE price index increased 3.0 percent.</body>';});
  assert.equal(result.actual,3);assert.equal(result.status,'confirmed');
 });
+test('BEA delayed releases can describe an older observation month, but publication date must match',async()=>{
+ const pce={...event,id:'pce-2026-01-22',kind:'PCE',at:'2026-01-22T15:00:00Z',sourceUrl:'https://apps.bea.gov/API/signup/release_dates.json'};
+ const result=await fetchOfficialRelease(pce,new Date('2026-01-22T16:00:00Z'),async url=>{if(url.includes('november-2025'))return '<body>January 22, 2026 Personal Income and Outlays From the same month one year ago the PCE price index increased 3.0 percent.</body>';throw Error('Unavailable');});
+ assert.equal(result.actual,3);assert.match(result.sourceUrl,/november-2025/);
+});
+test('Fed target ranges accept nonbreaking hyphens and decimal notation',async()=>{
+ const {parseStatisticalRelease}=await jiti.import('../src/lib/quest/official-release.ts');
+ const fomc={...event,kind:'FOMC',at:'2026-01-28T19:00:00Z'};
+ for(const [range,expected] of [['3‑1/2 to 3‑3/4',3.75],['3.50 to 3.75',3.75]])assert.equal(parseStatisticalRelease(fomc,`<body>January 28, 2026 target range for the federal funds rate at ${range} percent.</body>`,'https://www.federalreserve.gov/newsevents/pressreleases/monetary20260128a.htm','2026-01-28T20:00:00Z').actual,expected);
+});
+test('BEA archive matches release date and metric, not a neighboring release or untrusted link',async()=>{
+ const {parseBeaArchive}=await jiti.import('../src/lib/quest/official-release.ts');
+ const row=(href,title,date)=>`<tr><td><a href="${href}">${title}</a></td><td><time datetime="${date}"></time></td></tr>`;
+ const html=`<table>${row('/news/2026/gdp-test','GDP (Second Estimate), 2nd Quarter 2026','2026-08-26T08:30:00-04:00')}${row('https://evil.test/news/2026/x','GDP (Second Estimate)','2026-08-26T08:30:00-04:00')}${row('/news/2026/pce','Personal Income and Outlays','2026-08-26T08:30:00-04:00')}${row('/news/2026/wrong-date','GDP (Advance Estimate)','2026-07-30T08:30:00-04:00')}</table>`;
+ assert.deepEqual(parseBeaArchive('GDP',html,'2026-08-26'),['https://www.bea.gov/news/2026/gdp-test']);
+});
+test('combined PCE publication uses the later month rather than silently taking the first value',async()=>{
+ const {parseStatisticalRelease}=await jiti.import('../src/lib/quest/official-release.ts');const pce={...event,kind:'PCE',at:'2026-01-22T15:00:00Z'};
+ const result=parseStatisticalRelease(pce,'<body>January 22, 2026 Personal Income and Outlays, October and November 2025. From the same month one year ago, the PCE price index increased 2.7 percent in October, followed by an increase of 2.8 percent in November.</body>','https://www.bea.gov/news/2026/personal-income-and-outlays-october-and-november-2025','2026-01-22T16:00:00Z');
+ assert.equal(result.actual,2.8);assert.equal(result.previous,2.7);
+});

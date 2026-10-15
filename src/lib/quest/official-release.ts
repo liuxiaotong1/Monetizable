@@ -5,7 +5,7 @@ import {marketDate} from './domain';
 import {parseOfficialDocument,applyOfficialRecords} from './official-backfill';
 const months=['january','february','march','april','may','june','july','august','september','october','november','december'];
 export function releaseDate(text:string){const m=text.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})/i);return m?`${m[3]}-${String(months.indexOf(m[1].toLowerCase())+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`:undefined;}
-export function documentText(content:string){const $=load(content);$('script,style,nav,footer').remove();return $('body').text().replace(/\s+/g,' ').replace(/[−–]/g,'-').replace(/’/g,"'");}
+export function documentText(content:string){const $=load(content);$('script,style,nav,footer').remove();return $('body').text().replace(/\s+/g,' ').replace(/[\u2010-\u2015\u2212]/g,'-').replace(/’/g,"'");}
 export function parseStatisticalRelease(event:MarketEvent,content:string,url:string,now:string):MarketEvent {
  const text=documentText(content),date=marketDate(new Date(event.at)),host=new URL(url).hostname;
  const dated=event.kind==='BEIGE_BOOK'?releaseDate(text.match(/Last Update:\s*(.+)$/i)?.[1]||''):releaseDate(text);
@@ -31,9 +31,12 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
  if(event.kind==='PPI'&&/PRODUCER PRICE INDEX/i.test(text))actual=number(/(?:final demand|final-demand) (?:index |prices )?(?:rose|increased|advanced) ([\d.]+) percent (?:for|over) the 12 months/i)??number(/(?:final demand|final-demand).{0,80}?([\d.]+) percent (?:for|over) the 12 months/i);
  if(event.kind==='JOLTS'&&/JOB OPENINGS AND LABOR TURNOVER/i.test(text)){actual=number(/(?:number of job openings|Job openings).{0,100}?(?:at |to )([\d.]+) million/i);if(actual!==undefined)actual*=1000;}
  if(event.kind==='RETAIL'&&/ADVANCE MONTHLY SALES FOR RETAIL/i.test(text)){const m=text.match(/(?:up|down) ([\d.]+) percent.{0,65}?(?:previous month|from \w+)/i);if(m)actual=Number(m[1])*(m[0].startsWith('down')?-1:1);}
- if(event.kind==='PCE'&&/Personal Income and Outlays/i.test(text))actual=number(/(?:From the same month one year ago|from one year ago).{0,180}?PCE price index increased ([\d.]+) percent/i);
+ if(event.kind==='PCE'&&/Personal Income and Outlays/i.test(text)){
+  const annual=text.match(/(?:From the same month one year ago|from one year ago).{0,180}?PCE price index (increased|decreased) ([\d.]+) percent(.{0,180})/i);
+  if(annual){actual=Number(annual[2])*(annual[1].toLowerCase()==='decreased'?-1:1);const combined=annual[3].match(/in (\w+), followed by an (increase|decrease) of ([\d.]+) percent in (\w+)/i);if(combined){const previous=actual;actual=Number(combined[3])*(combined[2].toLowerCase()==='decrease'?-1:1);return {...base,actual,previous,report:{title:'PCE · 官方合并发布',summary:['官方本次同时发布两个月数据；展示后一个月，前值取同一报告中前一个月的同比值。'],bodyUrl:url}};}}
+ }
  if(event.kind==='GDP'&&/gross domestic product/i.test(text)){const m=text.match(/Real gross domestic product.{0,85}?(increased|decreased) at an annual rate of ([\d.]+) percent/i);if(m)actual=Number(m[2])*(m[1].toLowerCase()==='decreased'?-1:1);}
- if(event.kind==='FOMC'){const m=text.match(/(?:target range for the federal funds rate).{0,120}?(\d+)(?:-(\d)\/(\d))? to (\d+)(?:-(\d)\/(\d))? percent/i);if(m)actual=Number(m[4])+(m[5]?Number(m[5])/Number(m[6]):0);}
+ if(event.kind==='FOMC'){const m=text.match(/(?:target range for the federal funds rate).{0,120}?(\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? to (\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? percent/i);if(m)actual=Number(m[4])+(m[5]?Number(m[5])/Number(m[6]):0);}
  if(event.kind==='BEIGE_BOOK'&&/Beige Book/i.test(text)&&text.length>3000)return {...base,report:{title:'Beige Book · 官方报告已公布',summary:['已核对官方发布日期及正文。阅读各地区经济活动、就业与价格章节；这份定性报告没有单一公布值。'],bodyUrl:url}};
  if(actual===undefined||!Number.isFinite(actual))throw Error('本次指标口径或数值未通过核对');
  return {...base,actual};
@@ -44,6 +47,14 @@ export async function officialContent(url:string):Promise<string>{
  const bytes=new Uint8Array(await r.arrayBuffer());if(bytes.length>6_000_000)throw Error('官方文档超过大小限制');
  if(url.endsWith('.pdf')){if(new TextDecoder().decode(bytes.slice(0,5))!=='%PDF-')throw Error('官方 PDF 格式不匹配');const {extractText}=await import('unpdf');const {text}=await extractText(bytes,{mergePages:true});return `<body>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body>`;}
  return new TextDecoder().decode(bytes);
+}
+export function parseBeaArchive(kind:MarketEvent['kind'],html:string,date:string):string[]{
+ const $=load(html),urls:string[]=[];
+ $('tr').each((_,row)=>{const time=$(row).find('time').attr('datetime'),anchor=$(row).find('a[href]').first(),title=anchor.text().trim();
+  const match=kind==='GDP'?/^(GDP|Gross Domestic Product)(?:\s*\(|,)/i:kind==='PCE'?/^Personal Income and Outlays/i:/^(U\.S\. )?International Trade in Goods and Services/i;
+  if(!time||!Number.isFinite(Date.parse(time))||marketDate(new Date(time))!==date||!match.test(title))return;
+  try{const url=new URL(anchor.attr('href')!,'https://www.bea.gov');if(url.protocol==='https:'&&['bea.gov','www.bea.gov'].includes(url.hostname)&&/^\/(?:index.php\/)?news\/20\d{2}\//.test(url.pathname))urls.push(url.href);}catch{}
+ });return [...new Set(urls)];
 }
 export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoader=officialContent):Promise<MarketEvent>{
  const date=marketDate(new Date(event.at)),stamp=date.slice(5,7)+date.slice(8,10)+date.slice(0,4),nowISO=now.toISOString();
@@ -59,10 +70,16 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoa
   let raw='';try{raw=await contentLoader('https://apps.bea.gov/rss/rss.xml');}catch{/* The dated official article can still be available if the RSS fails. */}
   const rss=load(raw,{xml:true});
   const match=event.kind==='PCE'?/Personal Income and Outlays/i:event.kind==='GDP'?/GDP|Gross Domestic Product/i:/International Trade in Goods and Services/i;
-  const item=rss('item').filter((_,el)=>match.test(rss(el).find('title').text())&&marketDate(new Date(rss(el).find('pubDate').text()))===date).first();let url=item.find('link').text();if(!url&&/^https:\/\/(www\.)?bea.gov\/news\/20\d{2}\//.test(event.sourceUrl))url=event.sourceUrl;if(!url&&event.kind!=='GDP'){const period=new Date(date.slice(0,7)+'-01T12:00:00Z');period.setUTCMonth(period.getUTCMonth()-(event.kind==='TRADE'?2:1));url=`https://www.bea.gov/news/${date.slice(0,4)}/${event.kind==='TRADE'?'us-international-trade-goods-and-services':'personal-income-and-outlays'}-${months[period.getUTCMonth()]}-${period.getUTCFullYear()}`;}if(!url)throw Error('BEA 官方 RSS 尚未出现匹配日期的报告');
-  const content=await contentLoader(url);
-  if(event.kind==='TRADE'){const record=parseOfficialDocument({kind:'TRADE',url,content},nowISO);return applyOfficialRecords([event],[record])[0];}
-  return parseStatisticalRelease(event,content,url,nowISO);
+  const item=rss('item').filter((_,el)=>match.test(rss(el).find('title').text())&&Number.isFinite(Date.parse(rss(el).find('pubDate').text()))&&marketDate(new Date(rss(el).find('pubDate').text()))===date).first();const urls:string[]=[];const rssURL=item.find('link').text().trim();if(rssURL)urls.push(rssURL);
+  if(!rssURL){const archive=event.kind==='GDP'?'https://www.bea.gov/news/archive?created_1=All&field_related_product_target_id=456&title=':`https://www.bea.gov/news/archive?created_1=All&field_related_product_target_id=All&title=${encodeURIComponent(event.kind==='PCE'?'Personal Income and Outlays':'International Trade in Goods and Services')}`;try{urls.push(...parseBeaArchive(event.kind,await contentLoader(archive),date));}catch{/* Dated article fallback remains available independently. */}}
+  if(/^https:\/\/(www\.)?bea.gov\/news\/20\d{2}\//.test(event.sourceUrl))urls.push(event.sourceUrl);
+  if(event.kind!=='GDP')for(const offset of [1,2,3,4]){const period=new Date(date.slice(0,7)+'-01T12:00:00Z');period.setUTCMonth(period.getUTCMonth()-offset);urls.push(`https://www.bea.gov/news/${date.slice(0,4)}/${event.kind==='TRADE'?'us-international-trade-goods-and-services':'personal-income-and-outlays'}-${months[period.getUTCMonth()]}-${period.getUTCFullYear()}`);}
+  let lastError:unknown=Error('BEA 官方档案尚未找到匹配日期的报告');
+  for(const url of [...new Set(urls)])try{const content=await contentLoader(url);
+   if(event.kind==='TRADE'){const record=parseOfficialDocument({kind:'TRADE',url,content},nowISO),result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed'||record.date!==date)throw Error('官方报告发布日期不匹配');return result;}
+   return parseStatisticalRelease(event,content,url,nowISO);
+  }catch(error){lastError=error;}
+  throw lastError;
  }
  if(event.kind==='FOMC'){
   const url=`https://www.federalreserve.gov/newsevents/pressreleases/monetary${date.replaceAll('-','')}a.htm`;return parseStatisticalRelease(event,await contentLoader(url),url,nowISO);
