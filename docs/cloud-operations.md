@@ -32,8 +32,8 @@ the existing website and the already configured Telegram recipient.
   or paywalled full article is claimed. They do not replace broker quotes.
 - A Mac shutdown cannot stop these cloud jobs. Provider outages, quotas, source
   failures and a paused Supabase project can still affect availability.
-- Existing Codex local automation is retired only after a real cloud report and
-  Telegram delivery are verified. Historical reports remain available.
+- The Codex local automation was paused after the 15 October cloud report and
+  Telegram delivery were verified. Historical reports remain available.
 - Web Push is not an active subscription service. Browser service-worker support
   alone does not constitute push delivery. Existing website notices remain in-app.
 
