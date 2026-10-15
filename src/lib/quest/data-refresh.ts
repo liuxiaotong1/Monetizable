@@ -31,7 +31,7 @@ export function publicationVersion(previous:MarketEvent|undefined,event:MarketEv
  if(event.actual===undefined)return history;
  const last=history.at(-1);
  if(last&&last.actual===event.actual&&last.previous===event.previous&&last.revised===event.revised)return history;
- return [...history,{date:marketDate(new Date(event.at)),period:event.period,actual:event.actual,previous:event.previous,revised:event.revised,vintage:event.fetchedAt!,sourceUrl:event.sourceUrl,fetchedAt:event.fetchedAt!,version:(last?.version||0)+1}].slice(-24);
+ return [...history,{date:event.at,period:event.period,actual:event.actual,previous:event.previous,revised:event.revised,vintage:event.fetchedAt!,sourceUrl:event.sourceUrl,fetchedAt:event.fetchedAt!,version:(last?.version||0)+1}].slice(-24);
 }
 const calendarKinds:[RegExp,MarketEvent['kind']][]=[[/Consumer Price Index/i,'CPI'],[/Producer Price Index/i,'PPI'],[/Employment Situation/i,'NFP'],[/Initial Claims/i,'CLAIMS'],[/ISM Non-Manufacturing/i,'ISM'],[/ISM Manufacturing/i,'ISM'],[/Michigan Consumer Survey/i,'CONFIDENCE'],[/Retail Sales/i,'RETAIL'],[/Trade balance/i,'TRADE'],[/Job Openings|JOLTS/i,'JOLTS'],[/Gross Domestic Product/i,'GDP'],[/Personal Income and the PCE/i,'PCE']];
 export function parseCalendar(html:string,month:string,templates:MarketEvent[],url:string,now:Date):MarketEvent[]{
