@@ -4,7 +4,7 @@ export interface CacheClock {version?:number;attemptedAt:string;error?:string}
 export function cacheDue(prior:CacheClock|undefined,ttl:number,now:Date,version=1){
  return !prior||prior.version!==version||!Number.isFinite(Date.parse(prior.attemptedAt))||now.getTime()-Date.parse(prior.attemptedAt)>=(prior.error?Math.min(ttl,5*60_000):ttl);
 }
-export const releaseParserVersion=(event:MarketEvent)=>event.kind==='CLAIMS'||event.kind==='FOMC'||event.kind==='PCE'||event.kind==='TRADE'||event.kind==='GDP'?5:4;
+export const releaseParserVersion=(event:MarketEvent)=>event.kind==='FOMC'||event.kind==='GDP'?6:event.kind==='CLAIMS'||event.kind==='PCE'||event.kind==='TRADE'?5:4;
 export function releaseCandidates(events:MarketEvent[],cached:Map<string,CacheClock>,now:Date){
  const latest=new Map<string,string>(),kind=(e:MarketEvent)=>e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):'');
  for(const e of [...events].sort((a,b)=>a.at.localeCompare(b.at)))if(Date.parse(e.at)<=+now)latest.set(kind(e),e.id);

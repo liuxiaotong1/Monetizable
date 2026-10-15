@@ -37,6 +37,7 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
  }
  if(event.kind==='GDP'&&/gross domestic product/i.test(text)){const m=text.match(/Real gross domestic product.{0,85}?(increased|decreased) at an annual rate of ([\d.]+) percent/i);if(m)actual=Number(m[2])*(m[1].toLowerCase()==='decreased'?-1:1);}
  if(event.kind==='FOMC'){const m=text.match(/(?:target range for the federal funds rate).{0,120}?(\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? to (\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? percent/i);if(m)actual=Number(m[4])+(m[5]?Number(m[5])/Number(m[6]):0);}
+ if(event.kind==='FOMC'&&actual===undefined&&/Statement on Longer-Run Goals and Monetary Policy Strategy/i.test(text)&&text.length>1500)return {...base,title:'FOMC · 长期目标与货币政策战略',description:'这是长期政策框架的定性声明，不是一次利率区间决议，没有单一利率公布值。',actual:undefined,previous:undefined,revised:undefined,report:{title:'FOMC · 长期政策框架声明',summary:['已核对官方声明正文及发布日期。这是长期目标与货币政策战略的表决，不是利率区间决议；阅读通胀目标、就业目标与政策反应框架。'],bodyUrl:url}};
  if(event.kind==='BEIGE_BOOK'&&/Beige Book/i.test(text)&&text.length>3000)return {...base,report:{title:'Beige Book · 官方报告已公布',summary:['已核对官方发布日期及正文。阅读各地区经济活动、就业与价格章节；这份定性报告没有单一公布值。'],bodyUrl:url}};
  if(actual===undefined||!Number.isFinite(actual))throw Error('本次指标口径或数值未通过核对');
  return {...base,actual};

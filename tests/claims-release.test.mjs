@@ -64,3 +64,13 @@ test('BEA RSS links without a scheme are normalized before fetching',async()=>{
  const result=await fetchOfficialRelease(eventGDP,new Date('2026-02-20T15:00:00Z'),async url=>url.includes('/rss/')?'<rss><channel><item><title>GDP (Advance Estimate)</title><pubDate>Fri, 20 Feb 2026 08:30:00 EST</pubDate><link>www.bea.gov/news/2026/gdp-advance</link></item></channel></rss>':(assert.equal(url,'https://www.bea.gov/news/2026/gdp-advance'),'<body>February 20, 2026 Real gross domestic product increased at an annual rate of 1.4 percent.</body>'));
  assert.equal(result.actual,1.4);
 });
+test('Fed strategy notation votes are qualitative releases, not missing interest rate decisions',async()=>{
+ const {parseStatisticalRelease}=await jiti.import('../src/lib/quest/official-release.ts');const e={...event,kind:'FOMC',at:'2025-08-22T18:00:00Z'};
+ const r=parseStatisticalRelease(e,`<body>August 22, 2025 Statement on Longer-Run Goals and Monetary Policy Strategy ${'Policy framework text. '.repeat(90)}</body>`,'https://www.federalreserve.gov/newsevents/pressreleases/monetary20250822a.htm','2026-10-15T15:00:00Z');
+ assert.equal(r.status,'confirmed');assert.equal(r.actual,undefined);assert.match(r.description,/不是一次利率/);assert.ok(r.report);
+});
+test('a confirmed qualitative policy statement does not display a pending numeric value',async()=>{
+ const {numericEvent}=await jiti.import('../src/lib/quest/event-view.ts');
+ assert.equal(Boolean(numericEvent({...event,kind:'FOMC',status:'confirmed',report:{title:'Strategy',summary:[],bodyUrl:'https://www.federalreserve.gov'}})),false);
+ assert.equal(Boolean(numericEvent({...event,kind:'FOMC',status:'pending'})),true);
+});

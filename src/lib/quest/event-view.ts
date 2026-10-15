@@ -10,7 +10,7 @@ export function eventStatusAt(event: MarketEvent, now: string): MarketEvent["sta
   if (event.status === "scheduled" && validTime(event) && Date.parse(event.at) <= Date.parse(now)) return "pending";
   return event.status;
 }
-export function numericEvent(event: MarketEvent) { return !qualitativeKinds.has(event.kind); }
+export function numericEvent(event: MarketEvent) { return !qualitativeKinds.has(event.kind)&&!(event.status==='confirmed'&&event.actual===undefined&&event.report); }
 export function nextEvent(events: MarketEvent[], now: string) {
   const current = Date.parse(now);
   if (!Number.isFinite(current)) return undefined;
