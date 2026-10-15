@@ -71,7 +71,7 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoa
   // can be blocked by DOL's CDN and changes when the next release is published.
   const archived=`https://oui.doleta.gov/press/${date.slice(0,4)}/${date.slice(5,7)}${date.slice(8,10)}${date.slice(2,4)}.pdf`;
   const urls=[archived,'https://www.dol.gov/ui/data.pdf'];const errors:string[]=[];
-  for(const url of urls)try{const record=parseOfficialDocument({kind:'CLAIMS',url,content:await contentLoader(url)},nowISO),result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed'||record.date!==date)throw Error('官方报告发布日期与目标初请事件不匹配');return result;}catch(error){errors.push(`${new URL(url).hostname}: ${error instanceof Error?error.message:'未能核实'}`);}
+  for(const url of urls)try{const record=parseOfficialDocument({kind:'CLAIMS',url,content:await contentLoader(url)},nowISO),result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed'||record.date!==date)throw Error('官方报告发布日期与目标初请事件不匹配');return {...result,description:'每周首次申请失业保险的人数，是就业变化的高频线索；本次官方发布已核对，结合前值修订与四周均值观察。'};}catch(error){errors.push(`${new URL(url).hostname}: ${error instanceof Error?error.message:'未能核实'}`);}
   throw Error(errors.join('；'));
  }
  if(event.kind==='ISM'||event.kind==='CONFIDENCE'||event.kind==='MINUTES'){
