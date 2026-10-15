@@ -1,12 +1,12 @@
 {
-  "name": "Monetizable \u00b7 Investing made playful",
+  "name": "Monetizable · Investir en s’amusant",
   "short_name": "Monetizable",
-  "description": "Daily market preparation, event insights, reviews and knowledge cards",
+  "description": "Préparation des marchés, événements, bilans et cartes pédagogiques",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0c101b",
   "theme_color": "#0c101b",
-  "lang": "en",
+  "lang": "fr",
   "icons": [
     {
       "src": "/brand/icon-192.png",
