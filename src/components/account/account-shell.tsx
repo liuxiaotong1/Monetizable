@@ -1,5 +1,4 @@
 "use client";
-import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
@@ -9,7 +8,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { transferKey } from "@/lib/quest/guest-access";
-import {useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
+import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {

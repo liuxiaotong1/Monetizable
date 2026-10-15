@@ -97,6 +97,7 @@ export function eventText(e: MarketEvent) {
   };
 }
 export function sourceHost(url: string) {
+  if (/^Trading Economics(?:\s|$)/.test(url)) return "Trading Economics";
   try {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
