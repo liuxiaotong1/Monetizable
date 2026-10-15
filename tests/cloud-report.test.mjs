@@ -21,3 +21,22 @@ test('a stale close cannot produce new entry levels or a ready report',()=>{
  const r=buildReport({bars:[{symbol:'QQQ',date:'2026-10-01',close:100}],events:[],forecasts:[],session:{previousDate:'2026-10-14'}},{sources:[]},[],{date:'2026-10-15',kind:'daily'},new Date('2026-10-15T12:15:00Z'));
  assert.equal(r.status,'partial');assert.match(r.body,/不生成新的价格关卡/);assert.equal(r.origin,'cloud-scheduler');
 });
+test('5-day chart baseline must not be reported as the previous session close',async()=>{
+ const now=new Date('2026-10-15T12:15:00Z');
+ const fetcher=async()=>({ok:true,json:async()=>({chart:{result:[{meta:{symbol:'NQ=F',regularMarketPrice:110,regularMarketTime:+now/1000,chartPreviousClose:80,previousClose:100}}]}})});
+ assert.ok(Math.abs((await snapshot('NQ=F','Nasdaq futures',now,fetcher)).change-10)<1e-8);
+});
+test('an unknown daily baseline is missing instead of inventing a daily return',async()=>{
+ const now=new Date('2026-10-15T12:15:00Z');const fetcher=async()=>({ok:true,json:async()=>({chart:{result:[{meta:{symbol:'NQ=F',regularMarketPrice:110,regularMarketTime:+now/1000,chartPreviousClose:80}}]}})});
+ assert.equal((await snapshot('NQ=F','Nasdaq futures',now,fetcher)).change,null);
+});
+test('same-day reports accept fresh versions while the notification identity stays unchanged',async()=>{
+ const {reportNeedsRefresh}=await import('../scripts/cloud-report.mjs');const slot={kind:'daily',date:'2026-10-15'},report={...slot,origin:'cloud-scheduler',generatedAt:'2026-10-15T12:15:00Z'};
+ assert.equal(reportNeedsRefresh(report,slot,new Date('2026-10-15T12:19:59Z')),false);
+ assert.equal(reportNeedsRefresh(report,slot,new Date('2026-10-15T12:20:00Z')),true);
+});
+test('fresh premarket candles replace an older regular-session quote',async()=>{
+ const now=new Date('2026-10-15T12:15:00Z'),at=+now/1000-300;
+ const fetcher=async()=>({ok:true,json:async()=>({chart:{result:[{meta:{symbol:'QQQ',regularMarketPrice:100,regularMarketTime:at-50000,previousClose:100},timestamp:[at,at+3600],indicators:{quote:[{close:[101,999]}]}}]}})});
+ const quote=await snapshot('QQQ','QQQ',now,fetcher);assert.equal(quote.price,101);assert.equal(quote.stale,false);assert.equal(quote.at,new Date(at*1000).toISOString());
+});

@@ -1,4 +1,5 @@
 import 'server-only';
+import {cacheDue,releaseCandidates,releaseParserVersion,refreshIssues} from './refresh-policy';
 import {enrichReleaseMetrics} from './bls-api';
 import {database} from '@/lib/account/db';
 import {fetchOfficialRelease} from './official-release';
@@ -13,12 +14,12 @@ const inflight=new Map<string,Promise<unknown>>();
 /** A DB lease prevents concurrent visitors/cron runs from duplicating upstream requests. */
 async function cached<T>(key:string,ttl:number,loader:()=>Promise<T>,empty:T,now:Date,version=1):Promise<Cached<T>>{
  const pool=database(),prior=(await pool.query('SELECT body FROM quest_shared_data WHERE key=$1',[key])).rows[0]?.body as Cached<T>|undefined;
- if(prior?.version===version&&now.getTime()-Date.parse(prior.attemptedAt)<ttl)return prior;
+ if(prior&&!cacheDue(prior,ttl,now,version))return prior;
  if(inflight.has(key))return await inflight.get(key) as Cached<T>;
  const operation=(async()=>{const client=await pool.connect();let locked=false;
   try{locked=(await client.query('SELECT pg_try_advisory_lock(hashtext($1)) AS acquired',['refresh:'+key])).rows[0].acquired;if(!locked)return prior||{body:empty,attemptedAt:now.toISOString(),error:'后台正在同步'};
    const recent=(await client.query('SELECT body FROM quest_shared_data WHERE key=$1',[key])).rows[0]?.body as Cached<T>|undefined;
-   if(recent?.version===version&&now.getTime()-Date.parse(recent.attemptedAt)<ttl)return recent;
+   if(recent&&!cacheDue(recent,ttl,now,version))return recent;
    let result:Cached<T>;try{result={version,body:await loader(),attemptedAt:now.toISOString(),lastSuccess:now.toISOString()};}catch(error){result={version,body:recent?.body||prior?.body||empty,attemptedAt:now.toISOString(),lastSuccess:recent?.lastSuccess||prior?.lastSuccess,error:error instanceof Error?error.message:'上游暂不可用'};}
    await client.query('INSERT INTO quest_shared_data(key,body) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET body=EXCLUDED.body,updated_at=now()',[key,JSON.stringify(result)]);return result;
   }finally{if(locked)await client.query('SELECT pg_advisory_unlock(hashtext($1))',['refresh:'+key]);client.release();}
@@ -30,7 +31,7 @@ export function publicationVersion(previous:MarketEvent|undefined,event:MarketEv
  const history=previous?.releaseHistory||event.releaseHistory||[];
  if(event.actual===undefined)return history;
  const last=history.at(-1);
- if(last&&last.actual===event.actual&&last.previous===event.previous&&last.revised===event.revised)return history;
+ if(last&&marketDate(new Date(last.date))===marketDate(new Date(event.at))&&last.actual===event.actual&&last.previous===event.previous&&last.revised===event.revised)return history;
  return [...history,{date:event.at,period:event.period,actual:event.actual,previous:event.previous,revised:event.revised,vintage:event.fetchedAt!,sourceUrl:event.sourceUrl,fetchedAt:event.fetchedAt!,version:(last?.version||0)+1}].slice(-24);
 }
 const calendarKinds:[RegExp,MarketEvent['kind']][]=[[/Consumer Price Index/i,'CPI'],[/Producer Price Index/i,'PPI'],[/Employment Situation/i,'NFP'],[/Initial Claims/i,'CLAIMS'],[/ISM Non-Manufacturing/i,'ISM'],[/ISM Manufacturing/i,'ISM'],[/Michigan Consumer Survey/i,'CONFIDENCE'],[/Retail Sales/i,'RETAIL'],[/Trade balance/i,'TRADE'],[/Job Openings|JOLTS/i,'JOLTS'],[/Gross Domestic Product/i,'GDP'],[/Personal Income and the PCE/i,'PCE']];
@@ -72,15 +73,12 @@ async function refreshAgencyCalendars(state:QuestState,now:Date){
  await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events;},[],now);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
 }
 async function refreshReleases(state:QuestState,now:Date){
- const parserVersion=(event:MarketEvent)=>event.kind==='CLAIMS'?5:4;
+ const parserVersion=releaseParserVersion;
  const stored=(await database().query("SELECT key,body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
  const byId=new Map(stored.map(row=>[row.key.slice('release-native:'.length),row.body]));
  for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
  state.events=state.events.map(e=>{const prior=byId.get(e.id),next=prior?.body.status==='confirmed'?{...e,...prior.body}:e;return next.kind==='CLAIMS'&&next.status==='confirmed'?{...next,description:'每周首次申请失业保险的人数，是就业变化的高频线索；本次官方发布已核对，结合前值修订与四周均值观察。'}:next;});
- const latestByKind=new Map<string,string>();for(const e of [...state.events].sort((a,b)=>a.at.localeCompare(b.at)))if(Date.parse(e.at)<=now.getTime())latestByKind.set(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''),e.id);
- const candidates=state.events.filter(e=>e.kind!=='EARNINGS'&&(e.status!=='confirmed'||latestByKind.get(e.kind+(e.kind==='ISM'?String(/服务/.test(e.title)):''))===e.id)&&Date.parse(e.at)<=now.getTime()&&Date.parse(e.at)>now.getTime()-45*86400_000)
-  .filter(e=>{const prior=byId.get(e.id),ttl=e.status==='confirmed'?24*3600_000:now.getTime()-Date.parse(e.at)<24*3600_000?5*60_000:3600_000;return !prior||prior.version!==parserVersion(e)||now.getTime()-Date.parse(prior.attemptedAt)>=ttl;})
-  .sort((a,b)=>b.at.localeCompare(a.at)).slice(0,6);
+ const candidates=releaseCandidates(state.events,byId,now);
  // Each source has its own retry clock; one failed document cannot block the other releases.
  const results=await Promise.allSettled(candidates.map(async event=>{
   const due=now.getTime()-Date.parse(event.at)<24*3600_000;const ttl=event.status==='confirmed'?24*3600_000:due?5*60_000:60*60_000;
@@ -88,7 +86,7 @@ async function refreshReleases(state:QuestState,now:Date){
   setSource(state,status(`官方更新 · ${event.kind} · ${marketDate(new Date(event.at))}`,result,`${event.kind} 已核对官方文档与发布日期`));
   return result.body;
  }));
- for(const result of results){if(result.status==='fulfilled'){const i=state.events.findIndex(e=>e.id===result.value.id);if(i>=0)state.events[i]=result.value;}}
+ for(const [index,result] of results.entries()){if(result.status==='fulfilled'){const i=state.events.findIndex(e=>e.id===result.value.id);if(i>=0)state.events[i]=result.value;}else{const e=candidates[index];setSource(state,{name:`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,status:'error',message:'本轮同步未完成，将在下次任务重试。'});}}
 }
 const histories:Record<string,{id:string;change?:'yoy'|'diff'|'mom';scale?:number}>={CPI:{id:'CPIAUCNS',change:'yoy'},NFP:{id:'PAYEMS',change:'diff'},PCE:{id:'PCEPI',change:'yoy'},GDP:{id:'A191RL1Q225SBEA'},FOMC:{id:'DFEDTARU'},CLAIMS:{id:'ICSA'},CONFIDENCE:{id:'UMCSENT'},TRADE:{id:'BOPGSTB',scale:.001},JOLTS:{id:'JTSJOL'},RETAIL:{id:'RSAFS',change:'mom'},PPI:{id:'PPIFIS',change:'yoy'}};
 export function parseHistory(csv:string,spec:{id:string;change?:'yoy'|'diff'|'mom';scale?:number}):HistoryPoint[]{
@@ -98,17 +96,19 @@ export function parseHistory(csv:string,spec:{id:string;change?:'yoy'|'diff'|'mo
 }
 async function refreshHistory(state:QuestState,now:Date){
  await Promise.allSettled(Object.entries(histories).map(async([kind,spec])=>{
-  const due=state.events.some(e=>e.kind===kind&&e.status==='confirmed'&&e.fetchedAt&&now.getTime()-Date.parse(e.fetchedAt)<3600_000);
+  const due=state.events.some(e=>e.kind===kind&&Date.parse(e.at)<=+now&&+now-Date.parse(e.at)<24*3600_000);
   const result=await cached(`history-native:${kind}`,due?3600_000:24*3600_000,async()=>parseHistory(await text(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${spec.id}&cosd=${addDays(marketDate(now),-6*366)}`),spec),[],now);
   if(result.body.length)state.events=state.events.map(e=>e.kind===kind?{...e,history:result.body,historySource:{url:`https://fred.stlouisfed.org/series/${spec.id}`,name:`FRED · ${spec.id}`,fetchedAt:result.lastSuccess!}}:e);
-  setSource(state,status(`FRED ${kind} 历史`,result,'已取得官方历史；历史序列更新可能晚于新闻稿，不能代替本次公布值。'));
+  const latest=result.body.at(-1)?.date,reported=state.events.filter(e=>e.kind===kind&&e.status==='confirmed'&&e.period&&/^20\d{2}-\d{2}(?:-\d{2})?$/.test(e.period)&&Date.parse(e.at)<=+now).sort((a,b)=>b.at.localeCompare(a.at))[0];
+  const lagging=Boolean(latest&&reported?.period&&latest.slice(0,reported.period.length)<reported.period);
+  setSource(state,lagging?{name:`FRED ${kind} 历史`,status:'delayed',lastSuccess:result.lastSuccess,message:`历史序列截至 ${latest}，尚未跟上最新公布期 ${reported!.period}；保留官方新闻稿结果，不以旧序列覆盖。`}:status(`FRED ${kind} 历史`,result,`已取得官方历史${latest?'，截至 '+latest:''}；不能代替本次公布值。`));
  }));
 }
 export async function refreshEventData(state:QuestState,now=new Date()):Promise<void>{
  try{await refreshCalendars(state,now);await refreshAgencyCalendars(state,now);await refreshReleases(state,now);
   const [values]=await Promise.all([cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined as EventValuesFeed|undefined,now),refreshHistory(state,now)]);
   state.events=applyEventValues(state.events,values.body).map(enrichReleaseMetrics);setSource(state,status('经济日历 · 前值与市场预测',values,'共识单独标注来源；不以媒体或模型预测代替调查值。'));
-  setSource(state,{name:'官方事件自动同步',status:'ready',message:'公布后每 5 分钟检查，失败保留原值并重试；正文与报告期核对后才确认。',lastSuccess:now.toISOString()});
+  const issues=refreshIssues(state.sources,state.events,now);setSource(state,{name:'官方事件自动同步',status:issues.sources.length||issues.overdue.length?'delayed':'ready',message:issues.sources.length||issues.overdue.length?`${issues.overdue.length} 项已到期事件尚待核实，${issues.sources.length} 个来源需重试；保留最后成功内容。`:'官方来源已核对；公布后每 5 分钟检查。',lastSuccess:now.toISOString()});
  }catch(error){setSource(state,{name:'官方事件自动同步',status:'delayed',message:error instanceof Error?error.message:'同步暂不可用'});}
 }
-export async function refreshNews(previous:EventIntelligence,now:Date){const result=await cached('news-native',5*60_000,()=>fetchIntelligence(previous,now),previous,now);return result.body;}
+export async function refreshNews(previous:EventIntelligence,now:Date){const result=await cached('news-native',5*60_000,async()=>{const next=await fetchIntelligence(previous,now);if(next.sources.every(s=>s.status==='error'))throw Error('全部新闻来源获取失败');return next;},previous,now);return result.error?{sources:result.body.sources.map(s=>({...s,status:'error' as const,attemptedAt:result.attemptedAt,message:result.error!,items:s.items.filter(item=>item.endAt?item.endAt>now.toISOString():Boolean(item.publishedAt&&Date.parse(item.publishedAt)>+now-7*86400000))}))}:result.body;}

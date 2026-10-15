@@ -40,7 +40,7 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
 }
 export async function officialContent(url:string):Promise<string>{
  const u=new URL(url);if(u.protocol!=='https:'||!['www.bls.gov','www.dol.gov','oui.doleta.gov','www.census.gov','www.bea.gov','bea.gov','apps.bea.gov','www.federalreserve.gov','www.ismworld.org','www.sca.isr.umich.edu'].includes(u.hostname))throw Error('官方来源不在允许列表');
- const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(7000),redirect:'error',headers:{'User-Agent':'Monetizable/1.0 public economic research'}});if(!r.ok)throw Error(`官方来源 HTTP ${r.status}`);
+ const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(7000),redirect:'manual',headers:{'User-Agent':'Monetizable/1.0 public economic research'}});if(r.status>=300&&r.status<400){const destination=new URL(r.headers.get('location')||url,url);throw Error(/login|sso|signin/i.test(destination.href)?'官方来源要求登录或授权，未取得可验证正文':`官方来源发生重定向（${r.status}），需核实新地址`);}if(!r.ok)throw Error(`官方来源 HTTP ${r.status}`);
  const bytes=new Uint8Array(await r.arrayBuffer());if(bytes.length>6_000_000)throw Error('官方文档超过大小限制');
  if(url.endsWith('.pdf')){if(new TextDecoder().decode(bytes.slice(0,5))!=='%PDF-')throw Error('官方 PDF 格式不匹配');const {extractText}=await import('unpdf');const {text}=await extractText(bytes,{mergePages:true});return `<body>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body>`;}
  return new TextDecoder().decode(bytes);
@@ -50,21 +50,22 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoa
  const bls:Record<string,string>={CPI:'cpi',NFP:'empsit',PPI:'ppi',JOLTS:'jolts'};
  if(bls[event.kind]){
   const prefix=bls[event.kind];let error:unknown;
-  for(const url of [`https://www.bls.gov/news.release/archives/${prefix}_${stamp}.htm`,`https://www.dol.gov/newsroom/economicdata/${prefix}_${stamp}.pdf`])try{return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}catch(e){error=e;}
+  for(const url of [`https://www.bls.gov/news.release/archives/${prefix}_${stamp}.htm`,`https://www.dol.gov/newsroom/economicdata/${prefix}_${stamp}.pdf`])try{return parseStatisticalRelease(event,await contentLoader(url),url,nowISO);}catch(e){error=e;}
   try{return await fetchBlsSeries(event,now);}catch{throw error;}
  }
- if(event.kind==='RETAIL'){const url='https://www.census.gov/retail/marts/www/marts_current.pdf';return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
- if(event.kind==='BEIGE_BOOK'){const url=`https://www.federalreserve.gov/monetarypolicy/beigebook${date.slice(0,7).replace('-','')}-summary.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);}
+ if(event.kind==='RETAIL'){const url='https://www.census.gov/retail/marts/www/marts_current.pdf';return parseStatisticalRelease(event,await contentLoader(url),url,nowISO);}
+ if(event.kind==='BEIGE_BOOK'){const url=`https://www.federalreserve.gov/monetarypolicy/beigebook${date.slice(0,7).replace('-','')}-summary.htm`;return parseStatisticalRelease(event,await contentLoader(url),url,nowISO);}
  if(['PCE','GDP','TRADE'].includes(event.kind)){
-  const rss=load(await officialContent('https://apps.bea.gov/rss/rss.xml'),{xml:true});
+  let raw='';try{raw=await contentLoader('https://apps.bea.gov/rss/rss.xml');}catch{/* The dated official article can still be available if the RSS fails. */}
+  const rss=load(raw,{xml:true});
   const match=event.kind==='PCE'?/Personal Income and Outlays/i:event.kind==='GDP'?/GDP|Gross Domestic Product/i:/International Trade in Goods and Services/i;
-  const item=rss('item').filter((_,el)=>match.test(rss(el).find('title').text())&&marketDate(new Date(rss(el).find('pubDate').text()))===date).first();let url=item.find('link').text();if(!url&&event.kind!=='GDP'){const period=new Date(date.slice(0,7)+'-01T12:00:00Z');period.setUTCMonth(period.getUTCMonth()-(event.kind==='TRADE'?2:1));url=`https://www.bea.gov/news/${date.slice(0,4)}/${event.kind==='TRADE'?'us-international-trade-goods-and-services':'personal-income-and-outlays'}-${months[period.getUTCMonth()]}-${period.getUTCFullYear()}`;}if(!url)throw Error('BEA 官方 RSS 尚未出现匹配日期的报告');
-  const content=await officialContent(url);
+  const item=rss('item').filter((_,el)=>match.test(rss(el).find('title').text())&&marketDate(new Date(rss(el).find('pubDate').text()))===date).first();let url=item.find('link').text();if(!url&&/^https:\/\/(www\.)?bea.gov\/news\/20\d{2}\//.test(event.sourceUrl))url=event.sourceUrl;if(!url&&event.kind!=='GDP'){const period=new Date(date.slice(0,7)+'-01T12:00:00Z');period.setUTCMonth(period.getUTCMonth()-(event.kind==='TRADE'?2:1));url=`https://www.bea.gov/news/${date.slice(0,4)}/${event.kind==='TRADE'?'us-international-trade-goods-and-services':'personal-income-and-outlays'}-${months[period.getUTCMonth()]}-${period.getUTCFullYear()}`;}if(!url)throw Error('BEA 官方 RSS 尚未出现匹配日期的报告');
+  const content=await contentLoader(url);
   if(event.kind==='TRADE'){const record=parseOfficialDocument({kind:'TRADE',url,content},nowISO);return applyOfficialRecords([event],[record])[0];}
   return parseStatisticalRelease(event,content,url,nowISO);
  }
  if(event.kind==='FOMC'){
-  const url=`https://www.federalreserve.gov/newsevents/pressreleases/monetary${date.replaceAll('-','')}a.htm`;return parseStatisticalRelease(event,await officialContent(url),url,nowISO);
+  const url=`https://www.federalreserve.gov/newsevents/pressreleases/monetary${date.replaceAll('-','')}a.htm`;return parseStatisticalRelease(event,await contentLoader(url),url,nowISO);
  }
  if(event.kind==='CLAIMS'){
   // The dated ETA archive is on an independent official host. The current PDF
@@ -77,7 +78,7 @@ export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoa
  if(event.kind==='ISM'||event.kind==='CONFIDENCE'||event.kind==='MINUTES'){
   const prior=new Date(date.slice(0,7)+'-01T12:00:00Z');prior.setUTCMonth(prior.getUTCMonth()-1);
   const url=event.kind==='CONFIDENCE'?'https://www.sca.isr.umich.edu/':event.kind==='ISM'?`https://www.ismworld.org/supply-management-news-and-reports/reports/ism-pmi-reports/${/服务/.test(event.title)?'services':'pmi'}/${months[prior.getUTCMonth()]}/`:event.sourceUrl;
-  const record=parseOfficialDocument({kind:event.kind,url,content:await officialContent(url),...(event.kind==='MINUTES'?{calendarContent:await officialContent('https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm')}:{})},nowISO);
+  const record=parseOfficialDocument({kind:event.kind,url,content:await contentLoader(url),...(event.kind==='MINUTES'?{calendarContent:await contentLoader('https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm')}:{})},nowISO);
   const result=applyOfficialRecords([event],[record])[0];if(result.status!=='confirmed')throw Error('官方报告期与目标事件不匹配');return result;
  }
  throw Error('此事件需要公司 IR 官方来源，未配置自动数值接口');

@@ -33,3 +33,8 @@ test('an unrevised prior week is valid and does not invent a revision',()=>{
 if(process.env.TEST_LIVE_CLAIMS==='1')test('parses the actual dated official PDF through the production reader',async()=>{
  const result=await fetchOfficialRelease(event,now,officialContent);assert.equal(result.actual,199000);assert.equal(result.revised,198000);
 });
+test('a BEA RSS outage does not block its date-verified PCE article',async()=>{
+ const pce={...event,id:'pce-2026-09-30',kind:'PCE',at:'2026-09-30T12:30:00Z',sourceUrl:'https://apps.bea.gov/API/signup/release_dates.json'};
+ const result=await fetchOfficialRelease(pce,new Date('2026-09-30T13:00:00Z'),async url=>{if(url.includes('/rss/'))throw Error('RSS unavailable');assert.equal(url,'https://www.bea.gov/news/2026/personal-income-and-outlays-august-2026');return '<body>September 30, 2026 Personal Income and Outlays From the same month one year ago the PCE price index increased 3.0 percent.</body>';});
+ assert.equal(result.actual,3);assert.equal(result.status,'confirmed');
+});

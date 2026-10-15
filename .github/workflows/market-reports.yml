@@ -3,7 +3,7 @@ on:
   schedule:
     # Both UTC hours cover Paris standard/summer time. The script checks Paris
     # time and the actual US session before publishing. GitHub may start late.
-    - cron: '15,20,25,30,35,40,45,50,55 12,13 * * 1-5'
+    - cron: '*/5 12,13,14 * * 1-5'
     - cron: '0,5,10,15,20,25,30,35,40,45,50,55 17,18 * * 0'
   workflow_dispatch:
     inputs:

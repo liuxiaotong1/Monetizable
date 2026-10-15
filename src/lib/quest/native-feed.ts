@@ -15,15 +15,18 @@ async function save(key:string,body:unknown){await database().query('INSERT INTO
 export async function refreshNative(feed:PublicFeed,force=false,strict=false):Promise<PublicFeed>{
  const now=new Date(),state=feed.state;
  try {
+  // Bundled export diagnostics are historical; live providers replace them below.
+  state.sources=state.sources.filter(s=>!['BLS 日历','BLS CPI 公布','BLS NFP 公布','BEA 公布','Fed 公布','QQQ 常规时段核对','剧本数据新鲜度','官方事件回填'].includes(s.name)&&!s.name.includes('公布档案')&&!s.name.startsWith('Fed 月度事件日历'));
+  let marketError:string|undefined;
   let saved=await read<{fetchedAt:string;bars:typeof state.bars}>('market-bars');
   if(force||freeBarsNeedRefresh(saved,now)){
-   try{const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ?range=6mo&interval=1d&includePrePost=false',{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error();const bars=parseFreeBars(await r.json(),'QQQ',now);saved={fetchedAt:now.toISOString(),bars};await save('market-bars',saved);}catch{/* Preserve verified bars and their original timestamps. */}
+   try{const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ?range=6mo&interval=1d&includePrePost=false',{cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error();const bars=parseFreeBars(await r.json(),'QQQ',now);saved={fetchedAt:now.toISOString(),bars};await save('market-bars',saved);}catch{marketError='本轮行情获取失败；保留已验证日线，将在下次任务重试。';}
   }
   if(saved){const byDate=new Map(state.bars.map(b=>[`${b.symbol}:${b.date}`,b]));for(const bar of saved.bars)byDate.set(`${bar.symbol}:${bar.date}`,bar);state.bars=[...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));}
   const lastBar=state.bars.filter(b=>b.symbol==='QQQ').at(-1),currentSession=sessionFor(now),expectedDate=currentSession.isTradingDay&&now.getTime()>=Date.parse(currentSession.closeAt)+20*60000?currentSession.date:currentSession.previousDate;
-  state.sources=state.sources.filter(s=>s.name!=='QQQ 公开参考日线');state.sources.push({name:'QQQ 公开参考日线',status:lastBar?.date===expectedDate?'ready':'delayed',message:lastBar?`已取得 ${lastBar.date} 日线；应有 ${expectedDate}。日线不是实时行情。`:'等待首次有效日线，上游失败会自动重试。',lastSuccess:lastBar?.fetchedAt});
+  state.sources=state.sources.filter(s=>s.name!=='QQQ 公开参考日线');state.sources.push({name:'QQQ 公开参考日线',status:!marketError&&lastBar?.date===expectedDate?'ready':'delayed',message:marketError|| (lastBar?`已取得 ${lastBar.date} 日线；应有 ${expectedDate}。日线不是实时行情。`:'等待首次有效日线，上游失败会自动重试。'),lastSuccess:lastBar?.fetchedAt});
   await refreshEventData(state,now);
-  try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
+  try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);const intelligence=feed.intelligence as EventIntelligence;for(const source of intelligence.sources){state.sources.push({name:`新闻与市场情绪 · ${source.name}`,status:source.status==='ready'?'ready':'delayed',lastSuccess:source.fetchedAt,message:source.message});}}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
   updateDailyContent(state);
   await save(`learning:${marketDate(now)}`,{cards:state.cards.filter(c=>c.topical),update:state.learningUpdate});
   const healthRow=(await database().query('SELECT max(r.created) AS completed_at FROM public.quest_update_requests q JOIN net._http_response r ON r.id=q.id WHERE r.status_code=200 AND NOT COALESCE(r.timed_out,false)')).rows[0];

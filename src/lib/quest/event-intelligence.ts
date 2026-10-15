@@ -35,5 +35,5 @@ export async function fetchIntelligence(previous:EventIntelligence={sources:[]},
  const sources=await Promise.all(INTEL_SOURCES.map(async spec=>{const prior=previous.sources.find(s=>s.id===spec.id);const base={id:spec.id,name:spec.name,home:spec.home,note:spec.note,attemptedAt:now.toISOString()};try{
   const r=await fetcher(spec.url,{headers:{"User-Agent":"QQQQuest/1.0 personal research","Accept":"application/json, application/rss+xml, application/xml"},signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error(`来源返回 HTTP ${r.status}`);
   const items=parseIntelligence(spec.id,await r.text(),now);return {...base,status:items.length?"ready" as const:"empty" as const,fetchedAt:now.toISOString(),items,message:items.length?`取得 ${items.length} 条公开记录`:"本次未返回近期相关内容"};
- }catch(error){return {...base,status:"error" as const,items:prior?.items||[],fetchedAt:prior?.fetchedAt,message:`${error instanceof Error?error.message:"连接失败"}；${prior?.items.length?"保留上次内容，请注意取得时间":"尚无可验证内容"}`};}}));return {sources};
+ }catch(error){return {...base,status:"error" as const,items:(prior?.items||[]).filter(item=>item.endAt?item.endAt>now.toISOString():Boolean(item.publishedAt&&Date.parse(item.publishedAt)>+now-7*86400000)),fetchedAt:prior?.fetchedAt,message:`${error instanceof Error?error.message:"连接失败"}；${prior?.items.length?"保留上次内容，请注意取得时间":"尚无可验证内容"}`};}}));return {sources};
 }
