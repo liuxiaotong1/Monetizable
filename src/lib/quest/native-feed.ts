@@ -6,13 +6,13 @@ import { createHash } from 'node:crypto';
 import { database } from '@/lib/account/db';
 import { parseFreeBars, freeBarsNeedRefresh } from './free-market';
 import { marketDate, nyTimeToUtc, sessionFor } from './domain';
-import { parisDate, reportWeekStart } from './agent-report';
+import { parisDate, reportWeekStart, mayReplaceReport } from './agent-report';
 import { preparationForecast } from './prediction-window';
 import type { PublicFeed } from './public-source';
 import type { AgentReport } from './agent-report';
 async function read<T>(key:string):Promise<T|undefined>{const {rows}=await database().query('SELECT body FROM quest_shared_data WHERE key=$1',[key]);return rows[0]?.body;}
 async function save(key:string,body:unknown){await database().query('INSERT INTO quest_shared_data(key,body) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET body=EXCLUDED.body,updated_at=now()',[key,JSON.stringify(body)]);}
-export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicFeed>{
+export async function refreshNative(feed:PublicFeed,force=false,strict=false):Promise<PublicFeed>{
  const now=new Date(),state=feed.state;
  try {
   let saved=await read<{fetchedAt:string;bars:typeof state.bars}>('market-bars');
@@ -25,6 +25,7 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
   await refreshEventData(state,now);
   try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
   updateDailyContent(state);
+  await save(`learning:${marketDate(now)}`,{cards:state.cards.filter(c=>c.topical),update:state.learningUpdate});
   const healthRow=(await database().query('SELECT max(r.created) AS completed_at FROM public.quest_update_requests q JOIN net._http_response r ON r.id=q.id WHERE r.status_code=200 AND NOT COALESCE(r.timed_out,false)')).rows[0];
   const health=healthRow?.completed_at?{completedAt:new Date(healthRow.completed_at).toISOString()}:await read<{completedAt:string}>('refresh-health');
   state.sources.push({name:'后台定时更新',status:health&&now.getTime()-Date.parse(health.completedAt)<15*60000?'ready':'delayed',lastSuccess:health?.completedAt,message:health?'最近成功任务已记录；来源各自保留验证时间。':'等待数据库定时任务完成首轮；打开网站仍会检查更新。'});
@@ -35,7 +36,7 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
   const kind=day===0?'weekly':'daily',key=`report:${kind}:${date}`;
   let report=await read<AgentReport>(key);
   const window=kind==='weekly'?parisTime>='19:00':day!==6&&parisTime>='14:15'&&now.getTime()<Date.parse(session.openAt);
-  if(window&&(!report||report.origin!=="trading-agent"&&now.getTime()-Date.parse(report.generatedAt)>5*60000)){
+  if(window&&(!report||!['trading-agent','cloud-scheduler'].includes(report.origin)&&now.getTime()-Date.parse(report.generatedAt)>15*60000)){
    const latest=state.bars.filter(b=>b.symbol==='QQQ').at(-1),previous=state.bars.filter(b=>b.symbol==='QQQ').at(-2);
    const events=state.events.filter(e=>e.at>=now.toISOString()&&e.at<new Date(now.getTime()+(kind==='weekly'?7:1)*86400000).toISOString()).sort((a,b)=>a.at.localeCompare(b.at));
    const title=kind==='weekly'?`${date} · 一周前瞻`:`${date} · 盘前快报`;
@@ -45,7 +46,7 @@ export async function refreshNative(feed:PublicFeed,force=false):Promise<PublicF
    report={kind,date,generatedAt:now.toISOString(),title,summary,body,status:'partial',origin:kind==='weekly'?'weekly-quest':'cloud-backup',sources:[{title:'QQQ 日线',url:'https://finance.yahoo.com/quote/QQQ/history/'},...events.slice(0,8).map(e=>({title:e.title,url:e.sourceUrl}))],version:(report?.version||0)+1,savedAt:now.toISOString(),digest:createHash('sha256').update(body).digest('hex'),...(kind==='weekly'?{weekStart:reportWeekStart(date)}:{})};const previousReport=await read<AgentReport>(key);if(previousReport)await save(`${key}:v${previousReport.version}`,previousReport);await save(key,report);
   }
   const {rows}=await database().query("SELECT body FROM quest_shared_data WHERE key LIKE 'report:%' AND key !~ ':v[0-9]+$' ORDER BY updated_at DESC LIMIT 20");
-  const old=(feed.reports as {reports?:AgentReport[]}).reports||[];const unique=new Map<string,AgentReport>();for(const candidate of [...rows.map(r=>r.body as AgentReport),...old]){const key=`${candidate.kind}:${candidate.date}`,prior=unique.get(key);if(!prior || candidate.origin==="trading-agent"&&prior.origin!=="trading-agent" || candidate.origin===prior.origin&&(candidate.generatedAt>prior.generatedAt||candidate.generatedAt===prior.generatedAt&&candidate.body.length>prior.body.length))unique.set(key,candidate);}const reports=[...unique.values()].sort((a,b)=>b.generatedAt.localeCompare(a.generatedAt));feed.reports={...(feed.reports as object),reports,dailyStatus:day===0||day===6?"weekend":reports.some(r=>r.kind==="daily"&&r.date===date)?"ready":now.getTime()>=Date.parse(session.openAt)?"missed":"scheduled",reportDate:date};
+  const old=(feed.reports as {reports?:AgentReport[]}).reports||[];const unique=new Map<string,AgentReport>();for(const candidate of [...old,...rows.map(r=>r.body as AgentReport)]){const key=`${candidate.kind}:${candidate.date}`,prior=unique.get(key);if(mayReplaceReport(prior,candidate))unique.set(key,candidate);}const reports=[...unique.values()].sort((a,b)=>b.generatedAt.localeCompare(a.generatedAt));feed.reports={...(feed.reports as object),reports,dailyStatus:day===0||day===6?"weekend":reports.some(r=>r.kind==="daily"&&r.date===date)?"ready":now.getTime()>=Date.parse(session.openAt)?"missed":"scheduled",reportDate:date};
   return feed;
- }catch{return feed;}
+ }catch(error){if(strict)throw error;state.sources.push({name:'后台更新异常',status:'error',message:'本轮未完整执行，保留最后成功数据，稍后重试。'});return feed;}
 }

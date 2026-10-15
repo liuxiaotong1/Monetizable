@@ -1,0 +1,44 @@
+name: Monetizable cloud reports
+on:
+  schedule:
+    # Both UTC hours cover Paris standard/summer time. The script checks Paris
+    # time and the actual US session before publishing. GitHub may start late.
+    - cron: '15,20,25,30,35,40,45,50,55 12,13 * * 1-5'
+    - cron: '0,5,10,15,20,25,30,35,40,45,50,55 17,18 * * 0'
+  workflow_dispatch:
+    inputs:
+      check_only:
+        description: Verify cloud configuration without publishing or sending
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: monetizable-cloud-report
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      MONETIZABLE_SUPABASE_URL: ${{ secrets.MONETIZABLE_SUPABASE_URL }}
+      MONETIZABLE_SERVICE_ROLE_KEY: ${{ secrets.MONETIZABLE_SERVICE_ROLE_KEY }}
+      QUEST_REPORT_TOKEN: ${{ secrets.QUEST_REPORT_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate, save and notify from the cloud
+        env:
+          CHECK_ONLY: ${{ inputs.check_only }}
+        run: |
+          if [ "$CHECK_ONLY" = "true" ]; then
+            node scripts/cloud-report.mjs --check
+          else
+            node scripts/cloud-report.mjs
+          fi

@@ -15,3 +15,5 @@ function normalize(input:unknown):PublicFeed {
 export async function getPublicFeed():Promise<PublicFeed> {
  return refreshNative(normalize(fallback));
 }
+/** Scheduled work starts from the foundation without running the refresh twice. */
+export function foundationFeed():PublicFeed {return normalize(fallback);}

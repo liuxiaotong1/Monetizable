@@ -9,7 +9,7 @@ export const agentReportSchema = z.object({
   kind: z.enum(["daily", "weekly"]), date: z.iso.date(), generatedAt: z.iso.datetime({offset:true}),
   title: z.string().trim().min(1).max(140), summary: z.string().trim().min(1).max(1000),
   body: z.string().trim().min(40).max(60000),
-  status: z.enum(["ready", "partial"]), origin: z.enum(["trading-agent", "cloud-backup", "weekly-quest"]),
+  status: z.enum(["ready", "partial"]), origin: z.enum(["trading-agent", "cloud-backup", "weekly-quest", "cloud-scheduler"]),
   sources: z.array(z.object({title:z.string().trim().min(1).max(140),url:publicReportUrl}).strict()).min(1).max(40),
 }).strict();
 export type AgentReportInput = z.infer<typeof agentReportSchema>;
@@ -38,14 +38,15 @@ export function validateAgentReport(input:AgentReportInput,now:Date) {
   const weekday = new Date(`${input.date}T12:00:00Z`).getUTCDay();
   if (input.kind==="daily" && (weekday===0||weekday===6)) throw new Error("盘前报告仅对应周一至周五");
   if (input.kind==="weekly" && weekday!==0) throw new Error("每周前瞻对应周日");
-  if (input.kind==="weekly" && input.origin!=="weekly-quest") throw new Error("前瞻来源类型不符");
+  if (input.kind==="weekly" && !["weekly-quest","cloud-scheduler"].includes(input.origin)) throw new Error("前瞻来源类型不符");
   if (input.kind==="daily" && input.origin==="weekly-quest") throw new Error("日报来源类型不符");
 }
 // The original Trading Agent report takes precedence over the unattended fallback.
 export function mayReplaceReport(previous:AgentReport|undefined,input:AgentReportInput) {
   if (!previous) return true;
-  if (previous.origin==="trading-agent"&&input.origin==="cloud-backup") return false;
-  if (previous.origin==="cloud-backup"&&input.origin==="trading-agent") return true;
+  const primary=(origin:string)=>origin==="trading-agent"||origin==="cloud-scheduler";
+  if (primary(previous.origin)&&!primary(input.origin)) return false;
+  if (!primary(previous.origin)&&primary(input.origin)) return true;
   return Date.parse(input.generatedAt)>=Date.parse(previous.generatedAt);
 }
 export function reportScheduleContext(now:Date) {
