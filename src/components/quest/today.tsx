@@ -1,9 +1,10 @@
 "use client";
+import {readPredictionDraft} from "@/lib/quest/guest-access";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
 import EntryScore from "./entry-score";
 import { predictionSession } from "@/lib/quest/prediction-window";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDialogFocus } from "./use-dialog-focus";
 import { ArrowUpRight, ArrowDownRight, Minus, ChevronRight, Check, LockKeyhole, Flag, BookOpen, Target, Clock3, Swords, CheckCircle2, Trophy } from "lucide-react";
 import type { Direction, Judgment, Review } from "@/lib/quest/types";
@@ -20,6 +21,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  const next=nextEvent(state.events,state.now); const f=state.forecast; const market=marketContext(state); const {bars,latest,change,levels}=market;
  const todayLocked=state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment;
  const targetSession=predictionSession(state); const judgment=state.judgment; const review=state.reviews[0]; const finishedCards=state.dailyCardIds.filter(id=>state.progress.some(p=>p.cardId===id&&answeredOn(p.lastDispositionAt,state.session.date))).length;
+ useEffect(()=>{const draft=readPredictionDraft();if(draft&&draft.date===targetSession.date&&!judgment){setDirection(draft.direction);setConfidence(draft.confidence);setReason(draft.reason);}},[targetSession.date,judgment]);
  const pending=pendingJudgment(state);
  const tasks=[{label:"锁定今日判断",done:!!todayLocked||!!judgment},{label:"完成收盘复盘",done:!!review?.completedAt},{label:"学完今日卡牌",done:finishedCards>=state.dailyCardIds.length&&finishedCards>0}];
  const closed=!state.session.isTradingDay||new Date(state.now)>=new Date(state.session.openAt);
