@@ -46,3 +46,33 @@ export function cardTerms(card:LearningCard){
   const text=[card.title,card.question,card.explanation,card.answerExplanation,card.tags.join(' '),...added].join(' ');
   return terms.filter(term=>new RegExp(term.pattern,'i').test(text));
 }
+
+const termNames: Record<string, {en:string;fr:string;zh:string}> = {
+ 'Put':{en:'Put option',fr:'Option de vente',zh:'看跌期权'},
+ 'Call':{en:'Call option',fr:'Option d’achat',zh:'看涨期权'},
+ 'Strike · 执行价':{en:'Strike price',fr:'Prix d’exercice',zh:'执行价'},
+ 'Premium · 权利金':{en:'Option premium',fr:'Prime de l’option',zh:'权利金'},
+ 'Assignment · 指派':{en:'Assignment',fr:'Assignation',zh:'指派'},
+ 'Delta':{en:'Delta',fr:'Delta',zh:'方向敏感度（Delta）'},
+ 'Gamma':{en:'Gamma',fr:'Gamma',zh:'方向敏感度的变化（Gamma）'},
+ 'Theta':{en:'Theta',fr:'Thêta',zh:'时间衰减（Theta）'},
+ 'IV · 隐含波动率':{en:'Implied volatility (IV)',fr:'Volatilité implicite',zh:'隐含波动率'},
+ 'Liquidity · 流动性':{en:'Liquidity',fr:'Liquidité',zh:'流动性'},
+ 'Bank run · 挤兑':{en:'Bank run',fr:'Ruée bancaire',zh:'挤兑'},
+ 'Leverage · 杠杆':{en:'Leverage',fr:'Effet de levier',zh:'杠杆'},
+ 'EPS · 每股盈利':{en:'Earnings per share (EPS)',fr:'Bénéfice par action (BPA)',zh:'每股盈利'},
+ 'Margin · 利润率':{en:'Profit margin',fr:'Marge bénéficiaire',zh:'利润率'},
+ 'Cash flow · 现金流':{en:'Cash flow',fr:'Flux de trésorerie',zh:'现金流'},
+ 'RSI':{en:'Relative strength index (RSI)',fr:'Indice de force relative (RSI)',zh:'相对强弱指数（RSI）'},
+ 'ATR':{en:'Average true range (ATR)',fr:'Amplitude réelle moyenne (ATR)',zh:'平均真实波幅（ATR）'},
+ 'VWAP':{en:'Volume-weighted average price (VWAP)',fr:'Prix moyen pondéré par les volumes',zh:'成交量加权平均价格'},
+ 'EMA / SMA · 均线':{en:'Moving averages (EMA / SMA)',fr:'Moyennes mobiles simples et exponentielles',zh:'简单与指数移动平均线'},
+ 'CPI':{en:'Consumer Price Index (CPI)',fr:'Indice des prix à la consommation (IPC)',zh:'消费者价格指数'},
+ 'PCE':{en:'Personal consumption expenditures (PCE)',fr:'Indice des prix des dépenses de consommation',zh:'个人消费支出价格指数'},
+ 'GDP':{en:'Gross domestic product (GDP)',fr:'Produit intérieur brut (PIB)',zh:'国内生产总值'},
+ 'FOMC':{en:'Federal Open Market Committee (FOMC)',fr:'Comité de politique monétaire de la Réserve fédérale',zh:'联邦公开市场委员会'},
+ 'GPU':{en:'Graphics processing unit (GPU)',fr:'Processeur graphique',zh:'图形处理器'},
+ 'HBM':{en:'High-bandwidth memory (HBM)',fr:'Mémoire à haute bande passante',zh:'高带宽内存'},
+ 'Consensus · 市场预期':{en:'Market consensus',fr:'Consensus du marché',zh:'市场共识'},
+};
+export function termLabel(name:string,locale:'en'|'fr'|'zh') { return termNames[name]?.[locale] ?? name; }

@@ -2,6 +2,7 @@
 import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
 import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/locale";
 import ScenarioChoices from "./scenario-choices";
+import EventBossQuest from "./event-boss-quest";
 import EventTakeaway from "./event-takeaway";
 import DataFreshness from "./data-freshness";
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
@@ -762,6 +763,8 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
 function EventMap({ state }: { state: QuestState }) {
   const locale = useLocale(), dayLabel = (iso: string) => formatMarketDate(iso, locale);
   const [filter, setFilter] = useState<"week" | "upcoming" | "all">("week");
+  const [focusedEvent,setFocusedEvent]=useState<string>();
+  useEffect(()=>{if(!focusedEvent)return;const element=document.getElementById(`event-${focusedEvent}`);if(element instanceof HTMLDetailsElement){element.open=true;element.scrollIntoView({behavior:'smooth',block:'start'});element.querySelector('summary')?.focus();setFocusedEvent(undefined);}},[filter,focusedEvent]);
   const date = new Date(`${state.session.date}T12:00:00Z`),
     day = (date.getUTCDay() + 6) % 7;
   date.setUTCDate(date.getUTCDate() - day);
@@ -776,9 +779,6 @@ function EventMap({ state }: { state: QuestState }) {
           Date.parse(e.at) < Date.parse(state.now) + 7 * 86400000,
     )
     .sort((a, b) => a.at.localeCompare(b.at));
-  const next = state.events
-    .filter((e) => Date.parse(e.at) > Date.parse(state.now))
-    .sort((a, b) => a.at.localeCompare(b.at))[0];
   const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
   const dailyBrief = <PremiumGate key="daily" preview={<><span className="eyebrow">☀️ BEFORE THE BELL · WEEKDAYS 14:15 PARIS</span><h3>Your premarket power-up</h3><p>Latest verified QQQ close: {dayLabel(state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "") || "awaiting data"}. Check the market map and today’s official releases before choosing your scenario.</p></>}><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
@@ -836,6 +836,7 @@ function EventMap({ state }: { state: QuestState }) {
         </p>
       </header>
       <DataFreshness state={state} locale="en"/>
+      <EventBossQuest events={state.events} now={state.now} onDetails={id=>{setFilter('all');setFocusedEvent(id);}}/>
       <section className="en-card event-brief-hub" data-tour="briefs">
         <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
         <h2>{isSunday ? "🔮 Map your next week’s adventure." : "☀️ Your premarket power-up."}</h2>
@@ -843,29 +844,6 @@ function EventMap({ state }: { state: QuestState }) {
           {isSunday ? [weeklyBrief, dailyBrief] : [dailyBrief, weeklyBrief]}
         </div>
       </section>
-      {next && (
-        <section className="en-next-boss">
-          <Swords size={38} />
-          <div>
-            <span className="eyebrow">NEXT BOSS</span>
-            <h2>{eventText(next).title}</h2>
-            <p>
-              {new Date(next.at).toLocaleDateString(intlLocale(locale), {
-                month: "short",
-                day: "numeric",
-                timeZone: "America/New_York",
-              })}{" "}
-              · {clocks(next.at)}
-            </p>
-          </div>
-          <span>
-            {Math.ceil(
-              (Date.parse(next.at) - Date.parse(state.now)) / 86400000,
-            )}{" "}
-            days away
-          </span>
-        </section>
-      )}
       <section className="en-card">
         <div className="en-card-heading">
           <h2>Major event map</h2>
@@ -953,14 +931,14 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
             ? "Awaiting source confirmation"
             : "Upcoming";
   return <LocalizeTree>{(
-    <details className="en-event">
+    <details className="en-event" id={`event-${e.id}`}>
       <summary>
         <span className="en-event-icon">
           <Swords size={22} />
         </span>
         <div>
           <span className="eyebrow">
-            {e.kind} · {status}
+            {status}
           </span>
           <h3>{text.title}</h3>
           <p>{text.analogy}</p>

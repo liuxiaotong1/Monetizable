@@ -8,6 +8,11 @@ export function mergeRecords(
     ...new Map([...b, ...a].map((item) => [id(item), item])).values(),
   ];
   const merged = structuredClone(cloud);
+  merged.eventPredictions = [...new Map(
+    [...(cloud.eventPredictions || []), ...(local.eventPredictions || [])]
+      .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+      .map(p => [p.eventId, p]),
+  ).values()];
   merged.judgments = unique(cloud.judgments, local.judgments, (j) => j.date);
   merged.forecasts = unique(cloud.forecasts, local.forecasts, (f) => f.id);
   merged.cards = unique(cloud.cards, local.cards, (c) => c.id);

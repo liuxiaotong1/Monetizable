@@ -33,6 +33,7 @@ const defaults: Settings = {
   displayTimeZone: "Europe/Paris",
 };
 export interface BrowserRecord {
+  eventPredictions?: import('./event-prediction').EventPrediction[];
   settingsUpdatedAt?: string;
   version: 1;
   judgments: Judgment[];
