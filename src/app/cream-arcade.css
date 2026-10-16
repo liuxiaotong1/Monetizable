@@ -32,3 +32,11 @@ input,select,textarea{color:var(--text);accent-color:#a47723}input::placeholder,
 @media(max-width:1200px){.sidebar .brand>div{font-size:19px}.sidebar .brand img{width:37px;height:43px}}
 @media(max-width:980px){.sidebar .brand>div{font-size:17px}.sidebar .brand img{width:31px;height:38px}}
 @media(prefers-reduced-motion:reduce){.primary,.side-nav button,.sidebar .nav-item{transition:none}}
+/* Make the active teaching card read as a tactile object above warm paper. */
+.swipe-deck>.en-quiz-card,.swipe-deck>.knowledge-card.quiz-first{background:linear-gradient(145deg,#fffdf6 0%,#fcf0d6 100%);border:1.5px solid #c3a564;box-shadow:0 4px 0 #d7bf87,0 16px 34px #70521629,0 3px 9px #70521616}
+.swipe-deck>.en-quiz-card.flipped,.swipe-deck>.knowledge-card.quiz-first.is-flipped{background:linear-gradient(145deg,#fffcf1,#f6e6c1);border-color:#b99a58}
+.swipe-deck::before{background:#ead6a8;border-color:#ccb27a;box-shadow:0 8px 16px #70521616}
+.swipe-deck::after{background:#dcc18b;border-color:#c3a564;opacity:.8}
+.knowledge-card:before{background:#ead6a8;border-color:#ccb27a}
+.en-quiz-card .en-choices button,.quiz-choices button{background:#fffdf8;border-color:#dac79b;box-shadow:0 2px 0 #eadabc}
+@media(max-width:760px){.swipe-deck>.en-quiz-card,.swipe-deck>.knowledge-card.quiz-first{box-shadow:0 4px 0 #d7bf87,0 12px 24px #70521624}}

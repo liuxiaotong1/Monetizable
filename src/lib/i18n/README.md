@@ -1,6 +1,6 @@
 # Monetizable locales
 
-Public visitors default to `fr`; an explicit one-year language cookie preserves `en` or `fr`. The administrator defaults to `zh` and can preview all three languages. Language is presentation only: identifiers, canonical answer order, saved judgments, learning mastery and subscription entitlements are never translated.
+Public visitors default to `fr`; an explicit one-year language cookie preserves `zh`, `en` or `fr`. The administrator defaults to `zh` ; all visitors can switch between all three languages. Language is presentation only: identifiers, canonical answer order, saved judgments, learning mastery and subscription entitlements are never translated.
 
 `fr.json` is the checked-in French catalog, including template messages and learning content. The initial offline draft used OPUS-MT en→fr (Helsinki-NLP/opus-mt-en-fr, converted weights Sams200/opus-mt-en-fr, CC BY 4.0); finance terminology and all 62 static questions, choices and explanations were reviewed separately. No translator runs in production. Source: https://huggingface.co/Helsinki-NLP/opus-mt-en-fr ; license: https://creativecommons.org/licenses/by/4.0/ .
 

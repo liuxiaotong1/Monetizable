@@ -12,7 +12,7 @@ export default async function Page() {
     <BillingProvider><AccountShell
       user={user ? { id: user.id, email: user.email, admin } : null}
     >
-      {admin && locale==='zh' ? <QuestApp /> : <EnglishQuest signedIn={!!user} />}
+      {locale==='zh' ? <QuestApp /> : <EnglishQuest signedIn={!!user} />}
     </AccountShell></BillingProvider>
   );
 }
