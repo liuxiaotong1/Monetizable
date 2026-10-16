@@ -1,5 +1,6 @@
 "use client";
 import {useLocale,LocalizeTree} from '@/components/i18n/locale-provider';
+import {formatMarketDate,formatUsd} from '@/lib/i18n/locale';
 import { useEffect, useRef, useState, useId } from 'react';
 import {knownStock,type StockMatch} from '@/lib/quest/stock-symbols';
 import type { Bar, Settings, WatchItem } from '@/lib/quest/types';
@@ -62,9 +63,9 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
     {error&&<p className="watchlist-error" role="alert">{error}</p>}
     <div className="watchlist-symbols"><button type="button" aria-pressed={symbol==='QQQ'} onClick={()=>onSelect('QQQ')}>QQQ</button>{watch.map(item=><div key={item.symbol}><button type="button" aria-pressed={symbol===item.symbol} onClick={()=>onSelect(item.symbol)}>{item.symbol}</button><button className="watch-remove" type="button" disabled={busy} aria-label={(zh?'移除 ':'Remove ')+item.symbol} onClick={()=>void remove(item)}>×</button></div>)}</div>
     <div className="watchlist-toolbar"><strong>{symbol==='DXY'?'DXY · Yahoo Finance':chartSymbol}</strong><div aria-label={zh?'图表周期':'Chart interval'}>{[['D',zh?'日线':'Daily'],['60',zh?'1 小时':'1 hour'],['15',zh?'15 分钟':'15 min']].map(([value,label])=><button type="button" key={value} aria-pressed={interval===value} onClick={()=>setInterval(value)}>{label}</button>)}</div></div>
-    {symbol==='QQQ'&&latest&&<p className="watchlist-caption">{zh?'QQQ 最近确认收盘：':'QQQ latest verified close: '} ${latest.close.toFixed(2)} · {latest.date}</p>}
+    {symbol==='QQQ'&&latest&&<p className="watchlist-caption">{zh?'QQQ 最近确认收盘：':'QQQ latest verified close: '} {formatUsd(latest.close, language)} · {formatMarketDate(latest.date, language)}</p>}
     <div className="watchlist-chart-stage">{symbol==='DXY'?<DxyChart key={interval} interval={interval} locale={locale}/>:<><div ref={host} className="tradingview-widget-container watchlist-chart-host"/>{(loading||failed)&&<div className="watchlist-chart-status" role="status">{failed?<><strong>{zh?'参考图表暂时无法加载':'Reference chart unavailable'}</strong><button className="secondary" type="button" onClick={()=>retry(n=>n+1)}>{zh?'重试连接':'Retry'}</button><a href={url} target="_blank" rel="noopener noreferrer">{zh?'打开行情来源 ↗':'Open price source ↗'}</a></>:<span>{zh?'正在连接图表…':'Connecting chart…'}</span>}</div>}</>}</div>
-    <footer><a href={url} target="_blank" rel="noopener noreferrer">{symbol} {zh?'参考图表':'chart'} ↗</a><span>{symbol==='DXY'?'Yahoo Finance':'TradingView'} · {zh?'参考行情可能延迟':'Reference prices may be delayed'}</span></footer>
+    <footer><a href={url} target="_blank" rel="noopener noreferrer">{zh?`${symbol} 参考图表 ↗`:`${symbol} reference chart ↗`}</a><span>{symbol==='DXY'?'Yahoo Finance':'TradingView'} · {zh?'参考行情可能延迟':'Reference prices may be delayed'}</span></footer>
     <p className="watchlist-caption">{zh?'切换标的同步页面末尾的交易前 checklist；今日判断、剧本与战报仍以 QQQ 为准。自选股保存到当前浏览器，登录后随账号同步。':'Switch the chart underlying to update the pre-trade checklist at the end of this page. Daily predictions and reviews remain tied to QQQ. Your watchlist stays in this browser and syncs with your account when signed in.'}</p>
   </section>}</LocalizeTree>;
 }

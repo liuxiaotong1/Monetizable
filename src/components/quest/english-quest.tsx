@@ -1,6 +1,6 @@
 "use client";
-import {LocalizeTree} from '@/components/i18n/locale-provider';
-import {clientLocale} from "@/lib/i18n/locale";
+import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
+import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/locale";
 import ScenarioChoices from "./scenario-choices";
 import EventTakeaway from "./event-takeaway";
 import DataFreshness from "./data-freshness";
@@ -83,10 +83,6 @@ const navigation = [
     icon: Layers3,
   },
 ];
-const money = (n: number) =>
-  new Intl.NumberFormat(clientLocale(), { style: "currency", currency: "USD" }).format(
-    n,
-  );
 const clocks = (at: string) => {
   const date = new Date(at);
   return `${date.toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false })} ET / ${date.toLocaleTimeString("en-US", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hour12: false })} Paris`;
@@ -103,6 +99,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     [toast, setToast] = useState(""),
     [trialCards, setTrialCards] = useState<string[]>([]),
     [gate, setGate] = useState<"prediction" | "cards" | null>(null);
+  const locale = useLocale(), day = (iso: string) => formatMarketDate(iso, locale);
   const gateDialog = useRef<HTMLElement>(null);
   useDialogFocus(gateDialog, !!gate, () => setGate(null));
   const requireAccount = useCallback((reason: "prediction" | "cards", draft?: PredictionDraft) => {
@@ -290,13 +287,13 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
                 : "Market closed · learning open"}
             </span>
             <span>
-              {state.session.date} · {clocks(state.now)}
+              {day(state.session.date)} · {clocks(state.now)}
             </span>
           </div>
           <div className={`data-banner ${!market.fresh ? "warning" : ""}`}>
             <span>
               {market.latest
-                ? `Latest verified close: ${market.latest.date}. ${state.sources.some((s) => s.name === "公开数据连接") ? "Showing a retained public snapshot; the live connection is delayed." : market.fresh ? "Daily data is up to date." : "Retaining the last verified data; scoring waits for a fresh complete session."}`
+                ? `Latest verified close: ${day(market.latest.date)}. ${state.sources.some((s) => s.name === "公开数据连接") ? "Showing a retained public snapshot; the live connection is delayed." : market.fresh ? "Daily data is up to date." : "Retaining the last verified data; scoring waits for a fresh complete session."}`
                 : "Waiting for verified market data."}{" "}
               Daily bars are not real-time quotes.
             </span>
@@ -400,7 +397,8 @@ interface DailyProps {
 }
 function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
   const [activeSymbol,setActiveSymbol]=useState("QQQ");
-  const [direction, setDirection] = useState<Direction>("bullish"),
+  const locale = useLocale(), money = (n: number) => formatUsd(n, locale), day = (iso: string) => formatMarketDate(iso, locale);
+  const [direction, setDirection] = useState<Direction | null>(null),
     [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium"),
     [reason, setReason] = useState(""),
     [lesson, setLesson] = useState(""),
@@ -452,7 +450,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>
             {productIntro ? "Finance, played like a game." : <>
-            {pending ? `Your ${pending.date} call is sealed.` : review?.matched
+            {pending ? `Your ${day(pending.date)} call is sealed.` : review?.matched
               ? "Your call matched."
               : "A new lesson unlocked."}
             <br />
@@ -461,7 +459,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </h1>
           <p>
             {productIntro ? "Predict the market, take on the big economic events, and earn XP." : pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
-              ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
+              ? `${day(review.date)} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
               : "Predict the market, take on the big economic events, and earn XP."}
           </p>
           <button
@@ -474,7 +472,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                 : startQuest()
             }
           >
-            {productIntro ? "Play for free" : review ? pending ? `View ${review.date} historical report` : "Follow the facts" : "Play for free"}
+            {productIntro ? "Play for free" : review ? pending ? `View ${day(review.date)} historical report` : "Follow the facts" : "Play for free"}
             <ArrowRight size={18} />
           </button>
         </div>
@@ -491,7 +489,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       </section>
       {review && facts && (
         <section className="en-card review-facts">
-          <span className="eyebrow">THE FACT TRAIL · {review.date}</span>
+          <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>
           <h2>01 / Your original call</h2>
           <p>
             {review.judgmentSnapshot
@@ -586,7 +584,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
               </span>
             </div>
             <p className="muted">
-              {latest.date} · regular-session close · retrieved{" "}
+              {day(latest.date)} · regular-session close · retrieved{" "}
               {clocks(latest.fetchedAt)}
             </p>
             <LineChart
@@ -633,14 +631,14 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <span className="eyebrow">YOUR NEXT MARKET QUEST</span>
         <h2>Choose your next market quest.</h2>
         <p className="scenario-mission-copy">No trade needed. Pick a direction, explain your thinking, and come back to test it.</p>
-        <p>Target trading session: <strong>{targetSession.date}</strong></p>
+        <p>Target trading session: <strong>{day(targetSession.date)}</strong></p>
         {targetSession.date!==state.session.date&&state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment&&<p>Today’s prediction is sealed and remains in your judgment journal.</p>}
         {f && (
           <>
             <ScenarioChoices forecast={f} value={signedIn&&state.judgment?state.judgment.direction:direction} onChange={setDirection} disabled={locked||busy}/>
             <details className="scenario-basis"><summary>View scenario data & rules</summary>            <p>
               Scenario v{f.version} · baseline {money(f.baselineClose)} · data
-              as of {f.dataAsOf.includes("T")?clocks(f.dataAsOf):f.dataAsOf}
+              as of {f.dataAsOf.includes("T")?clocks(f.dataAsOf):day(f.dataAsOf)}
             </p>
             {f.provisional&&<p>Early preparation: the prior session has not closed. These levels use the latest completed daily candle; the direction result will use the actual prior-session close.</p>}
 <p>Ranges are saved scenario references, not price targets. Reassess when price or verified events invalidate the premise.</p></details>
@@ -658,6 +656,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <form
             onSubmit={async (e) => {
               e.preventDefault();
+              if (!direction) return;
               if (!signedIn) { requireAccount("prediction", { direction, confidence, reason, date: targetSession.date, at: new Date().toISOString() }); return; }
               if (f)
                 await run({
@@ -692,7 +691,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
               disabled={locked}
               placeholder="What evidence matters? What would change your mind?"
             />
-            <button className="primary" disabled={busy || locked}>
+            <button className="primary" disabled={busy || locked || !direction}>
               {locked
                 ? !state.session.isTradingDay
                   ? "Market closed · return before the next bell"
@@ -703,7 +702,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             </button>
             <p className="muted small-text">
               {!signedIn && <>Try filling in your call. An account is required when saving. Drafts entered outside the premarket window are not scored.<br/></>}
-              Your call targets {targetSession.date} and locks at {clocks(targetSession.openAt)}. Today’s locked call is kept. Late entries do not count as premarket
+              Your call targets {day(targetSession.date)} and locks at {clocks(targetSession.openAt)}. Today’s locked call is kept. Late entries do not count as premarket
               predictions. No precise probability is claimed.
             </p>
           </form>
@@ -715,29 +714,29 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         {state.trackingWeeks?.map((week) => (
           <details key={week.start} className="en-week">
             <summary>
-              {week.start} · {week.recorded} calls · {week.correct}/
+              {day(week.start)} · {week.recorded} calls · {week.correct}/
               {week.scored} matched
             </summary>
-            {week.days.map((day) => (
-              <div className="en-week-day" key={day.date}>
-                <span>{day.date}</span>
+            {week.days.map((entry) => (
+              <div className="en-week-day" key={entry.date}>
+                <span>{day(entry.date)}</span>
                 <strong>
-                  {day.judgment
-                    ? directions[day.judgment.direction]
+                  {entry.judgment
+                    ? directions[entry.judgment.direction]
                     : "No call recorded"}
                 </strong>
                 <span>
-                  {day.review
-                    ? day.review.matched === undefined
+                  {entry.review
+                    ? entry.review.matched === undefined
                       ? "Unscored"
-                      : day.review.matched
+                      : entry.review.matched
                         ? "Matched ✓"
                         : "Learning moment"
-                    : day.judgment
+                    : entry.judgment
                       ? "Awaiting verified close"
                       : "—"}
                 </span>
-                {day.judgment && <p translate="no">{day.judgment.reason}</p>}
+                {entry.judgment && <p translate="no">{entry.judgment.reason}</p>}
               </div>
             ))}
           </details>
@@ -761,6 +760,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   )}</LocalizeTree>;
 }
 function EventMap({ state }: { state: QuestState }) {
+  const locale = useLocale(), dayLabel = (iso: string) => formatMarketDate(iso, locale);
   const [filter, setFilter] = useState<"week" | "upcoming" | "all">("week");
   const date = new Date(`${state.session.date}T12:00:00Z`),
     day = (date.getUTCDay() + 6) % 7;
@@ -780,7 +780,7 @@ function EventMap({ state }: { state: QuestState }) {
     .filter((e) => Date.parse(e.at) > Date.parse(state.now))
     .sort((a, b) => a.at.localeCompare(b.at))[0];
   const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
-  const dailyBrief = <PremiumGate key="daily" preview={<><span className="eyebrow">☀️ BEFORE THE BELL · WEEKDAYS 14:15 PARIS</span><h3>Your premarket power-up</h3><p>Latest verified QQQ close: {state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "awaiting data"}. Check the market map and today’s official releases before choosing your scenario.</p></>}><article className="brief-card brief-daily">
+  const dailyBrief = <PremiumGate key="daily" preview={<><span className="eyebrow">☀️ BEFORE THE BELL · WEEKDAYS 14:15 PARIS</span><h3>Your premarket power-up</h3><p>Latest verified QQQ close: {dayLabel(state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "") || "awaiting data"}. Check the market map and today’s official releases before choosing your scenario.</p></>}><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
             <h3>Premarket brief</h3>
@@ -791,9 +791,9 @@ function EventMap({ state }: { state: QuestState }) {
               stale feed pauses scoring.
             </p>
             <p>
-              Latest verified daily close: {state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "awaiting data"}. Today:{" "}
+              Latest verified daily close: {dayLabel(state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "") || "awaiting data"}. Today:{" "}
               {state.session.isTradingDay ? "Trading session" : "Market closed"}
-              . The next session is {state.session.nextDate}.
+              . The next session is {dayLabel(state.session.nextDate)}.
             </p>
           </article></PremiumGate>;
   const weeklyBrief = <article key="weekly" className="brief-card brief-weekly">
@@ -850,7 +850,7 @@ function EventMap({ state }: { state: QuestState }) {
             <span className="eyebrow">NEXT BOSS</span>
             <h2>{eventText(next).title}</h2>
             <p>
-              {new Date(next.at).toLocaleDateString(clientLocale(), {
+              {new Date(next.at).toLocaleDateString(intlLocale(locale), {
                 month: "short",
                 day: "numeric",
                 timeZone: "America/New_York",
@@ -941,6 +941,7 @@ function EventMap({ state }: { state: QuestState }) {
   )}</LocalizeTree>;
 }
 function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
+  const locale = useLocale();
   const text = eventText(e),
     passed = Date.parse(e.at) <= Date.parse(now),
     status =
@@ -970,7 +971,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
           )}
         </div>
         <div className="en-event-date">
-          {new Date(e.at).toLocaleDateString(clientLocale(), {
+          {new Date(e.at).toLocaleDateString(intlLocale(locale), {
             month: "short",
             day: "numeric",
             timeZone: "America/New_York",
