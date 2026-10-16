@@ -46,7 +46,6 @@ export default function AccountShell({
     let active = true;
     setBrowserIdentity(user?.id);
     document.documentElement.lang = zh ? "zh-CN" : locale;
-    const tutorialKey = `quest-tutorial:${user?.id || "guest"}:v1`;
     async function bootstrap() {
       try {
         if (user) {
@@ -74,8 +73,7 @@ export default function AccountShell({
             if (transfer) localStorage.removeItem(transferKey);
           }
           enabled.current = true;
-          setTutorial(!d.tutorial_done && !localStorage.getItem(tutorialKey));
-        } else setTutorial(!localStorage.getItem(tutorialKey));
+        }
       } catch {
         if (active)
           setSync(

@@ -423,6 +423,12 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
     }
   }, [review?.id, review?.matched]);
   const pending=pendingJudgment(state);
+  const productIntro = !pending && review?.matched !== true && review?.matched !== false;
+  const startQuest = () => {
+    const target = document.getElementById("en-judgment");
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => target?.querySelector<HTMLElement>(".scenario-choice, #en-reason")?.focus({ preventScroll: true }), 450);
+  };
   const targetSession=predictionSession(state);
   const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
   const locked =
@@ -445,32 +451,30 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <div className="en-hero-copy">
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>
+            {productIntro ? "Finance, played like a game." : <>
             {pending ? `Your ${pending.date} call is sealed.` : review?.matched
               ? "Your call matched."
-              : review?.matched === false
-                ? "A new lesson unlocked."
-                : review
-                  ? "Close confirmed."
-                  : "Turn your judgment"}
+              : "A new lesson unlocked."}
             <br />
-            <em>{pending ? "Awaiting the verified close." : review ? "Now follow the evidence." : "into experience."}</em>
+            <em>{pending ? "Awaiting the verified close." : "Now follow the evidence."}</em>
+            </>}
           </h1>
           <p>
-            {pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
-              ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched === undefined ? `No eligible prediction for ${review.date}; calls for other dates are checked separately.` : review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
-              : "Read the market. Make your call. Return after the close. Every better question is a step forward."}
+            {productIntro ? "Predict the market, take on the big economic events, and earn XP." : pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
+              ? `${review.date} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
+              : "Predict the market, take on the big economic events, and earn XP."}
           </p>
           <button
             className="primary"
             onClick={() =>
-              review
+              productIntro
+                ? startQuest()
+                : review
                 ? setFacts(!facts)
-                : document
-                    .getElementById("en-judgment")
-                    ?.scrollIntoView({ behavior: "smooth" })
+                : startQuest()
             }
           >
-            {review ? pending ? `View ${review.date} historical report` : "Follow the facts" : "Make today’s call"}
+            {productIntro ? "Play for free" : review ? pending ? `View ${review.date} historical report` : "Follow the facts" : "Play for free"}
             <ArrowRight size={18} />
           </button>
         </div>
@@ -625,7 +629,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <p>Waiting for verified daily prices.</p>
         )}
       </section>
-      <section className="en-card" id="en-judgment">
+      <section className="en-card" id="en-judgment" style={{ scrollMarginTop: 72 }}>
         <span className="eyebrow">YOUR NEXT MARKET QUEST</span>
         <h2>Choose your next market quest.</h2>
         <p className="scenario-mission-copy">No trade needed. Pick a direction, explain your thinking, and come back to test it.</p>

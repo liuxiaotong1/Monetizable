@@ -24,6 +24,12 @@ const html=renderToStaticMarkup(tree);assert.ok(html.includes('title="Quête du 
 const billing=fs.readFileSync('src/lib/account/billing.ts','utf8');assert.ok(billing.includes('PREMIUM_CENTS=1990,TRIAL_DAYS=7'));assert.ok(billing.includes('locale:await requestLocale(isAdmin(user))'));assert.ok(billing.includes('s.locale===locale'));assert.ok(billing.includes('19,90 $US par mois'));
 console.log('French locale: defaults, admin exception, nested templates, all 62 card identities/content, user text and form values, and unchanged subscription terms passed.');
 assert.equal(trans.translateString('Continue with Google','zh'),'使用 Google 继续');
+assert.equal(trans.translateString('Finance, played like a game.'),'La finance, comme un jeu.');
+assert.equal(trans.translateString('Predict the market, take on the big economic events, and earn XP.'),"Prédisez le marché, affrontez les grands événements économiques et gagnez de l'XP.");
+assert.equal(trans.translateString('Play for free'),'Jouer gratuitement');
+assert.equal(trans.translateString('Finance, played like a game.','zh'),'把理财变成一场游戏。');
+assert.equal(trans.translateString('Predict the market, take on the big economic events, and earn XP.','zh'),'预测市场，挑战重大经济事件，赚取经验值。');
+assert.equal(trans.translateString('Play for free','zh'),'免费开始玩');
 const chineseTree=React.createElement(LocaleProvider,{locale:'zh'},React.createElement(LocalizeTree,null,React.createElement('div',null,React.createElement('button',null,'Continue with Google'),React.createElement('input',{value:'My own words',readOnly:true}),React.createElement('p',{'data-user-content':true},'Continue with Google'))));
 const chineseHtml=renderToStaticMarkup(chineseTree);assert.ok(chineseHtml.includes('使用 Google 继续'));assert.ok(chineseHtml.includes('value="My own words"'));assert.ok(chineseHtml.includes('>Continue with Google</p>'));
 const publicSwitcher=renderToStaticMarkup(React.createElement(LocaleProvider,{locale:'fr'},React.createElement(provider.LanguageSwitcher)));
