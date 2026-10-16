@@ -1892,5 +1892,12 @@
   "understanding.": "compréhension.",
   "Your next level starts here.": "Votre prochain niveau commence ici.",
   "/ 100 XP to next level": "/ 100 XP pour le prochain niveau",
-  "observations": "observations"
+  "observations": "observations",
+  "YOUR NEXT MARKET QUEST": "VOTRE PROCHAINE QUÊTE DE MARCHÉ",
+  "Choose your next market quest.": "Quel sera votre prochain scénario ?",
+  "No trade needed. Pick a direction, explain your thinking, and come back to test it.": "Pas besoin de trader. Choisissez une direction, expliquez votre idée, puis revenez la mettre à l’épreuve.",
+  "View scenario data & rules": "Voir les données et les règles du scénario",
+  "Ranges are saved scenario references, not price targets. Reassess when price or verified events invalidate the premise.": "Ces zones sont des repères du scénario enregistré, pas des objectifs de cours. Réévaluez si les prix ou les événements vérifiés invalident votre idée.",
+  "Seal my scenario · +10 XP": "Sceller mon scénario · +10 XP",
+  "Save my scenario": "Enregistrer mon scénario"
 }

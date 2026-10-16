@@ -1,6 +1,7 @@
 "use client";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import {clientLocale} from "@/lib/i18n/locale";
+import ScenarioChoices from "./scenario-choices";
 import EventTakeaway from "./event-takeaway";
 import DataFreshness from "./data-freshness";
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
@@ -625,38 +626,20 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         )}
       </section>
       <section className="en-card" id="en-judgment">
-        <span className="eyebrow">LEAVE A REASON, NOT JUST A GUESS</span>
-        <h2>What’s your call?</h2>
+        <span className="eyebrow">YOUR NEXT MARKET QUEST</span>
+        <h2>Choose your next market quest.</h2>
+        <p className="scenario-mission-copy">No trade needed. Pick a direction, explain your thinking, and come back to test it.</p>
         <p>Target trading session: <strong>{targetSession.date}</strong></p>
         {targetSession.date!==state.session.date&&state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment&&<p>Today’s prediction is sealed and remains in your judgment journal.</p>}
         {f && (
           <>
-            <p>
+            <ScenarioChoices forecast={f} value={signedIn&&state.judgment?state.judgment.direction:direction} onChange={setDirection} disabled={locked||busy}/>
+            <details className="scenario-basis"><summary>View scenario data & rules</summary>            <p>
               Scenario v{f.version} · baseline {money(f.baselineClose)} · data
               as of {f.dataAsOf.includes("T")?clocks(f.dataAsOf):f.dataAsOf}
             </p>
             {f.provisional&&<p>Early preparation: the prior session has not closed. These levels use the latest completed daily candle; the direction result will use the actual prior-session close.</p>}
-            <div className="en-scenarios">
-              {f.scenarios.map((s) => (
-                <article key={s.direction}>
-                  <h3>{directions[s.direction]}</h3>
-                  <strong>
-                    {money(s.low)} – {money(s.high)}
-                  </strong>
-                  <p>
-                    {s.direction === "bullish"
-                      ? `Watch whether price can hold above ${money(f.levels.resistance)}.`
-                      : s.direction === "bearish"
-                        ? `Watch whether price loses ${money(f.levels.support)}.`
-                        : `Watch price behavior between ${money(f.levels.support)} and ${money(f.levels.resistance)}.`}
-                  </p>
-                  <small>
-                    Range reference from the saved rule scenario. Reassess when
-                    price or verified events invalidate the premise.
-                  </small>
-                </article>
-              ))}
-            </div>
+<p>Ranges are saved scenario references, not price targets. Reassess when price or verified events invalidate the premise.</p></details>
           </>
         )}
         {state.judgment && signedIn ? (
@@ -682,24 +665,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                 });
             }}
           >
-            <div
-              className="en-directions"
-              role="group"
-              aria-label="Prediction direction"
-            >
-              {(Object.keys(directions) as Direction[]).map((d) => (
-                <button
-                  type="button"
-                  className={direction === d ? "selected" : ""}
-                  aria-pressed={direction === d}
-                  key={d}
-                  disabled={locked}
-                  onClick={() => setDirection(d)}
-                >
-                  {directions[d]}
-                </button>
-              ))}
-            </div>
             <label htmlFor="en-confidence">Confidence</label>
             <select
               id="en-confidence"
@@ -730,7 +695,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
                   : afterOpen
                     ? "Premarket window closed"
                     : "Waiting for a verified premarket scenario"
-                : signedIn ? "Lock my call · +10 XP" : "Save my prediction"}
+                : signedIn ? "Seal my scenario · +10 XP" : "Save my scenario"}
             </button>
             <p className="muted small-text">
               {!signedIn && <>Try filling in your call. An account is required when saving. Drafts entered outside the premarket window are not scored.<br/></>}

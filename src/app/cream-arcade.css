@@ -68,3 +68,32 @@ input,select,textarea{color:var(--text);accent-color:#a47723}input::placeholder,
 @supports(backdrop-filter:blur(12px)){.account-bar,.topbar{background:#fffdf7e8;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}}
 @media(max-width:760px){:root{--card-padding:25px 20px}.app-shell .swipe-deck>:is(.en-quiz-card,.knowledge-card.quiz-first){margin-top:22px}.app-shell .knowledge-card h2,.app-shell .en-quiz-card h2{font-size:24px}.app-shell .knowledge-card .card-question,.app-shell .en-question{font-size:15px}.app-shell .learning-side{grid-template-columns:1fr}.app-shell .swipe-deck::before{inset:30px 8px 18px}.app-shell .swipe-deck::after{inset:37px 16px 10px}.app-shell .swipe-deck>:is(.en-quiz-card,.knowledge-card.quiz-first){box-shadow:0 2px 4px #3227160d,0 14px 28px -10px #32271638,inset 0 1px #fff}}
 .app-shell :is(.learning-topic,.en-theme-grid>button,.learning-teaser,.next-boss,.en-next-boss){box-shadow:0 2px 4px #32271608,0 12px 24px -13px #32271638,inset 0 1px #ffffffd9}
+/* Direction quests are deliberately stronger than the surrounding glass panels. */
+.app-shell .scenario-quest{margin:24px 0;color:#25251f}
+.app-shell .scenario-quest-hint{display:flex;align-items:center;gap:9px;font-size:14px;line-height:1.7;color:#514938;margin:0 0 15px}
+.app-shell .scenario-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;align-items:stretch}
+.app-shell .scenario-choice{--quest-fill:#e6f1e5;--quest-stroke:#699273;--quest-ink:#24563a;--quest-icon:#c8e0c9;--quest-base:#a6c4aa;display:flex;flex-direction:column;gap:15px;min-width:0;min-height:302px;padding:23px 21px;text-align:left;color:#28362b;background:var(--quest-fill);border:2px solid var(--quest-stroke);border-radius:18px;box-shadow:0 4px 0 var(--quest-base),0 12px 25px -12px #30271638;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.app-shell .scenario-choice.neutral{--quest-fill:#fbefca;--quest-stroke:#b08a35;--quest-ink:#73500f;--quest-icon:#eed68f;--quest-base:#d6bd79;color:#453a20}
+.app-shell .scenario-choice.bearish{--quest-fill:#f8e3dd;--quest-stroke:#b57969;--quest-ink:#8a3d30;--quest-icon:#ecc2b8;--quest-base:#d3a59a;color:#49302b}
+.app-shell .scenario-choice-top{display:flex;gap:9px;align-items:center;width:100%;color:var(--quest-ink)}
+.app-shell .scenario-choice-icon{display:grid;place-items:center;width:60px;height:60px;flex-shrink:0;border-radius:15px;background:var(--quest-icon);color:var(--quest-ink);box-shadow:inset 0 1px 0 #ffffffa6}
+.app-shell .scenario-choice-number{font-size:11px;font-weight:650;letter-spacing:.7px;text-transform:uppercase;line-height:1.7}
+.app-shell .scenario-choice-check{margin-left:auto;flex-shrink:0}
+.app-shell .scenario-choice-title{font-size:21px;line-height:1.35;font-weight:650;letter-spacing:-.4px;color:var(--quest-ink)}
+.app-shell .scenario-choice-test{font-size:13px;line-height:1.75;display:block}.app-shell .scenario-choice-test strong{font-weight:650;color:inherit}
+.app-shell .scenario-choice-range{display:flex;flex-direction:column;gap:7px;padding-top:15px;border-top:1px solid color-mix(in srgb,var(--quest-stroke) 40%,transparent);margin-top:auto;color:inherit}
+.app-shell .scenario-choice-range small{font-size:11px;letter-spacing:.3px;color:inherit}.app-shell .scenario-choice-range strong{font-size:15px;font-weight:650;line-height:1.65;color:inherit}
+.app-shell .scenario-choice-action{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--quest-ink);font-size:12px;font-weight:650;padding-top:5px;min-height:25px}
+.app-shell .scenario-choice[aria-pressed=true]{outline:2px solid var(--quest-ink);outline-offset:3px;box-shadow:0 5px 0 var(--quest-base),0 15px 28px -12px #30271650}
+.app-shell .scenario-choice[aria-pressed=true] .scenario-choice-action{justify-content:flex-start}
+.app-shell .scenario-choice:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 7px 0 var(--quest-base),0 19px 30px -12px #30271640}
+.app-shell .scenario-choice:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--quest-base)}
+.app-shell .scenario-choice:disabled{opacity:1;cursor:default}
+.app-shell .scenario-equipped{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:20px 0 0;font-size:12px;line-height:1.8;color:#5b5140}.app-shell .scenario-equipped strong{color:#29271f}
+.app-shell .scenario-basis{margin:18px 0 24px;font-size:12px;color:#6b604c}.app-shell .scenario-basis summary{cursor:pointer;padding:12px 0}.app-shell .scenario-basis p{font-size:12px;line-height:1.8}
+.app-shell .scenario-mission-copy{font-size:14px;max-width:700px;margin:0 0 18px;color:#514938}
+.app-shell .direction-selector .selected.bullish{background:#c8e0c9;color:#24563a;border-color:#699273}.app-shell .direction-selector .selected.neutral{background:#eed68f;color:#73500f;border-color:#b08a35}.app-shell .direction-selector .selected.bearish{background:#ecc2b8;color:#8a3d30;border-color:#b57969}
+@media(prefers-reduced-motion:no-preference){.scenario-choice.bullish:is(:hover,:focus-visible) .scenario-choice-icon svg{animation:quest-rise .5s ease-out}.scenario-choice.neutral:is(:hover,:focus-visible) .scenario-choice-icon svg{animation:quest-range .55s ease-in-out}.scenario-choice.bearish:is(:hover,:focus-visible) .scenario-choice-icon svg{animation:quest-drop .5s ease-out}@keyframes quest-rise{40%{transform:translate(4px,-4px)}100%{transform:translate(0,0)}}@keyframes quest-range{25%{transform:translateX(-5px)}65%{transform:translateX(5px)}100%{transform:translateX(0)}}@keyframes quest-drop{40%{transform:translate(4px,4px)}100%{transform:translate(0,0)}}}
+@media(max-width:1100px){.app-shell .scenario-choices{gap:12px}.app-shell .scenario-choice{padding:19px 15px}.app-shell .scenario-choice-top{flex-wrap:wrap}.app-shell .scenario-choice-title{font-size:19px}}
+@media(max-width:700px){.app-shell .scenario-choices{grid-template-columns:1fr;gap:17px}.app-shell .scenario-choice{min-height:0;padding:20px;gap:13px}.app-shell .scenario-choice-top{flex-wrap:nowrap}.app-shell .scenario-choice-icon{width:52px;height:52px}.app-shell .scenario-choice-title{font-size:22px}.app-shell .scenario-choice-range{margin-top:0}.app-shell .scenario-equipped{display:block}.app-shell .scenario-equipped>span{display:block}.app-shell .scenario-quest-hint{align-items:flex-start;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.app-shell .scenario-choice{transition:none}}
