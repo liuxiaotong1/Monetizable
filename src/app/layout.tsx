@@ -4,6 +4,7 @@ import {currentUser,isAdmin} from '@/lib/account/auth';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./account.css";
+import "./cream-arcade.css";
 import AnalyticsTracker from "@/components/account/analytics";
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
@@ -32,7 +33,7 @@ const frenchMetadata: Metadata = {
         url: "/brand/social-preview.png",
         width: 1200,
         height: 630,
-        alt: "Monetizable blue-violet bull controller logo",
+        alt: "Monetizable Curious M — ivory and gold",
       },
     ],
   },
@@ -51,7 +52,7 @@ export async function generateMetadata():Promise<Metadata>{
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0c101b",
+  themeColor: "#fff6e5",
   viewportFit: "cover",
 };
 export default async function RootLayout({

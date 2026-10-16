@@ -60,7 +60,7 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
       script.async = true;
       script.textContent = JSON.stringify({
         autosize: true, symbol: "NASDAQ:QQQ", interval, timezone: "America/New_York",
-        theme: "dark", style: "1", locale: "zh_CN", allow_symbol_change: false,
+        theme: "light", style: "1", locale: "zh_CN", allow_symbol_change: false,
         withdateranges: true, hide_side_toolbar: true, save_image: false,
         calendar: false, support_host: "https://www.tradingview.com",
       });

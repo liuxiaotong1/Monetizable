@@ -8,3 +8,8 @@ graphify-out
 *.tsbuildinfo
 AGENTS.md
 CLAUDE.md
+.codex-artifacts
+outputs
+output
+.codex-pitch-snee
+supabase/.temp

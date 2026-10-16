@@ -27,7 +27,7 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
     const observer=new MutationObserver(()=>{const next=container.querySelector('iframe');if(next&&next!==frame){frame=next;frame.title=(zh?'参考行情图表：':language==='fr'?'Graphique de référence : ':'Reference price chart: ')+chartSymbol;frame.addEventListener('load',ready);}});
     observer.observe(container,{childList:true,subtree:true});
     const script=document.createElement('script');script.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';script.async=true;
-    script.textContent=JSON.stringify({autosize:true,symbol:chartSymbol,interval,timezone:'America/New_York',theme:'dark',style:'1',locale:zh?'zh_CN':language==='fr'?'fr':'en',allow_symbol_change:false,withdateranges:true,hide_side_toolbar:true,save_image:false,calendar:false,support_host:'https://www.tradingview.com'});
+    script.textContent=JSON.stringify({autosize:true,symbol:chartSymbol,interval,timezone:'America/New_York',theme:'light',style:'1',locale:zh?'zh_CN':language==='fr'?'fr':'en',allow_symbol_change:false,withdateranges:true,hide_side_toolbar:true,save_image:false,calendar:false,support_host:'https://www.tradingview.com'});
     const timeout=()=>{if(!disposed){setLoading(false);setFailed(true);}};script.onerror=timeout;const timer=setTimeout(timeout,25000);
     const widget=document.createElement('div');widget.className='tradingview-widget-container__widget';widget.style.height='100%';container.replaceChildren(widget,script);
     return()=>{disposed=true;clearTimeout(timer);observer.disconnect();frame?.removeEventListener('load',ready);container.replaceChildren();};

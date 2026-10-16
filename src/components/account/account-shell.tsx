@@ -187,7 +187,7 @@ export default function AccountShell({
             aria-label="Monetizable home"
           >
             <img
-              src="/brand/monetizable-bull-blue-violet.svg"
+              src="/brand/monetizable-curious-m.svg"
               width="30"
               height="30"
               alt=""
@@ -257,7 +257,7 @@ export default function AccountShell({
       ) : (
         <main className="loading-screen">
           <img
-            src="/brand/monetizable-bull-blue-violet.svg"
+            src="/brand/monetizable-curious-m.svg"
             width="48"
             height="48"
             alt=""

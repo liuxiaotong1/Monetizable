@@ -21,7 +21,7 @@ export default function Login() {
   return <LocalizeTree>{(
     <main className="auth-screen"><LanguageSwitcher/>
       <a className="brand" href="/">
-        <img src="/brand/monetizable-bull-blue-violet.svg" width="44" height="44" alt="" />
+        <img src="/brand/monetizable-curious-m.svg" width="44" height="44" alt="" />
         Monetizable
       </a>
       <section className="auth-card">
