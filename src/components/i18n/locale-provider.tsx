@@ -14,8 +14,9 @@ export function LocalizeTree({children}:{children:ReactNode}){
   if(Array.isArray(node))return Children.map(node,walk);
   if(!isValidElement(node))return node;
   const element=node as ReactElement<Record<string,unknown>>,props=element.props;
-  if(props.translate==='no'||props['data-user-content']||element.type==='textarea'||element.type==='script'||element.type==='style')return node;
+  if(props.translate==='no'||props['data-user-content']||element.type==='script'||element.type==='style')return node;
   const next:Record<string,unknown>={};for(const key of ['title','aria-label','placeholder','alt'])if(typeof props[key]==='string')next[key]=translateString(props[key] as string,locale);
+  if(element.type==='textarea')return Object.keys(next).length?cloneElement(element,next):node;
   if('children' in props)next.children=walk(props.children as ReactNode);
   return cloneElement(element,next);
  }

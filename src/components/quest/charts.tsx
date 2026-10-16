@@ -1,5 +1,6 @@
 "use client";
-import {LocalizeTree} from '@/components/i18n/locale-provider';
+import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
+import {formatMarketDate, intlLocale} from '@/lib/i18n/locale';
 import { useId, useState } from "react";
 import type { HistoryPoint } from "@/lib/quest/types";
 export function LineChart({
@@ -16,6 +17,9 @@ export function LineChart({
   locale?: "zh" | "en";
 }) {
   const uid = useId().replace(/:/g, "");
+  const appLocale = useLocale();
+  const axisDate = (date: string) => formatMarketDate(date, appLocale);
+  const axisValue = (value: number) => new Intl.NumberFormat(intlLocale(appLocale), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   const [hover, setHover] = useState<number | null>(null);
   if (!values.length)
     return <LocalizeTree>{(
@@ -117,11 +121,11 @@ export function LineChart({
         )}
       </svg>
       <div className="chart-labels">
-        <span>{points[0].date}</span>
+        <span>{axisDate(points[0].date)}</span>
         <span>
           {hover !== null
-            ? `${points[hover].date} · ${points[hover].value.toFixed(2)}`
-            : points[points.length - 1].date}
+            ? `${axisDate(points[hover].date)} · ${axisValue(points[hover].value)}`
+            : axisDate(points[points.length - 1].date)}
         </span>
       </div>
     </div>
