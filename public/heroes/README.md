@@ -10,3 +10,8 @@ Rebuild with scripts/repair-charlie-face.py using bundled Python (numpy/Pillow).
 The 2D selector uses optimized WebP versions of the original model-reference
 artwork (supercharlie-portrait.webp and astra-portrait.webp); no model requests
 or artificial preparation timer run during selection.
+
+Home battle framing (2026-10-18): framing.js reserves separate hero and boss
+lanes and fits their action envelope to the iframe aspect ratio. Bosses sit
+behind the hero plane; victory zoom begins after the boss fades. Outcome copy
+occupies a separate row below the canvas. Chinese display name: 查理.

@@ -18,7 +18,7 @@ export default function Login() {
     const params = new URLSearchParams(location.search);
     let destination=loginDestination(params.get('next'));
     try{const pending=companion(localStorage.getItem(pendingOnboardingKey));if(!params.has('next')&&pending)destination=onboardingDestination(pending)}catch{}
-    const url=new URL(destination,location.origin);setNext(destination);setOnboarding(url.searchParams.get('onboarding')==='1');setHero(companion(url.searchParams.get('hero'))==='female'?(locale==='zh'?'星澜':'Astra'):'SuperCharlie');
+    const url=new URL(destination,location.origin);setNext(destination);setOnboarding(url.searchParams.get('onboarding')==='1');setHero(companion(url.searchParams.get('hero'))==='female'?(locale==='zh'?'星澜':'Astra'):(locale==='zh'?'查理':'SuperCharlie'));
     if (params.has('error')) setError(params.get('error') === 'google_unavailable'
       ? 'Google sign-in is temporarily unavailable. You can use an email link below.'
       : 'Google sign-in was canceled or expired. Please try again.');
