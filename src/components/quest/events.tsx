@@ -45,7 +45,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
     <DataFreshness state={state}/>
     <EventBossQuest events={state.events} now={state.now} onDetails={setSelectedId}/>
-    <AgentReports demo={state.mode==="demo"} now={state.now}/>
+    <AgentReports events={state.events} demo={state.mode==="demo"} now={state.now}/>
     <SectionHeading title="重大事件地图" subtitle="先看事件与官方数据，再看市场如何解读" action={<div className="segmented" aria-label="事件类别">{categories.map(([value, name]) => <button key={value} aria-pressed={filter === value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>{name}</button>)}</div>} />
     <div className="event-period-controls"><div className="segmented" aria-label="事件时间范围">{scopes.map(([value, name]) => <button key={value} aria-pressed={scope === value} className={scope === value ? "active" : ""} onClick={() => setScope(value)}>{name}</button>)}</div><span>{scope === "week" ? `${week.start.slice(5).replace("-", "/")} – ${week.lastDate.slice(5).replace("-", "/")} · 美东本周` : scope === "next7" ? "从现在起的 7 天" : "未来日程与已保存记录"} · {events.length} 项</span></div>
     <div className="event-list">{events.length ? events.map(event => {

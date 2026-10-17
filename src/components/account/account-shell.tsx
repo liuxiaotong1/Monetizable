@@ -5,7 +5,6 @@ import {
   LogIn,
   LogOut,
   ShieldCheck,
-  GraduationCap,
 } from "lucide-react";
 import { transferKey } from "@/lib/quest/guest-access";
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
@@ -167,6 +166,11 @@ export default function AccountShell({
       window.removeEventListener("quest-progress", change);
     };
   }, [user?.id, zh,locale]);
+  useEffect(() => {
+    const start = () => { if ((new URLSearchParams(location.search).get('view') || 'today') === 'today') setTutorial(true); };
+    window.addEventListener('quest-start-playing', start);
+    return () => window.removeEventListener('quest-start-playing', start);
+  }, []);
   const finish = useCallback(async () => {
     localStorage.setItem(`quest-tutorial:${user?.id || "guest"}:v1`, "done");
     setTutorial(false);
@@ -214,14 +218,6 @@ export default function AccountShell({
         </div>
         <nav>
           <LanguageSwitcher admin={!!user?.admin}/>
-          <button
-            onClick={() => {
-              setTutorial(true);
-            }}
-          >
-            <GraduationCap size={16} />
-            {label("Quick tour", "使用引导")}
-          </button>
           {user?.admin && (
             <a href="/admin">
               <ShieldCheck size={16} />

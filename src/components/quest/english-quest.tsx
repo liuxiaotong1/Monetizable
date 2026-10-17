@@ -1,4 +1,5 @@
 "use client";
+import BriefPreview from './brief-preview';
 import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
 import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/locale";
 import ScenarioChoices from "./scenario-choices";
@@ -423,11 +424,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   }, [review?.id, review?.matched]);
   const pending=pendingJudgment(state);
   const productIntro = !pending && review?.matched !== true && review?.matched !== false;
-  const startQuest = () => {
-    const target = document.getElementById("en-judgment");
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.setTimeout(() => target?.querySelector<HTMLElement>(".scenario-choice, #en-reason")?.focus({ preventScroll: true }), 450);
-  };
+  const startQuest = () => window.dispatchEvent(new Event("quest-start-playing"));
   const targetSession=predictionSession(state);
   const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
   const locked =
@@ -476,6 +473,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             {productIntro ? "Play for free" : review ? pending ? `View ${day(review.date)} historical report` : "Follow the facts" : "Play for free"}
             <ArrowRight size={18} />
           </button>
+          {!productIntro && <button className="secondary" onClick={startQuest}>Play for free</button>}
         </div>
         <div className="en-hero-character">
           <YelanViewer
@@ -780,7 +778,7 @@ function EventMap({ state }: { state: QuestState }) {
     )
     .sort((a, b) => a.at.localeCompare(b.at));
   const isSunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date(state.now)) === "Sun";
-  const dailyBrief = <PremiumGate key="daily" preview={<><span className="eyebrow">☀️ BEFORE THE BELL · WEEKDAYS 14:15 PARIS</span><h3>Your premarket power-up</h3><p>Latest verified QQQ close: {dayLabel(state.bars.filter(b=>b.symbol==="QQQ").at(-1)?.date || "") || "awaiting data"}. Check the market map and today’s official releases before choosing your scenario.</p></>}><article className="brief-card brief-daily">
+  const dailyBrief = <PremiumGate key="daily" preview={<BriefPreview events={state.events} now={state.now}/>}><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
             <h3>Premarket brief</h3>

@@ -602,7 +602,7 @@
   "GOOGL": "GOOGL",
   "GPU": "GPU",
   "GROWTH / LAST 30 DAYS": "CROISSANCE / DERNIÈRES 30 JOURS",
-  "GUIDED WALKTHROUGH": "GUIDE DE WALKTHROUGH",
+  "GUIDED WALKTHROUGH": "VISITE GUIDÉE",
   "Gamma": "Gamma",
   "Gamma changes too. Do not extend a local approximation indefinitely.": "Gamma change aussi. Ne pas prolonger indéfiniment une approximation locale.",
   "Gamma measures how delta changes as the underlying moves.": "Gamma mesure les changements de delta au fur et à mesure des mouvements sous-jacents.",
@@ -1009,7 +1009,7 @@
   "Pixel Coin": "Pièce Pixel",
   "Plan your exit before the next step.": "Prévoyez votre sortie avant la prochaine étape.",
   "Play for free": "Jouer gratuitement",
-  "Play for free scrolls to today's first market quest. Choose a scenario and write one reason. This tour never submits a prediction for you.": "« Jouer gratuitement » fait défiler jusqu'à la première quête du jour. Choisissez un scénario et écrivez une raison. Cette visite ne soumet jamais de prévision à votre place.",
+  "Play for free scrolls to today's first market quest. Choose a scenario and write one reason. This tour never submits a prediction for you.": "« Jouer gratuitement » ouvre cette visite guidée. Choisissez ensuite un scénario et une raison. Aucune prévision n’est soumise pendant la visite.",
   "Play today's first quest": "Jouez la première quête du jour",
   "Please try again.": "Veuillez réessayer.",
   "Please wait a moment.": "Attendez un instant.",
@@ -1907,5 +1907,9 @@
   "Seal my scenario · +10 XP": "Sceller mon scénario · +10 XP",
   "Save my scenario": "Enregistrer mon scénario",
   "FYI": "À savoir",
-  "Termes non familiers? Définitions en langage clair ({0})": "Un terme nouveau ? Retrouvez sa définition ({0})"
+  "Termes non familiers? Définitions en langage clair ({0})": "Un terme nouveau ? Retrouvez sa définition ({0})",
+  "A correct prediction defeats the Boss": "Une prévision juste terrasse le Boss",
+  "After the official result is verified, a correct comparison unlocks this celebration. This is a preview only: no prediction or score is saved.": "Après vérification du résultat officiel, une comparaison juste déclenche cette célébration. Ceci est une démonstration : aucune prévision ni aucun score ne sont enregistrés.",
+  "After reading the explanation, swipe left or use the left button to review once next visit. Swipe right or use the right button when mastered. These buttons stay disabled until you answer. You can replay this tour with Play for free on the home page.": "Après la lecture, glissez à gauche pour revoir la carte une fois lors de votre prochaine visite ; à droite si vous la maîtrisez. Répondez avant de glisser. Relancez cette visite avec « Jouer gratuitement » sur l’accueil.",
+  "Play for free opens this guided tour. Then choose a scenario and write one reason. This tour never submits a prediction for you.": "« Jouer gratuitement » ouvre cette visite guidée. Choisissez ensuite un scénario et une raison. Aucune prévision n’est soumise pendant la visite."
 }

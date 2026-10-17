@@ -1,5 +1,7 @@
 "use client";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
+import BriefPreview from './brief-preview';
+import type {MarketEvent} from '@/lib/quest/types';
 import {PremiumGate,useBilling} from "../account/billing-access";
 import {useEffect,useState, type ReactNode} from "react";
 import {ChevronRight} from "lucide-react";
@@ -33,7 +35,7 @@ export function ReportBody({body}:{body:string}) {
   return <LocalizeTree>{<div className="agent-report-body">{blocks}</div>}</LocalizeTree>;
 }
 type ReportsResponse={reports:AgentReport[];schedule:{date:string;weekStart:string};dailyStatus?:string};
-export default function AgentReports({demo,now}:{demo:boolean;now:string}) {
+export default function AgentReports({demo,now,events}:{demo:boolean;now:string;events:MarketEvent[]}) {
   const {access}=useBilling();
   const [data,setData]=useState<ReportsResponse>(),[error,setError]=useState(false);
   useEffect(()=>{
@@ -49,7 +51,7 @@ export default function AgentReports({demo,now}:{demo:boolean;now:string}) {
   const isSunday=new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Paris",weekday:"short"}).format(new Date(now))==="Sun";
   return <LocalizeTree>{<section className="agent-hub" aria-label="交易情报与一周前瞻">
     <div className="agent-hub-heading"><div><span className="eyebrow">TRADING DESK</span><h2>{isSunday?"🔮 下一周的冒险，从这里开始":"☀️ 盘前补给，准备出发"}</h2></div><span className="badge purple">巴黎时间</span></div>
-    <div className="agent-report-grid">{([{kind:"weekly",report:weekly,title:"一周前瞻",icon:<span aria-hidden="true">🔮 🗺️</span>,time:"周日 19:00",fresh:weekly?.weekStart===data?.schedule.weekStart},{kind:"daily",report:daily,title:"盘前快报",icon:<span aria-hidden="true">☀️ 🎮</span>,time:"周一至周五 14:15",fresh:daily?.date===data?.schedule.date}] as const).toSorted((a,b)=>a.kind===b.kind?0:a.kind===(isSunday?"weekly":"daily")?-1:1).map(item=><div key={item.kind}>{item.kind==="daily"&&!access.premium?<PremiumGate locale="zh" preview={<><span className="eyebrow">☀️ 盘前快报 · 周一至周五 14:15 巴黎</span><h3>{item.report?.date||"盘前补给"}{item.report&&!item.fresh?" · 历史报告":""}</h3><p>{item.report?displayText(item.report.summary):"先看最近收盘、关键区间与当天事件窗口，再制定你的剧本。"}</p></>}><h3>☀️ 盘前快报</h3><p>行情快照 · 事件窗口 · 条件与风险 · 来源</p></PremiumGate>:<article className="panel agent-report-card" key={item.kind}>
+    <div className="agent-report-grid">{([{kind:"weekly",report:weekly,title:"一周前瞻",icon:<span aria-hidden="true">🔮 🗺️</span>,time:"周日 19:00",fresh:weekly?.weekStart===data?.schedule.weekStart},{kind:"daily",report:daily,title:"盘前快报",icon:<span aria-hidden="true">☀️ 🎮</span>,time:"周一至周五 14:15",fresh:daily?.date===data?.schedule.date}] as const).toSorted((a,b)=>a.kind===b.kind?0:a.kind===(isSunday?"weekly":"daily")?-1:1).map(item=><div key={item.kind}>{item.kind==="daily"&&!access.premium?<PremiumGate locale="zh" preview={<BriefPreview events={events} now={now}/>}><h3>☀️ 盘前快报</h3><p>行情快照 · 事件窗口 · 条件与风险 · 来源</p></PremiumGate>:<article className="panel agent-report-card" key={item.kind}>
       <div className="panel-top"><span className="brief-emoji">{item.icon}</span><span className={`badge ${item.report?item.fresh?"green":"gold":"purple"}`}>{item.report?item.fresh?"本期报告":"最近一期 · 非今日":"等待首份报告"}</span></div>
       {item.kind==="daily"&&data?.dailyStatus==="missed"&&<p className="billing-error" role="status">今日盘前未发布，当前保留历史原报告；不把开盘后的行情补写为盘前。</p>}
       <h3>{item.title}</h3><p className="agent-cadence">{item.time} · Europe/Paris</p>
