@@ -450,7 +450,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         : undefined;
   return <LocalizeTree>{(
     <>
-      {!hasHero||productIntro?<FirstQuestHero/>:<section className="en-hero">
+      {!hasHero?<FirstQuestHero/>:<section className="en-hero">
         <div className="en-hero-copy">
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>

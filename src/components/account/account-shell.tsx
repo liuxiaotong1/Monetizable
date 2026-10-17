@@ -261,7 +261,7 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
-      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{setPickingHero(false);setTutorial(true)}}/>}
+      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{setPickingHero(false);window.scrollTo({top:0,behavior:'instant'});setTutorial(true)}}/>}
       {ready && tutorial && <ProductTour zh={zh} onFinish={finish} />}
     </>
   )}</LocalizeTree>;

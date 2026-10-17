@@ -12,7 +12,7 @@ export default function HeroPicker({onContinue,onClose}:{onContinue:()=>void;onC
  useEffect(()=>{const previous=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=previous}},[]);
  useEffect(()=>{const fn=(e:MessageEvent)=>{if(e.origin!==location.origin||e.source!==frame.current?.contentWindow)return;if(e.data?.type==='monetizable-hero-ready'){setReady(true);setError(false)}if(e.data?.type==='monetizable-hero-error')setError(true)};addEventListener('message',fn);return()=>removeEventListener('message',fn)},[]);
  useEffect(()=>{if(phase!=='preparing')return;const timer=setTimeout(()=>setWaited(true),2200);return()=>clearTimeout(timer)},[phase]);
- useEffect(()=>{if(phase==='preparing'&&ready&&waited&&!error){chooseHero(selected);setPhase('reveal')}},[phase,ready,waited,error,selected]);
+ useEffect(()=>{if(phase==='preparing'&&ready&&waited&&!error){chooseHero(selected);onContinue()}},[phase,ready,waited,error,selected,onContinue]);
  useEffect(()=>{if(ready)return;const timer=setTimeout(()=>setError(true),30000);return()=>clearTimeout(timer)},[ready,selected,attempt]);
  function select(id:HeroId){if(id!==selected){setReady(false);setError(false);setSelected(id)}}
  const name=selected==='female'?c.female:'SuperCharlie';

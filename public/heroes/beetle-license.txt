@@ -1,0 +1,6 @@
+Beetle King by SaVVy3DArt
+https://sketchfab.com/3d-models/beetle-king-371fdacc344b417c933d12ff44de7acf
+CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+NoAI: not used for generative AI or training.
+Modified: scale, placement, additional authored hit motion.
+SHA256 d8ec7eaa008e11e1fc8a30ae7197f12891becd525f4e4c4c8b110d529ec1cdb1
