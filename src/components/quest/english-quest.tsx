@@ -67,6 +67,8 @@ import { learningQueue, masteredConcepts } from "@/lib/quest/learning-engine";
 import { marketContext } from "@/lib/quest/market-context";
 import { LineChart } from "./charts";
 import YelanViewer from "./yelan-viewer";
+import FirstQuestHero from "./first-quest-hero";
+import {useHasHero} from "./hero-preference";
 type View = "today" | "events" | "learn";
 const navigation = [
   {
@@ -401,6 +403,7 @@ interface DailyProps {
   requireAccount: (reason: "prediction" | "cards", draft?: PredictionDraft) => void;
 }
 function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
+  const hasHero=useHasHero();
   const [activeSymbol,setActiveSymbol]=useState("QQQ");
   const locale = useLocale(), money = (n: number) => formatUsd(n, locale), day = (iso: string) => formatMarketDate(iso, locale);
   const [direction, setDirection] = useState<Direction | null>(null),
@@ -447,7 +450,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         : undefined;
   return <LocalizeTree>{(
     <>
-      <section className="en-hero">
+      {!hasHero?<FirstQuestHero/>:<section className="en-hero">
         <div className="en-hero-copy">
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>
@@ -488,7 +491,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             onCelebrationComplete={revealBattleFacts}
           />
         </div>
-      </section>
+      </section>}
       {review && facts && (
         <section className="en-card review-facts">
           <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>
