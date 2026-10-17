@@ -15,6 +15,7 @@ export default function Confirm() {
         body: JSON.stringify({
           token_hash: params.get("token_hash"),
           type: params.get("type"),
+          next: params.get("next"),
         }),
       });
       const data = await res.json();

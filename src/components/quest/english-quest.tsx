@@ -69,7 +69,7 @@ import { LineChart } from "./charts";
 import YelanViewer from "./yelan-viewer";
 import FirstQuestHero from "./first-quest-hero";
 import NextQuestPrompt from "./next-quest-prompt";
-import {useHasHero} from "./hero-preference";
+import {useAdventureStage} from "./hero-preference";
 type View = "today" | "events" | "learn";
 const navigation = [
   {
@@ -404,7 +404,7 @@ interface DailyProps {
   requireAccount: (reason: "prediction" | "cards", draft?: PredictionDraft) => void;
 }
 function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
-  const hasHero=useHasHero();
+  const adventureStage=useAdventureStage();
   const [activeSymbol,setActiveSymbol]=useState("QQQ");
   const locale = useLocale(), money = (n: number) => formatUsd(n, locale), day = (iso: string) => formatMarketDate(iso, locale);
   const [direction, setDirection] = useState<Direction | null>(null),
@@ -448,9 +448,10 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       bars.length >= 5
         ? Math.max(...bars.slice(-5).map((b) => b.high))
         : undefined;
+  if(adventureStage==='landing')return <FirstQuestHero/>;
   return <LocalizeTree>{(
     <>
-      {!hasHero?<FirstQuestHero/>:<section className="en-hero">
+      <section className="en-hero">
         <div className="en-hero-copy">
           {productIntro?<NextQuestPrompt/>:<>
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
@@ -490,7 +491,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             onCelebrationComplete={revealBattleFacts}
           />
         </div>
-      </section>}
+      </section>
       {review && facts && (
         <section className="en-card review-facts">
           <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>

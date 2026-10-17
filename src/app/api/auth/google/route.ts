@@ -6,7 +6,7 @@ import { loginDestination } from '@/lib/account/redirect';
 
 export async function GET(request: Request) {
   const next = loginDestination(new URL(request.url).searchParams.get('next'));
-  const failure = () => NextResponse.redirect(new URL('/auth?error=google_unavailable', APP_URL));
+  const failure = () => {const url=new URL('/auth',APP_URL);url.searchParams.set('error','google_unavailable');url.searchParams.set('next',next);return NextResponse.redirect(url)};
   try {
     const client = await authClient();
     const locale=await requestLocale();

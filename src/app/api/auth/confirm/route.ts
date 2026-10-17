@@ -1,3 +1,4 @@
+import {loginDestination} from "@/lib/account/redirect";
 import { NextResponse } from "next/server";
 import { authClient, isAdmin, sameOrigin } from "@/lib/account/auth";
 import type { EmailOtpType } from "@supabase/supabase-js";
@@ -5,7 +6,7 @@ export async function POST(request: Request) {
   if (!sameOrigin(request))
     return NextResponse.json({ error: "Invalid request." }, { status: 403 });
   try {
-    const { token_hash, type } = await request.json();
+    const { token_hash, type, next } = await request.json();
     if (
       !["magiclink", "signup", "email"].includes(type) ||
       typeof token_hash !== "string" ||
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       );
     return NextResponse.json({
       ok: true,
-      next: isAdmin(data.user) ? "/admin" : "/",
+      next: isAdmin(data.user)&&loginDestination(next)==='/'?'/admin':loginDestination(next),
     });
   } catch {
     return NextResponse.json(

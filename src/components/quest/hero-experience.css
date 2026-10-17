@@ -5,3 +5,6 @@
 .main-content:has(.first-quest-hero) .first-quest-hero{margin-top:0}
 @media(max-width:600px){.main-content:has(.first-quest-hero) .first-quest-hero{min-height:360px;padding:26px 20px}.first-quest-hero h1{font-size:29px}}
 .next-quest-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.next-quest-actions button{white-space:normal;line-height:1.45}.main-content [data-qqq-chart],#en-judgment,#judgment{scroll-margin-top:90px}@media(max-width:600px){.next-quest-actions{flex-direction:column;align-items:stretch}.next-quest-actions button{width:100%}}
+.main-content:has(.first-quest-hero)>.daily-status,.main-content:has(.first-quest-hero)>.data-banner,.main-content:has(.first-quest-hero)>.day-header,.main-content:has(.first-quest-hero)>.mode-banner,.main-content:has(.first-quest-hero)>.adventure-checkpoint{display:none}.main-content:has(.first-quest-hero) .first-quest-hero{min-height:calc(100dvh - 195px)}.auth-chosen-hero{padding:10px 14px;background:#f5e8c6;border:1px solid #d1ba82;border-radius:12px;color:#795d2f;font-size:13px}
+
+.main-content:has(.first-quest-hero) .journey-footer{display:none}

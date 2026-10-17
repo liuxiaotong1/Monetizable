@@ -1,3 +1,4 @@
+import {loginDestination} from "@/lib/account/redirect";
 import {requestLocale} from '@/lib/i18n/server-locale';
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
     const url = new URL("/auth/confirm", APP_URL);
     url.searchParams.set("token_hash", token);
     url.searchParams.set("type", type);
+    url.searchParams.set("next",loginDestination(body.next));
     const sent = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

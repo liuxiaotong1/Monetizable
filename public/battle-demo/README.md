@@ -1,8 +1,9 @@
 # Restored battle review page
 
-This standalone review page restores the environment and effects from
-outputs/boss-fx-review/scene.js and worlds.js. It does not replace the current
-production victory iframe or alter scoring. Assets are referenced from
+The review page and onboarding embed restore the environment and effects from
+outputs/boss-fx-review/scene.js and worlds.js. The embed plays one victory for
+the selected companion in account-gated onboarding. It does not alter scoring
+or replace actual prediction outcome logic. Assets are referenced from
 /heroes/; existing commercial license and CC BY attribution are retained.
 
 The two original companions replace the old Yelan mesh. rig-motion.js uses
@@ -17,3 +18,7 @@ Review /battle-demo/index.html?hero=female&boss=dragon or
 /battle-demo/index.html?hero=supercharlie&boss=beetle.
 Both bosses, both companions, half-speed playback and the scrub timeline
 are accessible through visible controls. No model files are duplicated.
+
+Onboarding: /battle-demo/embed.html?embed=1&hero=female&boss=dragon&locale=fr
+The embed posts same-origin ready/complete/error messages. The React parent
+checks the frame source and stores one-time completion per account.

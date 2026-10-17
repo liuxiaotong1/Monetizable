@@ -17,5 +17,5 @@ export async function GET(request: Request) {
       }
     } catch { /* Fail closed; never trust an email from callback parameters. */ }
   }
-  return NextResponse.redirect(new URL('/auth?error=google_signin', APP_URL));
+  const failure=new URL('/auth',APP_URL);failure.searchParams.set('error','google_signin');failure.searchParams.set('next',next);return NextResponse.redirect(failure);
 }

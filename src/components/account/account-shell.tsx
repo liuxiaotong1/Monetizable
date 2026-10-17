@@ -9,8 +9,9 @@ import {
 import { transferKey } from "@/lib/quest/guest-access";
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
-import {setTourActive} from "@/components/quest/hero-preference";
+import {chooseHero,savedHero,setAdventureStage,setTourActive} from "@/components/quest/hero-preference";
 import HeroPicker from "./hero-picker";
+import {companion,onboardingDestination,onboardingStage,pendingOnboardingKey,tutorialKey} from "@/lib/account/onboarding";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
   setBrowserIdentity,
@@ -36,6 +37,7 @@ export default function AccountShell({
     [sync, setSync] = useState(""),
     [tutorial, setTutorial] = useState(false),[pickingHero,setPickingHero]=useState(false);
   useEffect(()=>{setTourActive(tutorial);return()=>setTourActive(false)},[tutorial]);
+  const completedTutorial=useRef(false);
   const revision = useRef(0),
     writing = useRef(false),
     pending = useRef<BrowserRecord | null>(null),
@@ -45,7 +47,8 @@ export default function AccountShell({
     requestSync = useRef<() => Promise<void>>(async () => {});
   const label = (en: string, cn: string) => (zh ? cn : en);
   useEffect(() => {
-    let active = true;
+    let active = true,completed=false;setReady(false);setAdventureStage('landing');
+    if(user){const params=new URLSearchParams(location.search),chosen=companion(params.get('hero'));if(params.get('onboarding')==='1'&&chosen)chooseHero(chosen);try{completed=localStorage.getItem(tutorialKey(user.id))==='done'}catch{}}
     setBrowserIdentity(user?.id);
     document.documentElement.lang = zh ? "zh-CN" : locale;
     async function bootstrap() {
@@ -55,6 +58,7 @@ export default function AccountShell({
             d = await r.json();
           if (!r.ok) throw Error(d.error);
           if (!active) return;
+          completed=completed||d.tutorial_done===true;
           revision.current = Number(d.revision);
           enabled.current = true;
           {
@@ -84,7 +88,14 @@ export default function AccountShell({
               : "Cloud progress is unavailable. Your browser copy is safe; reload to retry.",
           );
       } finally {
-        if (active) setReady(true);
+        if (active) {
+          completedTutorial.current=completed;
+          const hero=savedHero(),stage=onboardingStage(!!user,completed,hero);
+          setAdventureStage(stage);setTutorial(stage==='tutorial');
+          if(user&&!completed&&!hero)setPickingHero(true);
+          if(user){try{localStorage.removeItem(pendingOnboardingKey)}catch{}}
+          setReady(true);
+        }
       }
     }
     async function flush() {
@@ -175,7 +186,8 @@ export default function AccountShell({
     return () => window.removeEventListener('quest-start-playing', start);
   }, []);
   const finish = useCallback(async () => {
-    localStorage.setItem(`quest-tutorial:${user?.id || "guest"}:v1`, "done");
+    if(!user)return;
+    try{localStorage.setItem(tutorialKey(user.id), "done")}catch{}completedTutorial.current=true;setAdventureStage('home');
     setTutorial(false);setTourActive(false);
     document.querySelector<HTMLElement>('.sidebar [data-tour-nav="today"],.mobile-nav [data-tour-nav="today"],.bottom-nav [data-tour-nav="today"]')?.click();
     requestAnimationFrame(()=>document.querySelector('.en-hero,.hero-yelan')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -265,8 +277,13 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
-      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{setPickingHero(false);window.scrollTo({top:0,behavior:'instant'});setTutorial(true)}}/>}
-      {ready && tutorial && <ProductTour zh={zh} onFinish={finish} />}
+      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{
+        setPickingHero(false);const hero=savedHero()||'supercharlie';
+        if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
+        window.scrollTo({top:0,behavior:'instant'});
+        const stage=onboardingStage(true,completedTutorial.current,hero);setAdventureStage(stage);setTutorial(stage==='tutorial');
+      }}/> }
+      {ready && user && tutorial && <ProductTour userId={user.id} zh={zh} onFinish={finish} />}
     </>
   )}</LocalizeTree>;
 }
