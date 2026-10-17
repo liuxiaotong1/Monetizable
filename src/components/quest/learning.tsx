@@ -1,4 +1,5 @@
 "use client";
+import DeckVictory,{useDeckCompletion} from './deck-victory';
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { shuffledIndices } from "@/lib/quest/shuffle";
 import KnowledgeExplanation from "./knowledge-explanation";
@@ -16,6 +17,7 @@ function queueFor(state:QuestState,tab:Tab,theme:Category|"all"){
 }
 export default function Learning({state,run,busy}:ViewProps){
  const [tab,setTab]=useState<Tab>("daily"),[theme,setTheme]=useState<Category|"all">("all"),[activeId,setActiveId]=useState<string>();
+ const deck=useDeckCompletion();
  const visit=useRef<string>(undefined), starting=useRef(false);
  const [ready,setReady]=useState(false),[visitFailed,setVisitFailed]=useState(false);
  useEffect(()=>{
@@ -35,7 +37,7 @@ export default function Learning({state,run,busy}:ViewProps){
   if(!card||busy)return;
   const before=queue.map(c=>c.id),current=card.id;
   const saved=await run({type:"card",cardId:current,action});
-  if(saved)setActiveId(automatic?nextCardId(before,current,queueFor(saved,tab,theme).map(c=>c.id)):undefined);
+  if(saved){const remaining=queueFor(saved,tab,theme).map(c=>c.id);if(automatic)deck.finish(current,remaining);setActiveId(automatic?nextCardId(before,current,remaining):undefined);}
  }
  return <LocalizeTree>{<>
   <div className="page-intro learning-intro"><span className="eyebrow">FIVE PATHS · ONE CURIOUS MIND</span><h1>先问一个好问题，<span>再解锁新理解。</span></h1><p>五条学习路线。先选答案，再翻面看解释；左滑，下次回来复习一次，右滑标记掌握。</p></div>
@@ -45,7 +47,7 @@ export default function Learning({state,run,busy}:ViewProps){
   <div className="learning-nav"><div className="segmented">{([["daily","今日练习"],["library","全部题库"],["collection","我的收藏"],["mastered","已掌握"]] as [Tab,string][]).map(([value,label])=><button key={value} className={tab===value?"active":""} onClick={()=>switchTab(value)}>{label}</button>)}</div><span className="learning-total"><BookOpen size={15}/>{state.cards.length} 道题 · {mastered.size} 个概念已掌握</span></div>
   {theme!=="all"&&<button className="text-button" onClick={()=>{setTheme("all");setActiveId(undefined);}}>正在学习：{categoryNames[theme]} · 显示全部方向 ×</button>}
   <div className="learning-layout"><section className="card-stage"><div className="deck-heading"><span>{tab==="daily"?"DAILY QUEST":tab==="mastered"?"MASTERED CONCEPTS":"EXPLORE YOUR DECK"}</span><span>{tab==="daily"?`${done} / ${state.dailyCardIds.length} 已完成`:`${automatic?queue.length:catalogue.length} 道${automatic?"可练习":"可查看"}`}</span></div>
-   {!ready?<div className="deck-complete" role="status"><p>{visitFailed?"暂时无法整理练习，请重试。":"正在整理新题与本次复习…"}</p>{visitFailed&&<button className="secondary" disabled={busy} onClick={()=>setVisitFailed(false)}>重试</button>}</div>:card?<QuizCard key={`${state.mode}:${card.id}`} card={card} state={state} run={run} busy={busy} mastered={mastered.has(conceptKey(card))} onClassify={classify}/>:<div className="deck-complete"><span><CheckCircle2 size={42}/></span><h2>{automatic?"这组练习已完成。":"选择一张卡，回看你的知识。"}</h2><p>{automatic?"左滑的题下次回来复习一次，已掌握的概念不再自动出现。也可以切换方向，探索更多新题。":"收藏与掌握进度保存在本机；回看不会改变复习安排。"}</p>{tab==="daily"&&<button className="primary" onClick={()=>switchTab("library")}>继续探索全部题库 <ArrowRight size={16}/></button>}</div>}
+   {deck.completed?<DeckVictory count={deck.completed} onContinue={deck.close}/>:!ready?<div className="deck-complete" role="status"><p>{visitFailed?"暂时无法整理练习，请重试。":"正在整理新题与本次复习…"}</p>{visitFailed&&<button className="secondary" disabled={busy} onClick={()=>setVisitFailed(false)}>重试</button>}</div>:card?<QuizCard key={`${state.mode}:${card.id}`} card={card} state={state} run={run} busy={busy} mastered={mastered.has(conceptKey(card))} onClassify={classify}/>:<div className="deck-complete"><span><CheckCircle2 size={42}/></span><h2>{automatic?"这组练习已完成。":"选择一张卡，回看你的知识。"}</h2><p>{automatic?"左滑的题下次回来复习一次，已掌握的概念不再自动出现。也可以切换方向，探索更多新题。":"收藏与掌握进度保存在本机；回看不会改变复习安排。"}</p>{tab==="daily"&&<button className="primary" onClick={()=>switchTab("library")}>继续探索全部题库 <ArrowRight size={16}/></button>}</div>}
   </section><aside className="learning-side"><div className="panel"><span className="eyebrow">YOUR LEARNING ROUTE</span><h3>{tab==="daily"?"今天的知识任务":tab==="mastered"?"已经掌握的概念":tab==="collection"?"你的收藏册":"按兴趣自由练习"}</h3><p className="muted">{tab==="daily"?"每天每个方向一张新题，加上你主动安排的本次复习。周末也可以继续。":"点击题目进入。收藏独立于掌握状态，不会改变复习安排。"}</p><div className="daily-card-list learning-scroll-list">{(automatic?queue:catalogue).map((c,index)=><button key={c.id} className={c.id===card?.id?"active":""} onClick={()=>setActiveId(c.id)} disabled={busy}><span>{mastered.has(conceptKey(c))?<Check size={15}/>:String(index+1).padStart(2,"0")}</span><div><strong>{c.title}</strong><small>{categoryNames[c.category]}{c.symbol?` · ${c.symbol}`:""}</small></div></button>)}{!(automatic?queue:catalogue).length&&<p className="muted">这个方向暂时没有待处理卡片。</p>}</div></div><div className="wisdom-note"><Brain size={24}/><h3>答错也能学会。</h3><p>答题记录理解过程；是否需要复习，由你决定。左滑，下次回来再见一次，右滑告别重复。已掌握页可手动重新加入复习。</p></div></aside></div>
  </>}</LocalizeTree>;
 }

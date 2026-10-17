@@ -1,4 +1,5 @@
 "use client";
+import DeckVictory,{useDeckCompletion} from './deck-victory';
 import WeeklyOutlook from './weekly-outlook';
 import BossAvatar from './boss-avatar';
 import BriefPreview from './brief-preview';
@@ -1020,6 +1021,7 @@ function Deck({
   const [theme, setTheme] = useState<Category>(),
     [tab, setTab] = useState<"daily" | "all" | "mastered" | "saved">("daily"),
     [celebrate, setCelebrate] = useState(false),[front,setFront]=useState(false);
+  const deck=useDeckCompletion();
   const visit = useRef<string | null>(null);
   useEffect(() => {
     if (!visit.current) visit.current = crypto.randomUUID();
@@ -1060,7 +1062,9 @@ function Deck({
   async function disposition(action: "master" | "review") {
     if (card && answered) {
       setCelebrate(false);
-      return !!(await run({ type: "card", cardId: card.id, action }));
+      const saved=await run({ type: "card", cardId: card.id, action });
+      if(saved){const remaining=learningQueue(saved.cards,saved.progress,saved.session.date,tab==='daily'?saved.dailyCardIds:undefined,theme,saved.learningVisitId);deck.finish(card.id,remaining.map(c=>c.id));}
+      return !!saved;
     }
   }
   const list = state.cards.filter(
@@ -1151,7 +1155,7 @@ function Deck({
         ))}
         <span>{mastered.size} concepts mastered</span>
       </div>
-      {tab === "mastered" || tab === "saved" ? (
+      {deck.completed ? <DeckVictory count={deck.completed} onContinue={deck.close}/> : tab === "mastered" || tab === "saved" ? (
         <section className="en-card">
           {!list.length ? (
             <p>No cards here yet.</p>

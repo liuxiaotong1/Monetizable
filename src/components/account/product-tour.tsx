@@ -1,29 +1,26 @@
 "use client";
 import {BossVictory} from '@/components/quest/boss-victory';
-import {LocalizeTree} from '@/components/i18n/locale-provider';
+import DeckVictory from '@/components/quest/deck-victory';
+import YelanBattle from '@/components/quest/yelan-battle';
+import '@/components/quest/yelan.css';
+import {useLocale,LocalizeTree} from '@/components/i18n/locale-provider';
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 
 type View = "today" | "events" | "learn";
-type Step = { view: View; selector: string; title: [string, string]; text: [string, string]; celebration?: boolean; navigation?: boolean };
+type Step = { view: View; selector: string; title: [string, string, string]; text: [string, string, string]; navigation?: boolean };
 const steps: Step[] = [
-  { view: "today", selector: '[data-tour-nav="today"]', navigation: true, title: ["Start with Daily Quest", "从今日冒险开始"], text: ["This button opens your daily preparation and review. On your phone, find it in the bottom navigation. Click the highlighted button or Next to explore it.", "这个按钮进入每日准备与复盘；手机上位于底部导航。点击高亮按钮或「下一步」开始。"] },
-  { view: "today", selector: '.en-hero .primary, .hero .primary', title: ["Play today's first quest", "开始今天的第一项任务"], text: ["Play for free opens this guided tour. Then choose a scenario and write one reason. This tour never submits a prediction for you.", "「免费开始玩」会打开操作引导。随后选择一个剧本并写下一句理由；引导不会替你提交判断。"] },
-  { view: "today", selector: '#en-judgment button.primary, #judgment .primary', title: ["Record your own prediction", "留下你的盘前判断"], text: ["Choose direction and confidence, then write your reason. Guests can try the form; saving asks for an account. Scored predictions must be locked before the opening bell. This tour never submits a prediction for you.", "选择方向、信心并写一句理由，再主动保存封存。引导不会替你提交判断。开盘后或休市日，不能补写盘前判断。"] },
-  { view: "today", selector: '.en-week summary, .tracking-nav', title: ["Track your judgment over time", "回看一周的判断记录"], text: ["Expand a week to compare daily calls and results. Missing or late predictions are kept separate from eligible premarket results.", "展开一周，逐日对照判断与结果；漏做或开盘后补写的记录不会混入盘前命中统计。"] },
-  { view: "events", selector: '[data-tour-nav="events"]', navigation: true, title: ["Open Event Boss", "进入事件 Boss"], text: ["This is your event map: important economic releases and earnings first, market commentary afterward. Click the highlighted button or Next.", "这里先展示重要经济数据与财报，再看市场解读。点击高亮按钮或「下一步」进入。"] },
-  { view: "events", selector: '.boss-quest .boss-picks, .boss-quest, .en-event summary, .event-row', title: ["Open an event’s briefing", "点击事件，展开作战情报"], text: ["Open an event to see the release time, previous reading, market forecast and confirmed result, with sources. A missing reading means it has not been verified yet.", "点击事件查看发布时间、前值、市场预测、已确认结果与来源。没有可靠数值时，会明确保留待确认状态。"] },
-  { view: "events", selector: '.boss-quest', celebration: true, title: ["A correct prediction defeats the Boss", "预测正确，击败事件 Boss"], text: ["After the official result is verified, a correct comparison unlocks this celebration. This is a preview only: no prediction or score is saved.", "官方结果核实后，预测方向正确就会解锁庆祝。这里仅为演示，不提交预测、不记录成绩。"] },
-  { view: "events", selector: '[data-tour="briefs"] .eyebrow, .agent-hub-heading', title: ["Find the premarket brief and week ahead", "查看盘前快报与一周前瞻"], text: ["Your premarket brief and Sunday outlook live here. The source section is folded at the bottom; expand it when you want to check market forecasts, commentary and sentiment.", "盘前快报与周日前瞻都在这里。页面底部的信息来源默认折叠，需要核对预测、解读与市场情绪时再展开。"] },
-  { view: "learn", selector: '[data-tour-nav="learn"]', navigation: true, title: ["Open Knowledge Deck", "进入知识卡片"], text: ["Use this button to learn through questions across five paths. Click the highlighted button or Next to see how a card works.", "从这个按钮进入五条学习路线，用问题学习。点击高亮按钮或「下一步」，看看卡片怎么使用。"] },
-  { view: "learn", selector: '.en-choices, .quiz-choices, .en-answer, .quiz-reveal, .en-deck-done, .card-stage', title: ["Pick an answer to reveal the explanation", "先选答案，再解锁讲解"], text: ["Select an option on the card. It flips to the correct answer and explanation; a correct answer gets a little celebration. The tour does not answer or grade a card for you.", "在卡片中选择答案，随后翻面展示正确答案与讲解；答对会有小庆祝。引导不会替你答题或改变学习成绩。"] },
-  { view: "learn", selector: '.en-disposition, .swipe-actions, .en-deck-done, .card-stage', title: ["Decide what to review", "决定是否还需要复习"], text: ["After reading the explanation, swipe left or use the left button to review once next visit. Swipe right or use the right button when mastered. These buttons stay disabled until you answer. You can replay this tour with Play for free on the home page.", "看完讲解后，左滑或点左侧按钮，在下次访问复习一次；右滑或点右侧按钮表示已掌握。答题前按钮不可用。以后可从首页「免费开始玩」重新打开。"] },
+ {view:'today',selector:'#en-judgment, #judgment',title:['1 · Make your call','1 · 留下你的判断','1 · Faites votre prévision'],text:['Choose a direction and give one reason. After the close, compare your call with verified prices: a correct call lets Yelan defeat the Market Boss. Next, discover what could move the market.','选择方向，写一句理由。收盘后用已核实行情验证；判断正确，夜兰击败市场 Boss。接着看看，哪些事件可能影响市场。','Choisissez une direction et donnez une raison. Après la clôture, vérifiez votre prévision : si elle est juste, Yelan bat le Boss du marché. Découvrez ensuite ce qui peut faire bouger le marché.']},
+ {view:'events',selector:'.boss-quest, .en-event, .event-row',title:['2 · Read the Boss before predicting','2 · 看懂事件，再挑战 Boss','2 · Comprenez le Boss avant de prédire'],text:['Read the next release, previous value and consensus. Make your own prediction; a verified correct result unlocks victory. Turn unfamiliar concepts into your next learning quest.','查看即将公布的数据、前值与市场预期，再做预测。官方结果核实且预测正确时解锁胜利；不熟悉的概念，就去下一站学习。','Consultez la prochaine publication, la valeur précédente et le consensus. Faites votre prévision : un résultat confirmé et juste déclenche la victoire. Un concept inconnu ? Passez aux cartes !']},
+ {view:'learn',selector:'.swipe-deck, .card-stage, .en-deck-done, .premium-gate',title:['3 · Learn, then finish your deck','3 · 学懂卡片，完成任务','3 · Apprenez et terminez votre paquet'],text:['Answer to flip the card and read the explanation. Swipe left to review next visit, right when understood. Finish a pack to celebrate, then bring what you learned to your next daily prediction.','先答题，翻面看解释。左滑留待下次复习，右滑表示已学会。学完一叠就庆祝通关，再把新知识用到下一次每日判断。','Répondez, puis lisez l’explication au verso. Glissez à gauche pour revoir à la prochaine visite, à droite si vous avez compris. Terminez un paquet, célébrez, puis réutilisez vos acquis dans votre prochaine prévision.']},
 ];
 type Bounds = { top: number; left: number; width: number; height: number };
 export default function ProductTour({ zh, onFinish }: { zh: boolean; onFinish: () => void }) {
   const [index, setIndex] = useState(0), [bounds, setBounds] = useState<Bounds | null>(null), [position, setPosition] = useState({ top: 60, left: 16 });
   const panel = useRef<HTMLElement>(null), target = useRef<HTMLElement | null>(null);
-  const current = steps[index], language = zh ? 1 : 0;
+  const locale=useLocale();
+  const current = steps[index], language = zh ? 1 : locale==='fr'?2:0;
+  const t=(en:string,cn:string,fr:string)=>[en,cn,fr][language];
   const next = () => index === steps.length - 1 ? onFinish() : setIndex(index + 1);
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null;
@@ -81,7 +78,10 @@ export default function ProductTour({ zh, onFinish }: { zh: boolean; onFinish: (
       <button className="tour-close" onClick={onFinish} aria-label={zh ? "关闭引导" : "Close tour"}><X size={18}/></button>
       <span className="eyebrow">{zh ? "操作引导" : "GUIDED WALKTHROUGH"} · {index + 1} / {steps.length}</span>
       <h2 id="tour-heading">{current.title[language]}</h2><p>{current.text[language]}</p>
-      {current.celebration && <BossVictory demo/>}
+      <div className="tour-route">{[t('Daily Quest','今日冒险','Quête du jour'),t('Event Boss','事件 Boss','Boss économique'),t('Knowledge Deck','知识卡片','Cartes')].map((label,i)=><span key={i} className={i===index?'active':''}>{label}</span>)}</div>
+      {index===0&&<><small className="tour-demo-label">{t('Victory preview · no prediction saved','胜利演示 · 不保存判断','Victoire en démonstration · aucune prévision enregistrée')}</small><YelanBattle active date=""/></>}
+      {index===1&&<BossVictory demo/>}
+      {index===2&&<DeckVictory demo/>}
       {!bounds && <p className="tour-wait">{zh ? "此区域暂无内容。可以继续下一步；引导不会生成示例交易。" : "This area has no content yet. Continue to the next step; the tour won’t create sample trades."}</p>}
       <div className="tour-controls"><button className="tour-back" disabled={index === 0} onClick={() => setIndex(index - 1)}><ArrowLeft size={15}/>{zh ? "上一步" : "Back"}</button><button className="primary tour-next" onClick={next}>{index === steps.length - 1 ? (zh ? "开始探索" : "Start exploring") : (zh ? "下一步" : "Next")}<ArrowRight size={15}/></button></div>
       <button className="tour-skip" onClick={onFinish}>{zh ? "跳过引导" : "Skip tour"}</button>
