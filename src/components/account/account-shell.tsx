@@ -9,6 +9,7 @@ import {
 import { transferKey } from "@/lib/quest/guest-access";
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
+import HeroPicker from "./hero-picker";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
   setBrowserIdentity,
@@ -32,7 +33,7 @@ export default function AccountShell({
   const locale=useLocale(),zh = locale==='zh';
   const [ready, setReady] = useState(false),
     [sync, setSync] = useState(""),
-    [tutorial, setTutorial] = useState(false);
+    [tutorial, setTutorial] = useState(false),[pickingHero,setPickingHero]=useState(false);
   const revision = useRef(0),
     writing = useRef(false),
     pending = useRef<BrowserRecord | null>(null),
@@ -167,7 +168,7 @@ export default function AccountShell({
     };
   }, [user?.id, zh,locale]);
   useEffect(() => {
-    const start = () => { if ((new URLSearchParams(location.search).get('view') || 'today') === 'today') setTutorial(true); };
+    const start = () => { if ((new URLSearchParams(location.search).get('view') || 'today') === 'today') setPickingHero(true); };
     window.addEventListener('quest-start-playing', start);
     return () => window.removeEventListener('quest-start-playing', start);
   }, []);
@@ -260,6 +261,7 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
+      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{setPickingHero(false);setTutorial(true)}}/>}
       {ready && tutorial && <ProductTour zh={zh} onFinish={finish} />}
     </>
   )}</LocalizeTree>;

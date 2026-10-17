@@ -64,16 +64,16 @@ function HeroReview({review,state,onNotes}:{review:Review;state:ViewProps["state
  const correct=review.matched===true;
  const [showFacts,setShowFacts]=useState(!correct);
  const reveal=useCallback(()=>setShowFacts(true),[]);
- return <LocalizeTree>{<section className={`hero-report ${correct?"verified":""}`} aria-label="夜兰收盘战报">
+ return <LocalizeTree>{<section className={`hero-report ${correct?"verified":""}`} aria-label="收盘战报">
   <div className="hero hero-yelan">
    <div className="hero-copy"><span className="eyebrow">{correct?<Trophy size={16}/>:<Target size={16}/>} {review.date===state.session.date?"今日收盘战报":"最近收盘战报"} · {review.date}</span>
     <h1>{correct?<>方向判断<span>正确！</span></>:review.matched===false?<>这次方向<span>未命中</span></>:<>收盘已确认<span>本次未评分</span></>}</h1>
     <p>{review.matched===undefined?review.judgmentSnapshot?`${review.date} 的判断不计入盘前评分；其它日期的封存记录独立核对。`:`${review.date} 当天没有封存判断。这是历史战报，其它日期的判断独立核对。`:`你的判断：${review.judgmentSnapshot?directionNames[review.judgmentSnapshot.direction]:correct?directionNames[review.actualDirection]:"见封存记录"} · 实际方向：${directionNames[review.actualDirection]}`}</p>
     <div className="hero-close-quote"><strong>{dollars(review.actual.close)}</strong><span>{review.returnPct>0?"+":""}{review.returnPct.toFixed(2)}%</span><small>QQQ · 常规时段收盘</small></div>
-    <p className="hero-yelan-line">{correct?"✦ 夜兰与你庆祝这次方向判断！":"✦ 夜兰陪你回到证据，继续积累经验。"}</p>
+    <p className="hero-yelan-line">{correct?"✦ 伙伴与你庆祝这次方向判断！":"✦ 伙伴陪你回到证据，继续积累经验。"}</p>
     <button className="primary" aria-expanded={showFacts} aria-controls="hero-review-facts" onClick={()=>{reveal();if(showFacts)document.getElementById("hero-review-facts")?.scrollIntoView({behavior:"smooth",block:"start"});}}>{showFacts?"查看完整事实过程":"跳过庆祝，展开事实"}<ChevronRight size={16}/></button>
    </div>
-   <YelanViewer victoryDate={correct?review.date:undefined} celebrate={correct&&!showFacts} onCelebrationComplete={reveal}/>
+   <YelanViewer victoryDate={correct?review.date:undefined} celebrate={correct&&!showFacts} failed={review.matched===false} onCelebrationComplete={reveal}/>
   </div>
   {showFacts&&<div id="hero-review-facts" className="hero-report-facts review-facts"><span className="eyebrow">从判断到验证 · 完整事实过程</span><ReviewFacts review={review} state={state}/><button className="secondary" onClick={onNotes}><BookOpen size={16}/>{review.completedAt?"查看 / 编辑复盘笔记":"写下复盘教训"}</button></div>}
  </section>}</LocalizeTree>;

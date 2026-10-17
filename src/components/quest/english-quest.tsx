@@ -483,6 +483,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <YelanViewer
             locale="en"
             celebrate={celebrate}
+            failed={!pending&&review?.matched===false}
             victoryDate={review?.matched===true?review.date:undefined}
             onCelebrationComplete={revealBattleFacts}
           />
