@@ -1,4 +1,6 @@
 "use client";
+import WeeklyOutlook from './weekly-outlook';
+import BossAvatar from './boss-avatar';
 import BriefPreview from './brief-preview';
 import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
 import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/locale";
@@ -414,6 +416,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
     review = state.reviews[0],
     f = state.forecast;
   useEffect(() => { const draft = readPredictionDraft(); if (draft) { setDirection(draft.direction); setConfidence(draft.confidence); setReason(draft.reason); } }, []);
+  const revealBattleFacts=useCallback(()=>{setCelebrate(false);setFacts(true);},[]);
   const past = useRef("");
   useEffect(() => {
     if (review?.matched && past.current !== review.id) {
@@ -478,11 +481,9 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <div className="en-hero-character">
           <YelanViewer
             locale="en"
-            celebrate={celebrate&&!pending}
-            onCelebrationComplete={() => {
-              setCelebrate(false);
-              setFacts(true);
-            }}
+            celebrate={celebrate}
+            victoryDate={review?.matched===true?review.date:undefined}
+            onCelebrationComplete={revealBattleFacts}
           />
         </div>
       </section>
@@ -794,31 +795,7 @@ function EventMap({ state }: { state: QuestState }) {
               . The next session is {dayLabel(state.session.nextDate)}.
             </p>
           </article></PremiumGate>;
-  const weeklyBrief = <article key="weekly" className="brief-card brief-weekly">
-            <span className="brief-emoji" aria-hidden="true">🔮 🗺️</span>
-            <span className="eyebrow">YOUR NEXT WEEK’S QUEST</span>
-            <h3>Weekly outlook</h3>
-            <strong>Sunday · 19:00 Paris</strong>
-            <p>
-              Preview the next week’s releases and the verified QQQ price
-              structure. Sunday evening refreshes the shared source report.
-            </p>
-            <ul>
-              {state.events
-                .filter(
-                  (e) =>
-                    Date.parse(e.at) > Date.parse(state.now) &&
-                    Date.parse(e.at) < Date.parse(state.now) + 7 * 86400000,
-                )
-                .sort((a, b) => a.at.localeCompare(b.at))
-                .slice(0, 5)
-                .map((e) => (
-                  <li key={e.id}>
-                    {eventText(e).title} · {e.at.slice(0, 10)}
-                  </li>
-                ))}
-            </ul>
-          </article>;
+  const weeklyBrief = <WeeklyOutlook key="weekly" events={state.events} bars={state.bars} now={state.now}/>;
   return <LocalizeTree>{(
     <>
       <header className="en-page-title">
@@ -932,7 +909,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
     <details className="en-event" id={`event-${e.id}`}>
       <summary>
         <span className="en-event-icon">
-          <Swords size={22} />
+          <BossAvatar kind={e.kind}/>
         </span>
         <div>
           <span className="eyebrow">

@@ -4,6 +4,7 @@ import EventTakeaway from "./event-takeaway";
 import EventBossQuest from "./event-boss-quest";
 import { compactEventUnit } from "@/lib/quest/event-presentation";
 import DataFreshness from "./data-freshness";
+import BossAvatar from './boss-avatar';
 import AgentReports from "./agent-reports";
 import EventIntelligencePanel from "./event-intelligence";
 import { useRef, useState } from "react";
@@ -45,13 +46,13 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
     <DataFreshness state={state}/>
     <EventBossQuest events={state.events} now={state.now} onDetails={setSelectedId}/>
-    <AgentReports events={state.events} demo={state.mode==="demo"} now={state.now}/>
+    <AgentReports bars={state.bars} events={state.events} demo={state.mode==="demo"} now={state.now}/>
     <SectionHeading title="重大事件地图" subtitle="先看事件与官方数据，再看市场如何解读" action={<div className="segmented" aria-label="事件类别">{categories.map(([value, name]) => <button key={value} aria-pressed={filter === value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>{name}</button>)}</div>} />
     <div className="event-period-controls"><div className="segmented" aria-label="事件时间范围">{scopes.map(([value, name]) => <button key={value} aria-pressed={scope === value} className={scope === value ? "active" : ""} onClick={() => setScope(value)}>{name}</button>)}</div><span>{scope === "week" ? `${week.start.slice(5).replace("-", "/")} – ${week.lastDate.slice(5).replace("-", "/")} · 美东本周` : scope === "next7" ? "从现在起的 7 天" : "未来日程与已保存记录"} · {events.length} 项</span></div>
     <div className="event-list">{events.length ? events.map(event => {
       const status = eventStatusAt(event, state.now);
       return <button key={event.id} className={`event-row ${status === "pending" || status === "confirmed" ? "event-past" : ""}`} onClick={() => setSelectedId(event.id)}>
-        <div className={`event-emblem ${event.kind.toLowerCase()}`}>{event.kind === "EARNINGS" ? <span>{event.symbol?.slice(0, 2) || "E"}</span> : ["FOMC", "MINUTES", "BEIGE_BOOK"].includes(event.kind) ? <Swords size={23} /> : <Flame size={23} />}</div>
+        <div className={`event-emblem ${event.kind.toLowerCase()}`}><BossAvatar kind={event.kind}/></div>
         <div className="event-row-copy"><div><span className="event-kind">{event.title.split("·")[0].trim()}</span><span className={`badge ${status === "confirmed" ? "green" : "purple"}`}>{status === "confirmed" ? (event.report?"官方报告已发布":"官方结果已确认") : status === "unconfirmed" ? "日期待确认" : status === "pending" ? (event.calendarValues?.reported!==undefined&&Date.parse(event.at)<=Date.parse(event.calendarValues.fetchedAt)?"日历已报告 · 官方待确认":"已到公布时间 · 结果待确认") : "Boss 预告"}</span></div><h3>{event.title}</h3><p>{event.analogy}</p>{event.actual!==undefined&&<small className="event-row-values">公布值 {event.actual.toLocaleString("zh-CN")} · 前值 {event.previous?.toLocaleString("zh-CN")??"—"} · {event.unit}</small>}{event.report&&<small className="event-row-values">{event.report.summary[0]}</small>}{event.calendarValues&&event.actual===undefined&&<small className="event-row-values">前值 {event.previous??"—"} · 市场共识 {event.consensus??"—"} · {event.unit}</small>}<small className="event-row-source">{event.sourceName}{event.history.length?` · 历史 ${event.history.length} 条 · 最新 ${event.history.at(-1)?.date}`:""}</small></div>
         <div className="event-row-time"><strong>{status === "unconfirmed" ? "日期待确认" : eventDate(event.at)}</strong><span>{status === "unconfirmed" ? "官方尚未确认" : dualTime(event.at)}</span><small>{countdown(event, state.now)}</small></div><ChevronRight size={18} />
       </button>;
@@ -72,7 +73,7 @@ function EventDialog({ event, now, mode, onClose }: { event: MarketEvent; now: s
   useDialogFocus(dialogRef, true, onClose);
   const status = eventStatusAt(event, now), numeric = numericEvent(event);
   return <LocalizeTree>{<div className="modal-backdrop" onClick={onClose}><section ref={dialogRef} className="modal event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" onClick={e => e.stopPropagation()}>
-    <button className="modal-close" onClick={onClose} aria-label="关闭事件">×</button><span className="eyebrow">事件情报 · {event.title.split("·")[0].trim()}</span><h2 id="event-title">{event.title}</h2>
+    <button className="modal-close" onClick={onClose} aria-label="关闭事件">×</button><span className="eyebrow">事件情报 · {event.title.split("·")[0].trim()}</span><BossAvatar kind={event.kind} named/><h2 id="event-title">{event.title}</h2>
     <p className="muted"><Clock3 size={14} /> {status === "unconfirmed" ? "日期与时间等待官方公告" : `${eventDate(event.at)} · ${dualTime(event.at)}`}{mode === "demo" ? " · 示例事件" : ""}</p>
     <div className="analogy-box"><Sparkles size={20} /><p>{event.analogy}</p></div><p>{event.description}</p>
     {numeric ? <EventNumbers event={event}/> : <div className="report-story"><h4>{event.report?"官方纪要已发布":"这是一份文字报告"}</h4>{event.report?<>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方纪要全文 <ExternalLink size={12}/></SourceLink></>:<><p>{status==="pending"?"公布时间已过，尚未取得可验证的官方正文。":"等待官方发布正文。"}</p><SourceLink href={event.sourceUrl}>查看官方来源 <ExternalLink size={12}/></SourceLink></>}</div>}

@@ -1,4 +1,5 @@
 "use client";
+import YelanBattle from './yelan-battle';
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
@@ -24,10 +25,12 @@ const tips = [
 ];
 export default function YelanViewer({
   celebrate = false,
+  victoryDate,
   onCelebrationComplete,
   locale = "zh",
 }: {
   celebrate?: boolean;
+  victoryDate?: string;
   onCelebrationComplete?: () => void;
   locale?: "zh" | "en";
 }) {
@@ -140,7 +143,7 @@ export default function YelanViewer({
     }, 0);
     const done = window.setTimeout(
       () => onCelebrationComplete?.(),
-      status === "ready" && !reduced && !paused ? 2600 : 0,
+      status === "ready" && !reduced && !paused ? 4200 : 1200,
     );
     return () => {
       window.clearTimeout(start);
@@ -289,6 +292,7 @@ export default function YelanViewer({
           />
         )}
       </div>
+      {victoryDate&&<YelanBattle date={victoryDate} active={celebrate && status!=="loading"}/> }
       <div className="yelan-dialogue">
         {(message || (celebrate && status === "ready")) && (
           <div key={castCount} className="yelan-speech" role="status">
