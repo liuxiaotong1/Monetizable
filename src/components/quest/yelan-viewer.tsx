@@ -18,6 +18,6 @@ export default function YelanViewer({celebrate=false,failed=false,victoryDate,on
  <iframe ref={frame} key={`${hero}:${outcome||'idle'}:${attempt}:${demoBoss||'dragon'}`} title={hero==='female'?c.female:'SuperCharlie'} src={`/heroes/index.html?hero=${hero}&locale=${locale}${outcome?`&outcome=${outcome}&boss=${demoBoss||'dragon'}`:''}`} className="companion-frame"/>
  {!ready&&<div className="companion-loading" role="status"><span>{error?({zh:'角色加载暂时失败',en:'Your hero could not load',fr:'Le personnage n’a pas pu être chargé'}[locale]):({zh:'正在准备你的伙伴…',en:'Preparing your companion…',fr:'Votre partenaire se prépare…'}[locale])}</span>{error&&<button onClick={()=>setAttempt(n=>n+1)}>{({zh:'重新加载角色',en:'Reload hero',fr:'Recharger le personnage'}[locale])}</button>}</div>}
  {celebrate&&ready&&<div className="companion-win" role="status"><span>✦ ✧ ✦</span><strong>{c.win}</strong><small>{victoryDate}</small></div>}
- <div className="companion-footer"><button onClick={cast} disabled={!ready}>⚄ {c.roll}</button><small>{c.hint}</small><small>{c.credit}</small></div>
+ <div className="companion-footer"><button onClick={cast} disabled={!ready}>⚄ {c.roll}</button><small>{c.hint}</small><small>{c.credit}</small>{demoBoss==='beetle'&&<small><a href="https://sketchfab.com/3d-models/beetle-king-371fdacc344b417c933d12ff44de7acf" target="_blank" rel="noopener noreferrer">Beetle King · SaVVy3DArt</a> · <a href="/heroes/beetle-license.txt" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></small>}</div>
  </div>
 }
