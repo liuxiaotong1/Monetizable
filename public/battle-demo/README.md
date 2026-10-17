@@ -22,3 +22,8 @@ are accessible through visible controls. No model files are duplicated.
 Onboarding: /battle-demo/embed.html?embed=1&hero=female&boss=dragon&locale=fr
 The embed posts same-origin ready/complete/error messages. The React parent
 checks the frame source and stores one-time completion per account.
+
+Failure review: /battle-demo/index.html?hero=supercharlie&boss=dragon&outcome=loss&locale=zh
+The loss branch keeps both arenas, faces the selected companion toward +X
+(the boss), adds guard/recoil/recovery via defeat-motion.js, and keeps the boss
+standing. Homepage and legacy loss URLs use this same arena embed.
