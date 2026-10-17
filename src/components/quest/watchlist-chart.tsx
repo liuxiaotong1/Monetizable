@@ -55,7 +55,7 @@ export default function WatchlistChart({settings,onSave,selected,onSelect,locale
     finally{setSearching(false);}
   }
   async function remove(item:WatchItem){const result=await onSave({...settings,watchlist:watch.filter(w=>w.symbol!==item.symbol)});if(result!==false&&symbol===item.symbol)onSelect('QQQ');}
-  return <LocalizeTree>{<section className="watchlist-observatory" aria-label={zh?'自选标的与行情图表':'Watchlist & price chart'}>
+  return <LocalizeTree>{<section data-qqq-chart className="watchlist-observatory" aria-label={zh?'自选标的与行情图表':'Watchlist & price chart'}>
     <header><div><span className="eyebrow">🔭 {zh?'市场望远镜':'MARKET OBSERVATORY'}</span><h2>{zh?'自选标的与图表':'Your watchlist & chart'}</h2></div><span>{zh?'QQQ + 最多 5 个自选标的':'QQQ + up to 5 symbols'}</span></header>
     <form className="watchlist-add" onSubmit={event=>{event.preventDefault();void add();}}><label htmlFor={id+'-ticker'}>{zh?'添加自选标的':'Add a symbol'}<input id={id+'-ticker'} value={ticker} onChange={event=>setTicker(event.target.value)} maxLength={60} placeholder={zh?"AAPL / DXY / 美元指数":"Apple / AAPL / DXY"} autoCapitalize="characters" autoComplete="off" /></label><button className="primary" type="submit" disabled={busy||searching||!ticker.trim()}>{searching?(zh?'确认标的…':'Finding symbol…'):(zh?'+ 添加并查看':'+ Add & view')}</button></form>
     <p className="watchlist-caption">{zh?'支持公司名称、股票代码或 DXY / 美元指数，自动匹配图表来源。':'Enter a company name, stock ticker, or DXY dollar index. The chart source is matched automatically.'}</p>

@@ -68,6 +68,7 @@ import { marketContext } from "@/lib/quest/market-context";
 import { LineChart } from "./charts";
 import YelanViewer from "./yelan-viewer";
 import FirstQuestHero from "./first-quest-hero";
+import NextQuestPrompt from "./next-quest-prompt";
 import {useHasHero} from "./hero-preference";
 type View = "today" | "events" | "learn";
 const navigation = [
@@ -431,7 +432,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   }, [review?.id, review?.matched]);
   const pending=pendingJudgment(state);
   const productIntro = !pending && review?.matched !== true && review?.matched !== false;
-  const startQuest = () => window.dispatchEvent(new Event("quest-start-playing"));
   const targetSession=predictionSession(state);
   const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
   const locked =
@@ -452,9 +452,10 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
     <>
       {!hasHero?<FirstQuestHero/>:<section className="en-hero">
         <div className="en-hero-copy">
+          {productIntro?<NextQuestPrompt/>:<>
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
           <h1>
-            {productIntro ? "Finance, played like a game." : <>
+            {<>
             {pending ? `Your ${day(pending.date)} call is sealed.` : review?.matched
               ? "Your call matched."
               : "A new lesson unlocked."}
@@ -463,24 +464,22 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             </>}
           </h1>
           <p>
-            {productIntro ? "Predict the market, take on the big economic events, and earn XP." : pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
+            {pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
               ? `${day(review.date)} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
-              : "Predict the market, take on the big economic events, and earn XP."}
+              : ""}
           </p>
           <button
             className="primary"
             onClick={() =>
-              productIntro
-                ? startQuest()
-                : review
+              review
                 ? setFacts(!facts)
-                : startQuest()
+                : document.getElementById("en-judgment")?.scrollIntoView({behavior:"smooth",block:"start"})
             }
           >
-            {productIntro ? "Play for free" : review ? pending ? `View ${day(review.date)} historical report` : "Follow the facts" : "Play for free"}
+            {review ? pending ? `View ${day(review.date)} historical report` : "Follow the facts" : locale==='fr'?"Revoir ma prévision":"View my saved call"}
             <ArrowRight size={18} />
           </button>
-          {!productIntro && <button className="secondary" onClick={startQuest}>Play for free</button>}
+          </>}
         </div>
         <div className="en-hero-character">
           <YelanViewer

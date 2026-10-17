@@ -9,3 +9,8 @@ export function useHero(){return useSyncExternalStore(subscribe,read,():HeroId=>
 
 function hasHero(){try{const value=localStorage.getItem(key);return value==='female'||value==='supercharlie'}catch{return false}}
 export function useHasHero(){return useSyncExternalStore(subscribe,hasHero,()=>false)}
+
+let tourActive=false;
+export function setTourActive(active:boolean){if(tourActive!==active){tourActive=active;dispatchEvent(new Event('monetizable-tour-change'))}}
+function subscribeTour(fn:()=>void){addEventListener('monetizable-tour-change',fn);return()=>removeEventListener('monetizable-tour-change',fn)}
+export function useTourActive(){return useSyncExternalStore(subscribeTour,()=>tourActive,()=>false)}

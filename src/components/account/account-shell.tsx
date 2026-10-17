@@ -9,6 +9,7 @@ import {
 import { transferKey } from "@/lib/quest/guest-access";
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
+import {setTourActive} from "@/components/quest/hero-preference";
 import HeroPicker from "./hero-picker";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
@@ -34,6 +35,7 @@ export default function AccountShell({
   const [ready, setReady] = useState(false),
     [sync, setSync] = useState(""),
     [tutorial, setTutorial] = useState(false),[pickingHero,setPickingHero]=useState(false);
+  useEffect(()=>{setTourActive(tutorial);return()=>setTourActive(false)},[tutorial]);
   const revision = useRef(0),
     writing = useRef(false),
     pending = useRef<BrowserRecord | null>(null),
@@ -174,7 +176,9 @@ export default function AccountShell({
   }, []);
   const finish = useCallback(async () => {
     localStorage.setItem(`quest-tutorial:${user?.id || "guest"}:v1`, "done");
-    setTutorial(false);
+    setTutorial(false);setTourActive(false);
+    document.querySelector<HTMLElement>('.sidebar [data-tour-nav="today"],.mobile-nav [data-tour-nav="today"],.bottom-nav [data-tour-nav="today"]')?.click();
+    requestAnimationFrame(()=>document.querySelector('.en-hero,.hero-yelan')?.scrollIntoView({behavior:'smooth',block:'start'}));
     if (user && enabled.current) {
       pendingTutorial.current = true;
       await requestSync.current();
