@@ -1825,3 +1825,9 @@ summary:focus-visible {
 .language-switcher select{max-width:125px;border:1px solid #BFA56B44;border-radius:8px;background:#FFFDF7;color:#25251F;padding:8px 10px;font:inherit;font-size:12px;min-height:36px}.language-switcher select:focus-visible{outline:2px solid #BFA56B;outline-offset:2px}html[lang=fr] .en-hero h1{font-size:clamp(32px,4.1vw,60px)}
 html[lang=fr] .en-quiz-card[data-swipe-direction="master"]::after{content:"✓ Compris"}html[lang=fr] .en-quiz-card[data-swipe-direction="review"]::after{content:"← À revoir"}
 @media(max-width:480px){.account-bar .account-mobile-brand strong{display:none}.account-bar nav{gap:6px;min-width:0}.account-bar .language-switcher select{padding:6px 8px;max-width:100px}}
+
+/* Persistent, manually opened onboarding entry in every language. */
+.account-bar .account-guide{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;color:#735822;font-weight:600;min-height:32px}
+.account-bar .account-guide:focus-visible{outline:2px solid #b0904b;outline-offset:3px;border-radius:5px}
+.account-bar .account-guide:disabled{opacity:.5;cursor:wait}
+@media(max-width:480px){.account-bar nav{gap:8px}.account-bar .account-guide{gap:3px;font-size:10px}.account-bar>div{max-width:27%}}

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
+  CircleHelp,
   LogIn,
   LogOut,
   ShieldCheck,
@@ -37,7 +38,7 @@ export default function AccountShell({
     [sync, setSync] = useState(""),
     [tutorial, setTutorial] = useState(false),[pickingHero,setPickingHero]=useState(false);
   useEffect(()=>{setTourActive(tutorial);return()=>setTourActive(false)},[tutorial]);
-  const completedTutorial=useRef(false);
+  const completedTutorial=useRef(false), guideRequested=useRef(false);
   const revision = useRef(0),
     writing = useRef(false),
     pending = useRef<BrowserRecord | null>(null),
@@ -185,6 +186,11 @@ export default function AccountShell({
     window.addEventListener('quest-start-playing', start);
     return () => window.removeEventListener('quest-start-playing', start);
   }, []);
+  const openGuide = () => {
+    guideRequested.current=true;
+    if(!user || !savedHero()){setPickingHero(true);return;}
+    setAdventureStage('tutorial');setTutorial(true);
+  };
   const finish = useCallback(async () => {
     if(!user)return;
     try{localStorage.setItem(tutorialKey(user.id), "done")}catch{}completedTutorial.current=true;setAdventureStage('home');
@@ -234,6 +240,9 @@ export default function AccountShell({
           )}
         </div>
         <nav>
+          <button className="account-guide" disabled={!ready} onClick={openGuide} aria-label={zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}>
+            <CircleHelp size={16}/><span>{zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}</span>
+          </button>
           <LanguageSwitcher admin={!!user?.admin}/>
           {user?.admin && (
             <a href="/admin">
@@ -281,7 +290,7 @@ export default function AccountShell({
         setPickingHero(false);const hero=savedHero()||'supercharlie';
         if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
         window.scrollTo({top:0,behavior:'instant'});
-        const stage=onboardingStage(true,completedTutorial.current,hero);setAdventureStage(stage);setTutorial(stage==='tutorial');
+        const stage=guideRequested.current?'tutorial':onboardingStage(true,completedTutorial.current,hero);guideRequested.current=false;setAdventureStage(stage);setTutorial(stage==='tutorial');
       }}/> }
       {ready && user && tutorial && <ProductTour userId={user.id} zh={zh} onFinish={finish} />}
     </>

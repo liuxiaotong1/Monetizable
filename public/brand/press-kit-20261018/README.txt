@@ -1,7 +1,10 @@
 Monetizable — current cream/gold brand kit — 2026-10-18
 
+Avatars cropped from recovered lossless original 2D art (not the compressed selection thumbnails).
 Circular transparent PNG avatars: Astra / 星澜 and Charlie / 查理, 1024px and 400px.
 Logo: current Curious M symbol used on getmonetizable.com; cream-gold wordmark.
+English: Understand Finance, Like a Game
+French: Comprendre la finance, comme un jeu
 Banners: master 3000x1000, X 1500x500, LinkedIn 1584x396.
 The bottom-left region is intentionally blank for your personal avatar.
 PNG files are upload-ready; SVGs are editable.
