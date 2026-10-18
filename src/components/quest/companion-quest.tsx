@@ -16,7 +16,7 @@ export default function CompanionQuest({state,onRoll,tapCount,ready}:{ready:bool
  function roll(){if(rollingRef.current||!ready)return;rollingRef.current=true;const number=new Uint32Array(1);crypto.getRandomValues(number);const face=number[0]%6+1,sections:AdventureSection[]=['today','events','learn'],remaining=sections.filter(s=>!done.includes(s)),pool=remaining.length?remaining:sections;setRolling(true);setTalk(true);setRollCount(n=>n+1);setResult(null);onRoll();timer.current=setTimeout(()=>{setResult({face,quest:pool[Math.floor((face-1)*pool.length/6)],all:remaining.length===0});setRolling(false);rollingRef.current=false},2800)}
  const rollAction=useRef(roll);useEffect(()=>{rollAction.current=roll});
  useEffect(()=>{if(tapCount>0){setTalk(true);rollAction.current()}},[tapCount]);
- const sentence=c.cheers[Math.max(0,rollCount-1)%c.cheers.length];
+ const sentence=result?(locale==='zh'?`你今天的幸运数字是 ${result.face}。`:locale==='fr'?`Votre chiffre porte-bonheur du jour est le ${result.face}.`:`Your lucky number is ${result.face} today`):c.cheers[Math.max(0,rollCount-1)%c.cheers.length];
  useEffect(()=>{if(!talk)return;setLine('');if(matchMedia('(prefers-reduced-motion: reduce)').matches){setLine(sentence);return}let n=0;const id=setInterval(()=>{n+=1;setLine(sentence.slice(0,n));if(n>=sentence.length)clearInterval(id)},28);return()=>clearInterval(id)},[sentence,talk,tapCount]);
  function open(quest:AdventureSection){const target=quest==='today'?(document.getElementById('judgment')||document.getElementById('en-judgment')):null;if(target){target.scrollIntoView({behavior:'smooth',block:'start'});return}dispatchEvent(new CustomEvent('monetizable-open-quest',{detail:{view:quest}}))}
  return <div className="companion-dialogue-ui" aria-label={c.title}>
