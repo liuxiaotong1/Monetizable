@@ -43,7 +43,7 @@ for triangle in nt[head]:
  if (hi<lo).any() or abs(np.linalg.det(A))<1e-9:continue
  xx,yy=np.meshgrid(np.arange(lo[0],hi[0]+1),np.arange(lo[1],hi[1]+1));weights=np.linalg.solve(A,np.stack([xx.ravel()+.5,yy.ravel()+.5,np.ones(xx.size)]));inside=weights.min(0)>=-.01;xs=xx.ravel()[inside];ys=yy.ravel()[inside];world=points.T@weights[:,inside];sample=tex[ys,xs].astype(float);color=sample.copy();x,y,z=world
  # Muted warm rose on the existing lip surfaces; retain native mouth shading.
- lip=np.exp(-((x+.032)/.023)**4-((y-1.5208)/.0023)**4)*.65
+ lip=np.exp(-((x+.038)/.016)**4-((y-1.5208)/.0023)**4)*.65
  lip*=np.clip((z-.18)/.02,0,1)
  color=color*(1-lip[:,None])+np.array([158,85,80])*lip[:,None]
  # Soften heavy eye makeup and the bright cyan iris without touching the brow/hair.
