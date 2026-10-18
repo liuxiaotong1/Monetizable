@@ -33,7 +33,28 @@ for k in ['POSITION','NORMAL','TEXCOORD_0','JOINTS_0','WEIGHTS_0']:
  attrs[k]=accessor(a.astype('<u2' if k=='JOINTS_0' else '<f4'),'VEC2' if k=='TEXCOORD_0' else 'VEC4' if k in ['JOINTS_0','WEIGHTS_0'] else 'VEC3',5123 if k=='JOINTS_0' else 5126)
 base=t['materials'][q.get('material',0)]['pbrMetallicRoughness']['baseColorTexture']['index'];im=t['images'][t['textures'][base]['source']];v=t['bufferViews'][im['bufferView']];raw=tb[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']]
 # Preserve 4K native UV detail; encode web albedo without provider-sized JPEG overhead.
-encoded=io.BytesIO();Image.open(io.BytesIO(raw)).convert('RGB').save(encoded,format='JPEG',quality=93,subsampling=0);raw=encoded.getvalue()
+# Local color correction in the native UV atlas using original 3D coordinates.
+# No photographic/reference image, projected portrait, or geometry modification.
+tex=np.array(Image.open(io.BytesIO(raw)).convert('RGB'));height,width=tex.shape[:2];paint=tex.copy();positions=old[ix];coords=array(t,tb,q['attributes']['TEXCOORD_0'])
+for triangle in nt[head]:
+ points=positions[triangle];center=points.mean(0)
+ if not (1.512<center[1]<1.576 and center[2]>.17):continue
+ xy=coords[triangle]*[width-1,height-1];lo=np.maximum(np.floor(xy.min(0)).astype(int),0);hi=np.minimum(np.ceil(xy.max(0)).astype(int),[width-1,height-1]);A=np.vstack([xy.T,np.ones(3)])
+ if (hi<lo).any() or abs(np.linalg.det(A))<1e-9:continue
+ xx,yy=np.meshgrid(np.arange(lo[0],hi[0]+1),np.arange(lo[1],hi[1]+1));weights=np.linalg.solve(A,np.stack([xx.ravel()+.5,yy.ravel()+.5,np.ones(xx.size)]));inside=weights.min(0)>=-.01;xs=xx.ravel()[inside];ys=yy.ravel()[inside];world=points.T@weights[:,inside];sample=tex[ys,xs].astype(float);color=sample.copy();x,y,z=world
+ # Muted warm rose on the existing lip surfaces; retain native mouth shading.
+ lip=np.exp(-((x+.032)/.023)**4-((y-1.5208)/.0023)**4)*.65
+ lip*=np.clip((z-.18)/.02,0,1)
+ color=color*(1-lip[:,None])+np.array([158,85,80])*lip[:,None]
+ # Soften heavy eye makeup and the bright cyan iris without touching the brow/hair.
+ eye=np.maximum(np.exp(-((x+.068)/.025)**6-((y-1.564)/.009)**6),np.exp(-((x-.001)/.022)**6-((y-1.561)/.009)**6))
+ iris=(sample[:,1]>sample[:,0]*1.07)&(sample[:,2]>sample[:,0]*1.01)&(sample[:,0]<180)
+ amount=eye*iris*.75;gray=sample@np.array([.299,.587,.114]);muted=gray[:,None]*.6+sample*.4
+ color=color*(1-amount[:,None])+muted*amount[:,None]
+ liner=(sample.max(1)<112)&(z>.19);soft=eye*liner*.65
+ color=color*(1-soft[:,None])+np.array([112,85,69])*soft[:,None]
+ paint[ys,xs]=np.clip(color,0,255).astype('uint8')
+encoded=io.BytesIO();Image.fromarray(paint).save(encoded,format='JPEG',quality=93,subsampling=0);raw=encoded.getvalue()
 while len(b)%4:b.append(0)
 view=len(g['bufferViews']);g['bufferViews'].append({'buffer':0,'byteOffset':len(b),'byteLength':len(raw)});b+=raw
 g['images'].append({'bufferView':view,'mimeType':im['mimeType'],'name':'Meshy native head albedo'});g['textures'].append({'source':len(g['images'])-1,'sampler':0})

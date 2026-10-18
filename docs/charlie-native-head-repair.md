@@ -25,3 +25,9 @@ Exact prompt (negative constraints included):
 Static comparison confirmed all 223,288 original triangles, exact geometric positions, original weights and bones. No replacement facial surface, billboard, portrait image or extra facial triangles. Typecheck/build passed. Actual WebGL reviewed from front, three-quarter and battle settlement.
 
 Remaining source quality limits: original sculpt has stylized low-detail nose geometry, and fringe still partially covers one eye. Native retexturing improves color definition; it does not constitute manual facial retopology or a new facial rig.
+
+## Color and camera follow-up
+
+Softened native eye liner and cyan iris saturation, and tinted only the existing lip UV region with muted warm rose. No new model/portrait generation or geometry changes.
+
+Both idle companions and finished battle scenes support camera orbit, wheel zoom, two-pointer pinch, keyboard arrows/+/-/Home, and visible reset controls. Input travel over six pixels suppresses the character tap to avoid accidentally casting dice after rotation. Camera controls remain locked during the cinematic. Three original-source asset validation checks, gesture input checks, actual WebGL drag/zoom/reset and battle-settlement interaction were completed; typecheck/build passed. Mobile pinch logic was exercised with two pointer events in the standalone gesture check; physical mobile-device testing was not performed.

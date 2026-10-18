@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as THREE from 'three';
+const listeners=new Map();
+const element=()=>({style:{},dataset:{},children:[],append(e){this.children.push(e)},setAttribute(k,v){this[k]=v}});
+globalThis.document={head:element(),createElement:element};globalThis.getComputedStyle=()=>({position:'relative'});
+const canvas=Object.assign(element(),{parentElement:element(),addEventListener(k,fn){if(!listeners.has(k))listeners.set(k,[]);listeners.get(k).push(fn)},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}});
+const factory=new Function('THREE',fs.readFileSync('public/heroes/character-view.js','utf8').replace("import {Vector3,Spherical,MathUtils} from 'three';","const {Vector3,Spherical,MathUtils}=THREE;").replace('export function','function')+'\nreturn createCharacterView;')(THREE);
+let enabled=true,changes=0;const camera=new THREE.PerspectiveCamera(32,1,.01,30),view=factory(canvas,camera,{locale:'zh',enabled:()=>enabled,onChange:()=>changes++});
+const fire=(type,event)=>{for(const fn of listeners.get(type)||[])fn(event)};
+fire('pointerdown',{pointerId:1,button:0,clientX:100,clientY:100});fire('pointermove',{pointerId:1,clientX:180,clientY:100});fire('pointerup',{pointerId:1});assert.equal(canvas.dataset.viewYaw,'-0.560');
+let suppressed=false;fire('click',{preventDefault(){},stopImmediatePropagation(){suppressed=true}});assert(suppressed,'drag must not trigger the dice click');
+view.reset();fire('pointerdown',{pointerId:1,button:0,clientX:100,clientY:100});fire('pointerdown',{pointerId:2,button:0,clientX:200,clientY:100});fire('pointermove',{pointerId:2,clientX:300,clientY:100});assert.equal(canvas.dataset.viewZoom,'0.500','pinch separation zooms in');fire('pointerup',{pointerId:1});fire('pointerup',{pointerId:2});
+camera.position.set(0,1,4);view.apply(new THREE.Vector3(0,1,0));assert(Math.abs(camera.position.z-2)<1e-6);
+view.reset();assert.equal(canvas.dataset.viewYaw,'0.000');assert.equal(canvas.dataset.viewZoom,'1.000');
+enabled=false;const before=changes;fire('wheel',{deltaY:-100,preventDefault(){}});assert.equal(changes,before,'battle playback must keep its camera');
+console.log('PASS: drag rotation, no dice misclick, two-pointer pinch, camera zoom, reset, cinematic lock.');
