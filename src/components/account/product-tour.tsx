@@ -37,6 +37,7 @@ export default function ProductTour({onFinish,userId}:{zh:boolean;onFinish:()=>v
  <button className="tour-close" onClick={onFinish} aria-label={t('Close tour','关闭引导','Fermer le guide')}>×</button>
  <span className="eyebrow">{t('YOUR FIRST QUEST','你的第一个任务','VOTRE PREMIÈRE QUÊTE')} · {index+1}/3</span>
  <h2 id="tour-heading">{current.title[lang]}</h2><p>{current.text[lang]}</p>
+ <div className="tour-demo-actions"><button onClick={()=>setIntro(true)}>{t('⚔ Preview Boss victory','⚔ 预览打败 Boss','⚔ Aperçu de la victoire contre le Boss')}</button></div>
  <div className="tour-controls"><button className="tour-back" onClick={()=>index?setIndex(index-1):onFinish()}>{index?t('← Back','← 上一步','← Retour'):t('Skip','跳过','Passer')}</button><button className="primary tour-next" onClick={()=>index===2?onFinish():setIndex(index+1)}>{index===2?t('Ready to explore ✓','开始探索 ✓','À vous de jouer ✓'):t('Next →','下一步 →','Suivant →')}</button></div>
  </section></div>
 }

@@ -151,3 +151,14 @@
 .companion-scene>.companion-dialogue-ui .companion-dice-hud{position:relative;inset:auto;width:auto;max-width:none;min-width:0}
 .companion-scene>.companion-dialogue-ui .companion-tap-hint{position:static;max-width:none;align-self:center;margin:0}
 @media(max-width:650px){.companion-scene>.companion-dialogue-ui{grid-template-columns:minmax(0,1fr)}.companion-scene>.companion-dialogue-ui .companion-speech{width:100%;max-width:none}.companion-scene>.companion-dialogue-ui .companion-speech p{min-height:0}}
+
+/* One face-safe conversation contains the result, actual task and both actions. */
+.companion-scene>.companion-unified{grid-template-columns:minmax(0,1fr)}
+.companion-unified .companion-task{margin-top:12px;padding-top:12px;border-top:1px solid #c5a55a40;background:none;box-shadow:none;border-radius:0}
+.companion-unified .companion-task>strong{color:#856023;font-size:16px}
+.companion-unified .companion-task small{display:block;margin-top:6px;font-size:12px}
+.companion-unified .companion-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.companion-unified .companion-actions button{flex:1;cursor:pointer;min-height:44px;padding:10px 14px;border:1px solid #b89852;border-radius:12px;background:#fff8e6;color:#5c431a;font:600 13px system-ui;box-shadow:0 3px #b38e4770}
+.companion-unified .companion-actions .companion-start{background:linear-gradient(#f9e8b9,#e9cc83)}
+.companion-unified .companion-roll{display:flex;align-items:center;justify-content:center;gap:8px}
+.companion-unified .companion-actions button:disabled{opacity:.65;cursor:wait}
