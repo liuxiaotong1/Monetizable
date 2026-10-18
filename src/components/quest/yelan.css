@@ -143,3 +143,11 @@
 /* Keep the character's tap cue above the iframe's camera controls. */
 .companion-tap-hint{bottom:76px}
 @media(max-width:650px){.companion-tap-hint{bottom:76px}}
+/* Reserve real space below the 3D canvas: text never overlays the face,
+   including after orbit/zoom, long translations, or mobile wrapping. */
+.companion-scene>.companion-dialogue-ui{position:relative;inset:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:12px;padding-top:14px;pointer-events:auto}
+.companion-scene>.companion-dialogue-ui .companion-speech{position:relative;inset:auto!important;width:auto;max-width:none;margin:0;min-width:0;overflow-wrap:anywhere}
+.companion-scene>.companion-dialogue-ui .speech-tail{top:-8px;left:24px;right:auto;transform:rotate(135deg)}
+.companion-scene>.companion-dialogue-ui .companion-dice-hud{position:relative;inset:auto;width:auto;max-width:none;min-width:0}
+.companion-scene>.companion-dialogue-ui .companion-tap-hint{position:static;max-width:none;align-self:center;margin:0}
+@media(max-width:650px){.companion-scene>.companion-dialogue-ui{grid-template-columns:minmax(0,1fr)}.companion-scene>.companion-dialogue-ui .companion-speech{width:100%;max-width:none}.companion-scene>.companion-dialogue-ui .companion-speech p{min-height:0}}
