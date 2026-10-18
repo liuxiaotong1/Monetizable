@@ -34,3 +34,11 @@ depth. It reserves edge margins, adjusts the far plane and removes fixed
 victory zoom. Outer water/ruin discs use a 4.8-unit radius, retaining the
 architecture while avoiding an oversized empty rim. Preview height adapts to
 available viewport height. data-frame-extent records the projected edge check.
+
+Actor spotlight / full-block home revision: prediction outcomes now use the
+whole homepage hero block in every locale. A compact summary sits above the
+full-width arena; replay controls sit below. The camera frames the selected
+hero, selected boss and dice, not the floor rim. Unselected/invisible boss
+models are excluded. chrome=compact hides duplicated in-canvas result text
+when the enclosing report already displays the result. Idle heroes retain
+their existing layout. Win completion still reveals the verified fact trail.

@@ -118,3 +118,20 @@
 .companion-name{font:22px Georgia,serif;color:#796136;padding:4px 0 9px;letter-spacing:.3px}
 /* Keep outcome captions outside the animated canvas, including narrow layouts. */
 .companion-stage .companion-win{position:relative;inset:auto;width:100%;padding:8px 10px 12px;background:none;align-content:center;flex-shrink:0}.companion-stage .companion-win span{font-size:22px}.companion-stage .companion-win strong{font-size:15px}
+/* Battles own the full hero block. Idle companions retain the two-column home. */
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])),.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"])){display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important;padding:24px!important;max-width:none!important}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy,.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy{width:100%;max-width:none;justify-self:stretch;display:flex;align-items:center;gap:14px 24px;flex-wrap:wrap;padding:0}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy h1,.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy h1{font-size:clamp(24px,2.6vw,36px);margin:4px 0;line-height:1.25}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy p,.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy p{margin:3px 0;max-width:600px;font-size:13px}
+.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy .eyebrow{flex-basis:100%}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-character{width:100%;min-width:0;padding:0}
+.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-name{display:none}
+.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-frame{display:block;width:100%;height:clamp(400px,43vw,620px);min-height:0;border-radius:20px;overflow:hidden}
+.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-footer{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;margin-top:12px}
+.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-footer>small:first-of-type{display:none}
+.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-win{display:none}
+@media(max-width:650px){.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])),.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"])){padding:14px!important;gap:12px!important}.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-frame{height:300px;min-height:0}.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy,.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy{gap:10px}.companion-stage[data-outcome]:not([data-outcome="idle"]) .companion-footer small{font-size:9px}}
+.hero.hero-yelan:has(.companion-stage[data-outcome]:not([data-outcome="idle"]))>.hero-copy h1 span{display:inline!important;margin-left:.25em}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy h1 br{display:none}
+.en-hero:has(.companion-stage[data-outcome]:not([data-outcome="idle"])) .en-hero-copy h1 em{margin-left:.25em}
+.hero-report:has(.companion-stage[data-outcome]:not([data-outcome="idle"])){max-width:none}
