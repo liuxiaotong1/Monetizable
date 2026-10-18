@@ -27,3 +27,10 @@ Failure review: /battle-demo/index.html?hero=supercharlie&boss=dragon&outcome=lo
 The loss branch keeps both arenas, faces the selected companion toward +X
 (the boss), adds guard/recoil/recovery via defeat-motion.js, and keeps the boss
 standing. Homepage and legacy loss URLs use this same arena embed.
+
+Framing revision: camera-fit.js fits the individual stage geometry, current
+actors, hands and dice to the real iframe aspect ratio, including perspective
+depth. It reserves edge margins, adjusts the far plane and removes fixed
+victory zoom. Outer water/ruin discs use a 4.8-unit radius, retaining the
+architecture while avoiding an oversized empty rim. Preview height adapts to
+available viewport height. data-frame-extent records the projected edge check.
