@@ -182,7 +182,7 @@ export default function AccountShell({
     };
   }, [user?.id, zh,locale]);
   useEffect(() => {
-    const start = () => { if ((new URLSearchParams(location.search).get('view') || 'today') === 'today') setPickingHero(true); };
+    const start = () => { if ((new URLSearchParams(location.search).get('view') || 'today') === 'today') {guideRequested.current=false;setPickingHero(true);} };
     window.addEventListener('quest-start-playing', start);
     return () => window.removeEventListener('quest-start-playing', start);
   }, []);
@@ -286,7 +286,7 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
-      {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{
+      {ready && pickingHero && <HeroPicker onClose={()=>{guideRequested.current=false;setPickingHero(false)}} onContinue={()=>{
         setPickingHero(false);const hero=savedHero()||'supercharlie';
         if(guideRequested.current){guideRequested.current=false;setAdventureStage('tutorial');setTutorial(true);return;}
         if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
