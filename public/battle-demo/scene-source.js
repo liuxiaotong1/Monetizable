@@ -20,7 +20,7 @@ const glow=new T.PointLight(0x79dfff,0,8);glow.position.set(1.6,1.5,1);scene.add
 function mesh(geo,mat,parent=scene,x=0,y=0,z=0){const m=new T.Mesh(geo,mat);m.position.set(x,y,z);parent.add(m);return m;}
 const boss=new T.Group();boss.position.set(1.65,0,0);scene.add(boss);
 const worlds=createWorlds(scene,boss);host.classList.add('spotlight-scene');
-let actorFrame=null;
+let actorFrame=null,interactionTime=null;
 const arenaFrames=worlds.map(w=>{const points=[];w.env.updateMatrixWorld(true);w.env.traverse(o=>{if(o.isMesh){o.geometry.computeBoundingBox();points.push(...boxCorners(o.geometry.boundingBox).map(p=>p.applyMatrix4(o.matrixWorld)))}});return points;});
 worlds.forEach(w=>w.boss.clear());
 let hoverPreview=false,hoverClock=0;
@@ -54,7 +54,16 @@ function secondary(t){
  sway('首',Math.sin(t*1.6)*.018,-Math.sin(t*1.8)*.025,0);
  for(const [name,{bone}] of rig){if(/髪|毛|裾|コート/.test(name))sway(name,Math.sin(t*3.2-name.length*.3)*.018,0,Math.sin(t*2.6-name.length*.4)*.02);}
 }
+function renderCompanionDice(){
+ if(interactionTime===null||!castPose)return;
+ castPose(interactionTime);hero.updateMatrixWorld(true);
+ const wrist=rig.get('右手首')?.bone;if(!wrist)return;
+ const palm=wrist.getWorldPosition(new T.Vector3()),flight=T.MathUtils.clamp((interactionTime-1.15)/1.2,0,1);
+ dice.visible=true;dice.position.copy(palm).add(new T.Vector3(0,.15+Math.sin(Math.PI*flight)*.65,.15));dice.rotation.set(interactionTime*5,interactionTime*4,interactionTime*2);
+}
+canvas.addEventListener('click',()=>{if(time>=durations[mode])parent.postMessage({type:'monetizable-hero-tap'},location.origin)});
 function frameArena(){
+ renderCompanionDice();
  // Frame the actors, not the outside rim of the floor. The arena remains
  // a continuous background filling the entire battle block.
  if(!castPose){return;}if(!actorFrame){actorFrame=new T.Box3();hero.updateMatrixWorld(true);boss.updateMatrixWorld(true);if(castPose)actorFrame.union(new T.Box3().setFromObject(hero));if(boss.visible)actorFrame.union(new T.Box3().setFromObject(worlds[mode].boss));if(actorFrame.isEmpty())actorFrame.set(new T.Vector3(-3,0,-1),new T.Vector3(4,3.5,1));actorFrame.expandByScalar(.25);}
@@ -126,7 +135,7 @@ function render(){if(lost&&castPose){renderDefeat();return}const impact=impacts[
  const shake=mode===1&&q>0&&q<.35?Math.sin(q*100)*.065*(1-q/.35):0;const push=mode===2?smooth(.4,2.8,time)*.4:Math.sin(Math.min(time/ durations[mode],1)*Math.PI)*.18;camera.position.set(shake,3.05+shake,host.clientWidth<600?9.8:6.25-push);camera.position.lerp(new T.Vector3(-.4,2.25,host.clientWidth<600?6.3:4.8),finish);camera.lookAt(T.MathUtils.lerp(0,-.35,finish),T.MathUtils.lerp(mode===1?2.05:1.75,1.85,finish),0);$('hp').style.width=`${100*(1-smooth(impact,impact+.2,time))}%`;$('victory').style.transition=running?'opacity .4s,transform .4s':'none';$('victory').classList.toggle('show',time>impact+2.2);canvas.dataset.time=time.toFixed(2);canvas.dataset.boss=mode===0?'dragon':'beetle';$('time').textContent=time.toFixed(2)+' s';$('seek').value=time;frameArena();composer.render();}
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();render();}new ResizeObserver(resize).observe(host);
 $('play').onclick=()=>{hoverPreview=false;time=0;running=true;$('pause').textContent='暂停';};$('pause').onclick=()=>{running=!running;$('pause').textContent=running?'暂停':'继续';};$('seek').oninput=e=>{running=false;time=+e.target.value;$('pause').textContent='继续';render();};$('sound').onclick=()=>{sound=!sound;$('sound').textContent='声音：'+(sound?'开':'关');};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{select(+b.dataset.mode);running=true});
-function tick(now){requestAnimationFrame(tick);const rawDt=(now-last)/1000,dt=Math.min(rawDt,.05);last=now;if(document.hidden||(!running&&!hoverPreview))return;if(hoverPreview){hoverClock+=dt;time=.12+(1-Math.cos(hoverClock*2))*.56;running=false;}if(running){const before=time;time=Math.min(durations[mode],time+dt*+$('speed').value);if(before<impacts[mode]&&time>=impacts[mode])audioHit();if(time===durations[mode])running=false;}render();if(embedded&&!running&&time>=durations[mode]&&!completedNotified){completedNotified=true;parent.postMessage({type:'monetizable-restored-complete',outcome:lost?'loss':'win'},location.origin)}frames++;frameTime+=rawDt;if(frameTime>1){$('stats').textContent=`${Math.round(frames/frameTime)} FPS · ${Math.round(host.clientWidth*renderer.getPixelRatio())} px`;frames=0;frameTime=0;}}
+function tick(now){requestAnimationFrame(tick);const rawDt=(now-last)/1000,dt=Math.min(rawDt,.05);last=now;if(document.hidden||(!running&&!hoverPreview&&interactionTime===null))return;if(interactionTime!==null){interactionTime+=dt;if(interactionTime>4.4)interactionTime=null;}if(hoverPreview){hoverClock+=dt;time=.12+(1-Math.cos(hoverClock*2))*.56;running=false;}if(running){const before=time;time=Math.min(durations[mode],time+dt*+$('speed').value);if(before<impacts[mode]&&time>=impacts[mode])audioHit();if(time===durations[mode])running=false;}render();if(embedded&&!running&&time>=durations[mode]&&!completedNotified){completedNotified=true;parent.postMessage({type:'monetizable-restored-complete',outcome:lost?'loss':'win'},location.origin)}frames++;frameTime+=rawDt;if(frameTime>1){$('stats').textContent=`${Math.round(frames/frameTime)} FPS · ${Math.round(host.clientWidth*renderer.getPixelRatio())} px`;frames=0;frameTime=0;}}
 try{
  const gltf=await new GLTFLoader().loadAsync(female?'../heroes/female-playable.glb':'../heroes/supercharlie-playable.glb'),model=gltf.scene;
  model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.pose()});model.updateMatrixWorld(true);
@@ -162,4 +171,4 @@ async function loadBeetle(){
 
 for(const button of document.querySelectorAll('[data-hero]')){button.classList.toggle('active',button.dataset.hero===(female?'female':'supercharlie'));button.onclick=()=>{const query=new URLSearchParams(location.search);query.set('hero',button.dataset.hero);query.set('boss',mode===1?'beetle':'dragon');location.search=query.toString()}}
 
-addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent)return;if(event.data?.type==='monetizable-cast'){time=0;completedNotified=false;running=true;}});
+addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent)return;if(event.data?.type==='monetizable-roll-dice'&&time>=durations[mode]){interactionTime=0;return;}if(event.data?.type==='monetizable-cast'){time=0;completedNotified=false;running=true;}});

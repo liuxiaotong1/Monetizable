@@ -160,6 +160,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     const id = setTimeout(() => setToast(""), 3000);
     return () => clearTimeout(id);
   }, [toast]);
+  useEffect(()=>{const open=(event:Event)=>{const view=(event as CustomEvent).detail?.view;if(view==='today'||view==='events'||view==='learn')navigate(view)};addEventListener('monetizable-open-quest',open);return()=>removeEventListener('monetizable-open-quest',open)},[]);
   function navigate(next: View) {
     setView(next);
     history.replaceState(null, "", `/?view=${next}`);
@@ -483,7 +484,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </>}
         </div>
         <div className="en-hero-character">
-          <YelanViewer
+          <YelanViewer state={state}
             locale="en"
             celebrate={celebrate}
             failed={!pending&&review?.matched===false}
