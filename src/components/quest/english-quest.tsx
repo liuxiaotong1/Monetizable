@@ -528,7 +528,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             </div>
           </div>
           <p className="muted small-text">
-            Source: Yahoo Finance regular-session daily bars · retrieved{" "}
+            Daily bars · updated{" "}
             {clocks(review.actual.fetchedAt)}. Daily bars cannot establish the
             sequence of intraday triggers. A direction match does not prove a
             causal explanation.
@@ -965,7 +965,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
           {eventUnit(e)} ·{" "}
           {e.consensus === undefined
             ? "No verified market consensus connected."
-            : `Consensus source: ${e.consensusSource ? sourceHost(e.consensusSource) : "See official data provenance."}`}
+            : "Verified market consensus."}
           {e.revised !== undefined
             ? ` Revised previous: ${numbers(e.revised)}.`
             : ""}

@@ -67,3 +67,7 @@
 .freshness-panel{margin:18px 0;padding:16px 20px}.freshness-panel summary{cursor:pointer;color:#25251F;font-size:12px}.freshness-panel p{font-size:11px;line-height:1.8;color:#746B58;margin-top:12px}.freshness-panel>div{max-height:320px;overflow-y:auto}.freshness-panel small{color:#746B58}
 
 .event-measurement{color:#746B58;font-size:11px;line-height:1.7}.event-takeaway{display:flex;align-items:flex-start;gap:12px;margin:16px 0 22px;padding:17px;border:1px solid #BFA56B35;border-radius:12px;background:#AD883D0a;color:#25251F}.event-takeaway.pressure{color:#AC5547;border-color:#BFA56B40;background:#AD883D09}.event-takeaway.support{color:#436E5A;border-color:#BFA56B40;background:#AD883D09}.event-direction{font-size:28px;line-height:1.1;flex-shrink:0}.event-takeaway strong{font-size:13px;line-height:1.7;display:block}.event-takeaway p{font-size:11px;line-height:1.9;color:#25251F;margin:7px 0 0}.event-values-context summary{cursor:pointer;color:#25251F;font-size:12px}.event-values-context[open] summary{margin-bottom:12px}.event-data strong{font-variant-numeric:tabular-nums}
+
+/* Provenance is retained in the data layer; gameplay omits citation annotations. */
+.card-sources,.knowledge-depth-sources,.event-row-source,.event-source,.event-history-source,.review-source-note,.brief-sources,.agent-sources,.en-source-grid,.source-status {display:none!important}
+.quest-app .source-link,.quest-shell .source-link {display:none!important}

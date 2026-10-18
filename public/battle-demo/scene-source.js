@@ -64,7 +64,18 @@ function frameArena(){
  for(const name of ['右手首','右ひじ','左腕','頭']){const part=rig.get(name);if(part){const p=part.bone.getWorldPosition(new T.Vector3());points.push(...boxCorners(new T.Box3(p.clone().addScalar(-.22),p.clone().addScalar(.22))));}}
  if(castPose){hero.updateMatrixWorld(true);points.push(...boxCorners(new T.Box3().setFromObject(hero).expandByScalar(.25)));}
  if(boss.visible){boss.updateMatrixWorld(true);const bound=new T.Box3().setFromObject(worlds[mode].boss);if(!bound.isEmpty())points.push(...boxCorners(bound.expandByScalar(.25)));}
- const distance=fitArenaCamera(camera,points);scene.fog.density=Math.min(.018,.22/distance);canvas.dataset.framing='actor-spotlight';const measured=new T.Box3().setFromPoints(points);canvas.dataset.frameBounds=JSON.stringify([measured.min.toArray(),measured.max.toArray()]);
+ const distance=fitArenaCamera(camera,points);
+ const close=smooth(durations[mode]-1.65,durations[mode]-.1,time);
+ if(close>0){
+  const actionPosition=camera.position.clone(),actionRotation=camera.quaternion.clone();
+  const portrait=new T.Box3().setFromObject(hero),center=portrait.getCenter(new T.Vector3()),size=portrait.getSize(new T.Vector3());
+  // Vertical actor occupancy ~78%, with independent top/bottom text bands.
+  const d=Math.max(size.y/(2*Math.tan(camera.fov*Math.PI/360)*.78),size.x/(2*Math.tan(camera.fov*Math.PI/360)*camera.aspect*.83));
+  camera.position.copy(center).add(new T.Vector3(.04,.06,1).normalize().multiplyScalar(d+.12));camera.lookAt(center);
+  const portraitRotation=camera.quaternion.clone();camera.position.lerpVectors(actionPosition,camera.position.clone(),close);camera.quaternion.slerpQuaternions(actionRotation,portraitRotation,close);camera.updateMatrixWorld(true);
+ }
+ canvas.dataset.handGap=(hero.userData.handGap||0).toFixed(3);canvas.dataset.closeup=close.toFixed(3);
+ scene.fog.density=Math.min(.018,.22/distance);canvas.dataset.framing='actor-spotlight';const measured=new T.Box3().setFromPoints(points);canvas.dataset.frameBounds=JSON.stringify([measured.min.toArray(),measured.max.toArray()]);
  let extent=0;for(const point of points){const p=point.clone().project(camera);extent=Math.max(extent,Math.abs(p.x),Math.abs(p.y));}canvas.dataset.frameExtent=extent.toFixed(3);
 }
 function renderDefeat(){

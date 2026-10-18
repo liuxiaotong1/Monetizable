@@ -12,6 +12,7 @@ export function createCompanionCast(model,actor){
  const feet={Right:bones.RightFoot?local('RightFoot'):null,Left:bones.LeftFoot?local('LeftFoot'):null};
  const times=new Float32Array([0,.3,.65,.95,1.15,1.32,1.55,1.85,2.3,2.9,3.5,4.4,7]);
  const hand=hands.Right;
+ const female=!!bones.upperarm_r || !!model.getObjectByName("upperarm_r");
  const poses=[hand,[-.52,1.84,.34],[-.72,2.08,.21],[-.83,2.21,-.01],[-.64,2.22,.24],[-.19,2.12,.62],[-.06,2.04,.58],[-.12,1.88,.45],[-.30,1.79,.38],hand,hand,hand,hand].map(p=>p.isVector3?p.toArray():p);
  const interpolant=new T.CubicInterpolant(times,new Float32Array(poses.flat()),3);
  const smooth=(a,b,t)=>T.MathUtils.smootherstep(t,a,b);
@@ -23,11 +24,15 @@ export function createCompanionCast(model,actor){
   for(const[b,q]of rest)b.quaternion.copy(q);
   const wind=smooth(.05,.95,t)*(1-smooth(1.05,1.65,t)),release=smooth(1.12,1.65,t)*(1-smooth(2.1,3.5,t)),settle=smooth(2.7,4.0,t);
   rotate('Hips',y,-.10*wind+.12*release);rotate('Spine',y,-.18*wind+.20*release);rotate('Spine1',z,-.045*wind+.07*release);rotate('Spine2',x,.025*wind-.04*release);rotate('Neck',y,.10*wind-.12*release);rotate('Head',y,.14*wind-.18*release);rotate('Head',z,.025*settle);
-  const target=new T.Vector3().fromArray(interpolant.evaluate(Math.min(t,7)));actor.localToWorld(target);
+  const target=new T.Vector3().fromArray(interpolant.evaluate(Math.min(t,7)));// Maintain the right-hand side of the bind pose through release.
+  if(female){const active=1-smooth(2.3,3.5,t);target.x=Math.min(target.x,-.34*active+hand.x*(1-active));target.z+=.12*release;}
+  actor.localToWorld(target);
   solve(bones.RightArm,bones.RightForeArm,bones.RightHand,target,pole('RightArm'));
-  const support=hands.Left.clone().add(new T.Vector3(.10*wind,-.02*wind,.24*wind+.12*release));actor.localToWorld(support);solve(bones.LeftArm,bones.LeftForeArm,bones.LeftHand,support,pole('LeftArm'));
+  const support=hands.Left.clone().add(new T.Vector3(female?.14*wind:.10*wind,-.02*wind,female?.06*wind:.24*wind+.12*release));actor.localToWorld(support);solve(bones.LeftArm,bones.LeftForeArm,bones.LeftHand,support,pole('LeftArm'));
   const stride=smooth(.65,1.55,t)*(1-smooth(2.25,3.6,t)),lift=Math.sin(Math.PI*smooth(.65,1.55,t))*.12;
   for(const side of ['Right','Left'])if(feet[side]){const f=feet[side].clone();if(side==='Right'){f.x+=stride*.18;f.y+=lift;f.z+=stride*.1;}else f.x-=stride*.06;actor.localToWorld(f);solve(bones[side+'UpLeg'],bones[side+'Leg'],bones[side+'Foot'],f,pole(side+'Leg'));}
   actor.updateMatrixWorld(true);
+  const gap=bones.RightHand.getWorldPosition(new T.Vector3()).distanceTo(bones.LeftHand.getWorldPosition(new T.Vector3()));
+  actor.userData.handGap=gap;
  };
 }
