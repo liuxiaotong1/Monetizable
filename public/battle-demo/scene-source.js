@@ -2,6 +2,7 @@ const params=new URLSearchParams(location.search),female=params.get('hero')!=='s
 import * as T from 'three';
 import {createCompanionCast} from './rig-motion.js';
 import {createDefeatMotion} from './defeat-motion.js';
+import {createDiceMaterial} from '../heroes/dice-material.js';
 import {createWorlds} from './worlds.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
@@ -23,7 +24,7 @@ let hoverPreview=false,hoverClock=0;
 let dragonMixer,dragonAction,beetleMixer,beetleRig=[],castPose,defeatPose,dragonReady=false;
 const armorParts=[];boss.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;armorParts.push({mesh:o,position:o.position.clone(),rotation:o.rotation.clone(),scale:o.scale.clone()});}});
 const hero=new T.Group();hero.position.x=-1.4;hero.scale.setScalar(1.12);scene.add(hero);
-const dice=new T.Group();scene.add(dice);const diceMat=new T.MeshStandardMaterial({color:0x42cafb,emissive:0x168cff,emissiveIntensity:.3,metalness:.6,roughness:.2});mesh(new T.BoxGeometry(.32,.32,.32),diceMat,dice);const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(.33,.33,.33)),new T.LineBasicMaterial({color:0xc8ffff}));dice.add(edges);for(const axis of [0,1,2])for(const sign of [-1,1])for(const [a,b] of [[-1,-1],[-1,1],[0,0],[1,-1],[1,1]]){const pip=mesh(new T.SphereGeometry(.025,8,8),new T.MeshBasicMaterial({color:0xffffff}),dice);pip.position.setComponent(axis,sign*.167);pip.position.setComponent((axis+1)%3,a*.08);pip.position.setComponent((axis+2)%3,b*.08);}
+const dice=new T.Group();scene.add(dice);const diceMat=createDiceMaterial();mesh(new T.BoxGeometry(.32,.32,.32),diceMat,dice);const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(.33,.33,.33)),new T.LineBasicMaterial({color:0xc8ffff}));dice.add(edges);for(const axis of [0,1,2])for(const sign of [-1,1])for(const [a,b] of [[-1,-1],[-1,1],[0,0],[1,-1],[1,1]]){const pip=mesh(new T.SphereGeometry(.025,8,8),new T.MeshBasicMaterial({color:0xffffff}),dice);pip.position.setComponent(axis,sign*.167);pip.position.setComponent((axis+1)%3,a*.08);pip.position.setComponent((axis+2)%3,b*.08);}
 const meteor=new T.Group();scene.add(meteor);mesh(new T.IcosahedronGeometry(.4,1),new T.MeshStandardMaterial({color:0xb86b29,emissive:0xd1812e,emissiveIntensity:.4,roughness:.6,flatShading:true}),meteor);for(let i=0;i<5;i++){const flame=mesh(new T.ConeGeometry(.08,.65,6),new T.MeshBasicMaterial({color:i%2?0xe1b94b:0xce772e,transparent:true,opacity:.65}),meteor,Math.sin(i*3)*.2,.55,Math.cos(i*3)*.2);}
 const fx=new T.Group();scene.add(fx);const fxMat=new T.MeshBasicMaterial({color:0x78e5ff,transparent:true,opacity:.8,blending:T.NormalBlending,depthWrite:false});
 const rings=Array.from({length:6},(_,i)=>{let m=mesh(new T.TorusGeometry(1,.018,8,128),fxMat.clone(),fx,1.65,1.3,0);m.rotation.set(Math.PI/2,i*.4,i*.4);return m;});
@@ -52,10 +53,10 @@ function secondary(t){
 }
 function renderDefeat(){
  host.classList.add('loss-scene');
- const impact=impacts[mode],hit=impact+.55,q=time-hit,attack=smooth(impact+.05,hit,time)*(1-smooth(hit+.25,hit+1.4,time));
+ const impact=impacts[mode],hit=impact+.55,q=time-hit,reset=smooth(hit+1.7,durations[mode]-.2,time),attack=smooth(impact+.05,hit,time)*(1-smooth(hit+.25,hit+1.4,time));
  // Keep the approved arenas and a side-on camera: hero looks toward the boss.
- hero.position.set(-1.65,0,.7);hero.rotation.set(0,Math.PI/2-.1,0);castPose(Math.min(time,4));
- const recoil=defeatPose(time,impact);hero.position.x-=.38*recoil+.16*smooth(hit,hit+1.8,time);hero.position.y=-.09*recoil;
+ hero.position.set(-1.65,0,.7);hero.rotation.set(0,T.MathUtils.lerp(Math.PI/2-.1,.12,reset),0);castPose(Math.min(time,4));
+ const recoil=defeatPose(time,impact,reset);hero.position.x-=.38*recoil+.16*smooth(hit,hit+1.8,time);hero.position.y=-.09*recoil;
  hero.updateMatrixWorld(true);
  if(mode===0&&dragonMixer)dragonMixer.setTime(.6+attack*.6+.06*Math.sin(time*2));
  if(mode===1&&beetleMixer)beetleMixer.setTime(time);
@@ -70,7 +71,7 @@ function renderDefeat(){
  const shake=q>0&&q<.25?Math.sin(q*70)*.035*(1-q/.25):0;
  const distance=Math.max(7.8,6.8/Math.max(.45,camera.aspect));camera.position.set(-.8+shake,3.0+shake,distance);camera.lookAt(0,1.65,0);
  $('hp').style.width='100%';$('victory').style.transition=running?'opacity .4s,transform .4s':'none';$('victory').classList.toggle('show',time>hit+2.2);
- canvas.dataset.time=time.toFixed(2);canvas.dataset.boss=mode===0?'dragon':'beetle';canvas.dataset.outcome='loss';canvas.dataset.heroFacing='boss';$('time').textContent=time.toFixed(2)+' s';$('seek').value=time;composer.render();
+ canvas.dataset.time=time.toFixed(2);canvas.dataset.boss=mode===0?'dragon':'beetle';canvas.dataset.outcome='loss';canvas.dataset.heroFacing=reset>.99?'viewer':reset>0?'returning':'boss';$('time').textContent=time.toFixed(2)+' s';$('seek').value=time;composer.render();
 }
 
 function render(){if(lost&&castPose){renderDefeat();return}const impact=impacts[mode],q=time-impact,release=smooth(.65,impact,time),fade=1-smooth(impact+.7,impact+1.7,time),col=mode===0?0x058aa9:mode===1?0xd87922:0x9b7527;fxMat.color.setHex(col);rings.forEach(m=>m.material.color.setHex(col));beam.material.color.setHex(col);core.material.color.setHex(col);glow.color.setHex(col);shards.material.color.setHex(col);shards.material.emissive.setHex(col).multiplyScalar(.22);

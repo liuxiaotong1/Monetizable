@@ -15,3 +15,8 @@ Home battle framing (2026-10-18): framing.js reserves separate hero and boss
 lanes and fits their action envelope to the iframe aspect ratio. Bosses sit
 behind the hero plane; victory zoom begins after the boss fades. Outcome copy
 occupies a separate row below the canvas. Chinese display name: 查理.
+
+Both companions now share dice-material.js (water blue with white pips) across
+homepage and arena views. After a failed call, the arena actor smoothly returns
+from facing the boss to a neutral, viewer-facing stance during the final two
+seconds; guard and recoil offsets fade out before the scene ends.

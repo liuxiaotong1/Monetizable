@@ -1,6 +1,7 @@
 const params=new URLSearchParams(location.search),female=params.get('hero')==='female',outcome=params.get('outcome'),beetle=params.get('boss')==='beetle';
 import * as T from 'three';
 import {companionFrame} from './framing.js';
+import {createDiceMaterial,DICE_PIP_COLOR} from './dice-material.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 const $=id=>document.getElementById(id),canvas=$('hero-canvas'),stage=$('stage');
@@ -10,9 +11,9 @@ const scene=new T.Scene(),camera=new T.PerspectiveCamera(32,1,.01,30);camera.pos
 scene.add(new T.HemisphereLight(0xfffaf0,0x8f9eac,2));const key=new T.DirectionalLight(0xfff5e1,2.7);key.position.set(-2,4,3);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-2;key.shadow.camera.right=2;key.shadow.camera.top=3;key.shadow.camera.bottom=-1;key.shadow.normalBias=.015;scene.add(key);const fill=new T.DirectionalLight(0xbfdfff,1.6);fill.position.set(3,2,1);scene.add(fill);
 const ground=new T.Mesh(new T.CircleGeometry(1.5,80),new T.ShadowMaterial({opacity:.16}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 const ring=new T.Mesh(new T.RingGeometry(.57,.574,96),new T.MeshBasicMaterial({color:0xb99a56,side:T.DoubleSide,transparent:true,opacity:.4}));ring.rotation.x=-Math.PI/2;ring.position.y=.003;scene.add(ring);
-const dice=new T.Group();scene.add(dice);const cube=new T.Mesh(new RoundedBoxGeometry(.09,.09,.09,3,.008),new T.MeshStandardMaterial({color:0xd2aa52,metalness:.68,roughness:.26}));dice.add(cube);cube.castShadow=true;
+const dice=new T.Group();scene.add(dice);const cube=new T.Mesh(new RoundedBoxGeometry(.09,.09,.09,3,.008),createDiceMaterial());dice.add(cube);cube.castShadow=true;
 const dots=[[[0,0]],[[-1,-1],[1,1]],[[-1,-1],[0,0],[1,1]],[[-1,-1],[-1,1],[1,-1],[1,1]],[[-1,-1],[-1,1],[0,0],[1,-1],[1,1]],[[-1,-1],[-1,0],[-1,1],[1,-1],[1,0],[1,1]]];
-for(let side=0;side<6;side++)for(const [a,b]of dots[side]){const dot=new T.Mesh(new T.SphereGeometry(.005,10,8),new T.MeshStandardMaterial({color:0xfff9db,roughness:.4}));dot.position.setComponent(Math.floor(side/2),(side%2?1:-1)*.0455);dot.position.setComponent((Math.floor(side/2)+1)%3,a*.024);dot.position.setComponent((Math.floor(side/2)+2)%3,b*.024);dice.add(dot);}
+for(let side=0;side<6;side++)for(const [a,b]of dots[side]){const dot=new T.Mesh(new T.SphereGeometry(.005,10,8),new T.MeshStandardMaterial({color:DICE_PIP_COLOR,roughness:.4}));dot.position.setComponent(Math.floor(side/2),(side%2?1:-1)*.0455);dot.position.setComponent((Math.floor(side/2)+1)%3,a*.024);dot.position.setComponent((Math.floor(side/2)+2)%3,b*.024);dice.add(dot);}
 const enemy=new T.Group();scene.add(enemy);enemy.visible=false;let enemyMixer,enemyReady=false,battleStarted=false;
 const impactRing=new T.Mesh(new T.TorusGeometry(.4,.018,8,80),new T.MeshBasicMaterial({color:0xd6af52,transparent:true,opacity:0}));scene.add(impactRing);
 const sparks=new T.InstancedMesh(new T.OctahedronGeometry(.018),new T.MeshBasicMaterial({color:0xd3a344,transparent:true,opacity:0}),32),sparkTransform=new T.Object3D();scene.add(sparks);
