@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {useLocale} from '@/components/i18n/locale-provider';
-import {victoryKey} from '@/lib/account/onboarding';
+import {createPortal} from 'react-dom';
 import OnboardingVictory from './onboarding-victory';
 import '@/components/quest/hero-experience.css';
 import './product-tour.css';
@@ -11,8 +11,8 @@ const steps=[
  {view:'events',selector:'.boss-picks, .boss-quest-header, .boss-quest',title:['Challenge the next Boss','挑战下一个事件 Boss','Défiez le prochain Boss'],text:['Read the release and consensus. Tap Below, Equal or Above to make your prediction.','先看数据发布时间和市场预期，再点击低于、符合或高于预期。','Lisez la publication et le consensus. Choisissez en dessous, égal ou au-dessus.']},
  {view:'learn',selector:'.en-choices, .quiz-choices, .swipe-actions, .swipe-deck, .card-stage, .premium-gate',title:['Turn a question into a skill','把问号变成技能','Transformez une question en compétence'],text:['Tap an answer to flip. Read the explanation; swipe left to review or right when understood.','点击答案翻面，读完解释后左滑复习，右滑表示已学会。','Touchez une réponse pour retourner la carte. À gauche pour revoir ; à droite si compris.']},
 ] as const;
-export default function ProductTour({onFinish,userId}:{zh:boolean;onFinish:()=>void;userId:string}){
- const locale=useLocale(),lang=locale==='zh'?1:locale==='fr'?2:0,[index,setIndex]=useState(0),[bounds,setBounds]=useState<Bounds|null>(null),[intro,setIntro]=useState(()=>{try{return localStorage.getItem(victoryKey(userId))!=='done'}catch{return true}}),target=useRef<HTMLElement|null>(null);
+export default function ProductTour({onFinish}:{zh:boolean;onFinish:()=>void;userId:string}){
+ const locale=useLocale(),lang=locale==='zh'?1:locale==='fr'?2:0,[index,setIndex]=useState(0),[bounds,setBounds]=useState<Bounds|null>(null),[intro,setIntro]=useState(true),target=useRef<HTMLElement|null>(null);
  const current=steps[index],t=(en:string,zh:string,fr:string)=>[en,zh,fr][lang];
  useEffect(()=>{if(intro)return;const key=(e:KeyboardEvent)=>{if(e.key==='Escape')onFinish()};addEventListener('keydown',key);return()=>removeEventListener('keydown',key)},[intro,onFinish]);
  useEffect(()=>{const original=document.documentElement.style.scrollPaddingBottom;document.documentElement.style.scrollPaddingBottom='310px';return()=>{document.documentElement.style.scrollPaddingBottom=original}},[]);
@@ -29,8 +29,9 @@ export default function ProductTour({onFinish,userId}:{zh:boolean;onFinish:()=>v
   };
   const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(locate)};locate();const observer=new MutationObserver(schedule);observer.observe(document.body,{childList:true,subtree:true});addEventListener('resize',schedule);addEventListener('scroll',schedule,true);return()=>{observer.disconnect();cancelAnimationFrame(raf);removeEventListener('resize',schedule);removeEventListener('scroll',schedule,true)}
  },[current,intro]);
- const rememberVictory=()=>{try{localStorage.setItem(victoryKey(userId),'done')}catch{}};
- if(intro)return <OnboardingVictory onDone={rememberVictory} onContinue={()=>{rememberVictory();setIntro(false)}} onClose={onFinish}/>;
+ // Every explicitly opened guide starts with one visible victory preview.
+ // Tutorial completion/history must never suppress this step on a later replay.
+ if(intro)return createPortal(<OnboardingVictory onContinue={()=>setIntro(false)} onClose={onFinish}/>,document.body);
  return <div className="product-tour compact-tour">
  {bounds&&bounds.height>0&&<><div className="tour-spotlight" style={bounds}/><div className="tour-mini-pointer" style={{top:Math.max(74,bounds.top-29),left:Math.min(bounds.left+8,Math.max(8,innerWidth-260))}}>{t('↓ Tap here on the page','↓ 在页面这里点击','↓ Touchez ici sur la page')}</div></>}
  <section className="tour-popover compact-tour-panel" role="dialog" aria-modal="false" aria-labelledby="tour-heading" style={bounds&&bounds.left>420?{left:18,right:'auto'}:undefined}>
