@@ -20,7 +20,7 @@ const glow=new T.PointLight(0x79dfff,0,8);glow.position.set(1.6,1.5,1);scene.add
 function mesh(geo,mat,parent=scene,x=0,y=0,z=0){const m=new T.Mesh(geo,mat);m.position.set(x,y,z);parent.add(m);return m;}
 const boss=new T.Group();boss.position.set(1.65,0,0);scene.add(boss);
 const worlds=createWorlds(scene,boss);host.classList.add('spotlight-scene');
-let actorFrame=null,interactionTime=null;
+let actorFrame=null,interactionTime=null,anchorSentAt=0;
 const arenaFrames=worlds.map(w=>{const points=[];w.env.updateMatrixWorld(true);w.env.traverse(o=>{if(o.isMesh){o.geometry.computeBoundingBox();points.push(...boxCorners(o.geometry.boundingBox).map(p=>p.applyMatrix4(o.matrixWorld)))}});return points;});
 worlds.forEach(w=>w.boss.clear());
 let hoverPreview=false,hoverClock=0;
@@ -61,7 +61,10 @@ function renderCompanionDice(){
  const palm=wrist.getWorldPosition(new T.Vector3()),flight=T.MathUtils.clamp((interactionTime-1.15)/1.2,0,1);
  dice.visible=true;dice.position.copy(palm).add(new T.Vector3(0,.15+Math.sin(Math.PI*flight)*.65,.15));dice.rotation.set(interactionTime*5,interactionTime*4,interactionTime*2);
 }
-canvas.addEventListener('click',()=>{if(time>=durations[mode])parent.postMessage({type:'monetizable-hero-tap'},location.origin)});
+const heroRay=new T.Raycaster();function hitCompanion(event){const bounds=canvas.getBoundingClientRect();heroRay.setFromCamera(new T.Vector2((event.clientX-bounds.left)/bounds.width*2-1,1-(event.clientY-bounds.top)/bounds.height*2),camera);return heroRay.intersectObject(hero,true).length>0;}
+canvas.addEventListener('pointermove',event=>{canvas.style.cursor=time>=durations[mode]&&hitCompanion(event)?'pointer':'default'});
+canvas.addEventListener('click',event=>{if(time>=durations[mode]&&hitCompanion(event))parent.postMessage({type:'monetizable-hero-tap'},location.origin)});
+canvas.tabIndex=0;canvas.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&time>=durations[mode]){event.preventDefault();parent.postMessage({type:'monetizable-hero-tap'},location.origin)}});
 function frameArena(){
  renderCompanionDice();
  // Frame the actors, not the outside rim of the floor. The arena remains
@@ -83,6 +86,7 @@ function frameArena(){
   camera.position.copy(center).add(new T.Vector3(.04,.06,1).normalize().multiplyScalar(d+.12));camera.lookAt(center);
   const portraitRotation=camera.quaternion.clone();camera.position.lerpVectors(actionPosition,camera.position.clone(),close);camera.quaternion.slerpQuaternions(actionRotation,portraitRotation,close);camera.updateMatrixWorld(true);
  }
+ const head=rig.get('頭')?.bone;if(head&&performance.now()-anchorSentAt>180){anchorSentAt=performance.now();const mouth=head.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,.12,.06)).project(camera);parent.postMessage({type:'monetizable-hero-anchor',x:(mouth.x+1)*50,y:(1-mouth.y)*50},location.origin)}
  canvas.dataset.handGap=(hero.userData.handGap||0).toFixed(3);canvas.dataset.closeup=close.toFixed(3);
  scene.fog.density=Math.min(.018,.22/distance);canvas.dataset.framing='actor-spotlight';const measured=new T.Box3().setFromPoints(points);canvas.dataset.frameBounds=JSON.stringify([measured.min.toArray(),measured.max.toArray()]);
  let extent=0;for(const point of points){const p=point.clone().project(camera);extent=Math.max(extent,Math.abs(p.x),Math.abs(p.y));}canvas.dataset.frameExtent=extent.toFixed(3);
