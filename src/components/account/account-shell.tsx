@@ -188,12 +188,12 @@ export default function AccountShell({
   }, []);
   const openGuide = () => {
     guideRequested.current=true;
-    if(!user || !savedHero()){setPickingHero(true);return;}
-    setAdventureStage('tutorial');setTutorial(true);
+    if(!savedHero()){setPickingHero(true);return;}
+    guideRequested.current=false;setAdventureStage('tutorial');setTutorial(true);
   };
   const finish = useCallback(async () => {
-    if(!user)return;
-    try{localStorage.setItem(tutorialKey(user.id), "done")}catch{}completedTutorial.current=true;setAdventureStage('home');
+    if(user){try{localStorage.setItem(tutorialKey(user.id), "done")}catch{}completedTutorial.current=true;}
+    setAdventureStage(user?'home':'landing');
     setTutorial(false);setTourActive(false);
     document.querySelector<HTMLElement>('.sidebar [data-tour-nav="today"],.mobile-nav [data-tour-nav="today"],.bottom-nav [data-tour-nav="today"]')?.click();
     requestAnimationFrame(()=>document.querySelector('.en-hero,.hero-yelan')?.scrollIntoView({behavior:'smooth',block:'start'}));
@@ -288,11 +288,12 @@ export default function AccountShell({
       )}
       {ready && pickingHero && <HeroPicker onClose={()=>setPickingHero(false)} onContinue={()=>{
         setPickingHero(false);const hero=savedHero()||'supercharlie';
+        if(guideRequested.current){guideRequested.current=false;setAdventureStage('tutorial');setTutorial(true);return;}
         if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
         window.scrollTo({top:0,behavior:'instant'});
         const stage=guideRequested.current?'tutorial':onboardingStage(true,completedTutorial.current,hero);guideRequested.current=false;setAdventureStage(stage);setTutorial(stage==='tutorial');
       }}/> }
-      {ready && user && tutorial && <ProductTour userId={user.id} zh={zh} onFinish={finish} />}
+      {ready && tutorial && <ProductTour userId={user?.id||'guest-preview'} zh={zh} onFinish={finish} />}
     </>
   )}</LocalizeTree>;
 }
