@@ -11,3 +11,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Production deployment
 
 The user authorizes deploying requested website changes to the existing Monetizable production project after relevant checks pass. Do not require a separate deployment confirmation. Verify the deployed version and production domain before reporting success. If platform access or verification fails, report the actual blocker; do not create or switch to a different project as a workaround.
+
+## Cloud-first work and local disk usage
+
+The user prefers editing through GitHub and running builds/deployments in the cloud. Vercel builds `main` automatically; `npm run build` also bundles both 3D source entries. Cloud reports run through GitHub Actions and data refresh through Supabase scheduling. Do not require this Mac to stay on.
+
+Keep the local checkout lean. Reinstall dependencies or create large caches only when necessary for the requested work, then clean reproducible caches after successful cloud verification. Original asset exports must be backed up and hash-verified remotely before local removal. Recovery instructions and the backup release are documented in `docs/cloud-operations.md`. Never include `.env*`, account screenshots or credentials in a backup/release.

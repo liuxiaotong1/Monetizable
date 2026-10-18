@@ -40,3 +40,14 @@ the existing website and the already configured Telegram recipient.
 Run `node --test tests/cloud-report.test.mjs` for Paris DST, holiday/open-window
 guards and missing/stale-quote handling. `workflow_dispatch` with `check_only`
 verifies configuration without sending a notification.
+
+## GitHub-only edits and deployment (2026-10-18)
+
+- Edit source through GitHub web editor / a GitHub-hosted development environment and commit to `main`.
+- The existing Vercel Git integration builds and deploys `main`. `npm run build` now automatically compiles `hero-source.js` and `scene-source.js` using pinned esbuild before Next builds. There is no local bundling prerequisite.
+- Watch the Vercel commit status before declaring a change live. Scheduled reports and refreshes are independent of the developer checkout.
+- Current brand downloads: `/brand/monetizable-brand-kit-20261018.zip` (circle avatars, current Curious M logo and cream-gold banners with a blank bottom-left region).
+- Original character source exports are recoverable from the GitHub release `source-backup-20261018`. Download the archive and extract at the repository root to restore the ignored `outputs/` source paths used by repair scripts. The archive includes a SHA256 manifest; it excludes environment files, account screenshots and third-party boss source packages.
+- Large generated dependency/build directories can be recreated with `npm ci` and `npm run build`. They are not runtime requirements for the deployed site.
+
+Verification on 2026-10-18: Vercel reported SUCCESS for the deployed commit; cloud report check-only run `39135261211` succeeded, confirmed configuration and sent zero notifications; `refresh-health` updated at 14:20 UTC independently of local rendering. Its source status was `partial`, which means some upstream sources were incomplete, not that the cloud scheduler stopped. Direct PostgreSQL inspection was not performed because local TLS certificate-chain verification failed; verification was not disabled.
