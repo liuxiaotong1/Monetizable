@@ -241,6 +241,7 @@ export interface QuestState {
   notices: Notice[];
   sources: SourceStatus[];
   weeklySummary: string;
+  learningHeadlines?: {title:string;url:string;publishedAt?:string}[];
   learningUpdate?: {
     date: string;
     savedAt: string;

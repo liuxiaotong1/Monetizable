@@ -1026,7 +1026,7 @@ function Deck({
   const [theme, setTheme] = useState<Category>(),
     [tab, setTab] = useState<"daily" | "all" | "mastered" | "saved">("daily"),
     [celebrate, setCelebrate] = useState(false),[front,setFront]=useState(false);
-  const deck=useDeckCompletion();
+  const deck=useDeckCompletion(state);
   const visit = useRef<string | null>(null);
   useEffect(() => {
     if (!visit.current) visit.current = crypto.randomUUID();
@@ -1236,13 +1236,13 @@ function Deck({
                     key={i}
                     disabled={busy||answered}
                     onClick={async () => {
-                      const result = await run({
+                      await run({
                         type: "card",
                         cardId: card.id,
                         action: "answer",
                         answerIndex: originalIndex,
                       });
-                      if (result && result.cards.find(c=>c.id===card.id)?.answerIndex === originalIndex) setCelebrate(true);
+
                     }}
                   >
                     <span>{String.fromCharCode(65 + i)}</span>

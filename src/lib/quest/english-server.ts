@@ -1,10 +1,10 @@
 import "server-only";
-import {factualCards} from "./daily-content";
+import {factualCards,contextualCards} from "./daily-content";
 import cards from "@/data/english-cards.json";
 import type {QuestState,LearningCard} from "./types";
 export function englishState(input: QuestState): QuestState {
   const state = structuredClone(input);
-  state.cards = [...factualCards(input,"en"),...structuredClone(cards)] as LearningCard[];
+  state.cards = [...contextualCards(input,"en"),...factualCards(input,"en"),...structuredClone(cards)] as LearningCard[];
   const latest = state.bars
     .filter((b) => b.symbol === "QQQ")
     .sort((a, b) => b.date.localeCompare(a.date));

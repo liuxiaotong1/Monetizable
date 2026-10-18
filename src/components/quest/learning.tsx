@@ -17,7 +17,7 @@ function queueFor(state:QuestState,tab:Tab,theme:Category|"all"){
 }
 export default function Learning({state,run,busy}:ViewProps){
  const [tab,setTab]=useState<Tab>("daily"),[theme,setTheme]=useState<Category|"all">("all"),[activeId,setActiveId]=useState<string>();
- const deck=useDeckCompletion();
+ const deck=useDeckCompletion(state);
  const visit=useRef<string>(undefined), starting=useRef(false);
  const [ready,setReady]=useState(false),[visitFailed,setVisitFailed]=useState(false);
  useEffect(()=>{
@@ -62,7 +62,7 @@ function QuizCard({card,state,run,busy,mastered,onClassify}:{card:LearningCard;s
  const swipeHandlers=useCardSwipe(answered&&!mastered&&!busy,action=>onClassify(action),card.id);
  async function answer(index:number){
   if(busy||answering.current)return;answering.current=true;
-  try{const saved=await run({type:"card",cardId:card.id,action:"answer",answerIndex:index});if(saved && saved.progress.find(p=>p.cardId===card.id)?.lastAnswerIndex===card.answerIndex)setCelebrate(true);}finally{answering.current=false;}
+  try{await run({type:"card",cardId:card.id,action:"answer",answerIndex:index});}finally{answering.current=false;}
  }
  const Icon=categoryIcons[card.category];
  return <LocalizeTree>{<><div className="swipe-deck"><article className={`knowledge-card quiz-first ${card.category} ${revealed?"is-flipped":""}`} {...swipeHandlers.handlers}>

@@ -7,7 +7,7 @@ Production: https://getmonetizable.com, Vercel project `monetizable` in
 | --- | --- | --- |
 | QQQ completed daily bars | Supabase pg_cron → Vercel `/api/refresh` | Every 5 minutes, all days. Source TTL 15 minutes with immediate close-boundary retry. |
 | Calendar, actual/prior/consensus, histories, news/sentiment | Same refresh | Independent source caches/retry clocks. Official release failures retain prior verified values. |
-| New factual learning cards | Same refresh | Derived from verified releases, stored under `learning:YYYY-MM-DD`. Static concept cards are curated rather than falsely dated as new. |
+| Daily contextual learning cards | Supabase refresh + independent weekday GitHub Actions | Calendar preparation, verified releases and retrieved financial headlines from the last 72 hours; stored under `learning:YYYY-MM-DD`. Stable source identities prevent polling duplicates. Static concept cards are not relabeled as new. |
 | Closed prediction results | Same refresh | First verified result under private `review:<user-id>:<judgment-id>`. Original judgments are never edited. |
 | Data-only report fallback | Same refresh | Weekdays after Paris 14:15 and before the actual US open; Sunday after Paris 19:00. |
 | Cross-asset report + Telegram | GitHub Actions `market-reports.yml` | Both UTC offsets cover Europe/Paris DST. Script gates publication using Paris time and the actual US session. Repeated triggers retry safe failures. |
@@ -51,3 +51,8 @@ verifies configuration without sending a notification.
 - Large generated dependency/build directories can be recreated with `npm ci` and `npm run build`. They are not runtime requirements for the deployed site.
 
 Verification on 2026-10-18: Vercel reported SUCCESS for the deployed commit; cloud report check-only run `39135261211` succeeded, confirmed configuration and sent zero notifications; `refresh-health` updated at 14:20 UTC independently of local rendering. Its source status was `partial`, which means some upstream sources were incomplete, not that the cloud scheduler stopped. Direct PostgreSQL inspection was not performed because local TLS certificate-chain verification failed; verification was not disabled.
+
+## Learning completion and daily topics (2026-10-18)
+
+- The completion celebration requires five distinct cards answered and classified on the Paris calendar day. Empty filtered queues do not count as a completed deck. Progress restores from saved dispositions after navigation/reload; a day celebrates only once. Correct answers retain their explanation without individual fireworks.
+- Weekday learning refresh runs independently of visits via `learning-refresh.yml`, in addition to Supabase refresh. `/api/refresh` reports the resulting `learning` date, count and status. Source failures retain honest timestamps; news exercises do not infer article content or fabricate actual release values.

@@ -13,7 +13,9 @@ let state={seen:[],batch:[]};
 assert.equal(advanceDeckBatch(state,'a',['a','b']).completed,0);
 for(let i=0;i<5;i++){const r=advanceDeckBatch(state,String(i),['next']);state=r.state;assert.equal(r.completed,i===4?5:0);}
 assert.equal(advanceDeckBatch(state,'4',[]).completed,0,'Duplicate completion is ignored');
-assert.equal(advanceDeckBatch(state,'last',[]).completed,1,'A shorter final pack also celebrates');
+assert.equal(advanceDeckBatch(state,'last',[]).completed,0,'No second celebration after five');
+assert.equal(advanceDeckBatch({seen:[],batch:[]},'only',[]).completed,0,'A one-card filtered queue must not celebrate');
+for(let n=1;n<5;n++){const ids=Array.from({length:n-1},(_,i)=>String(i));assert.equal(advanceDeckBatch({seen:ids,batch:ids},'last',[]).completed,0,'An exhausted queue below five must not celebrate');}
 const Victory=load('src/components/quest/deck-victory.tsx').default;
 for(locale of ['fr','en','zh']){const demo=html(renderToStaticMarkup(React.createElement(Victory,{demo:true})));assert.equal(demo('button').length,0);assert.ok(demo('small').text());const actual=html(renderToStaticMarkup(React.createElement(Victory,{count:3})));assert.equal(actual('button').length,1);assert.ok(actual('strong').text().startsWith('3'));if(locale!=='zh')assert.ok(!/\p{Script=Han}/u.test(actual.text()));}
-console.log('Deck batches, duplicate protection, final short packs and three-language victory views passed.');
+console.log('Deck batches, duplicate protection, strict five-card threshold and three-language victory views passed.');

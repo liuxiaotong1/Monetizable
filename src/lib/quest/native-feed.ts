@@ -27,6 +27,7 @@ export async function refreshNative(feed:PublicFeed,force=false,strict=false):Pr
   state.sources=state.sources.filter(s=>s.name!=='QQQ 公开参考日线');state.sources.push({name:'QQQ 公开参考日线',status:!marketError&&lastBar?.date===expectedDate?'ready':'delayed',message:marketError|| (lastBar?`已取得 ${lastBar.date} 日线；应有 ${expectedDate}。日线不是实时行情。`:'等待首次有效日线，上游失败会自动重试。'),lastSuccess:lastBar?.fetchedAt});
   await refreshEventData(state,now);
   try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);const intelligence=feed.intelligence as EventIntelligence;for(const source of intelligence.sources){state.sources.push({name:`新闻与市场情绪 · ${source.name}`,status:source.status==='ready'?'ready':'delayed',lastSuccess:source.fetchedAt,message:source.message});}}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
+  state.learningHeadlines=(feed.intelligence as EventIntelligence).sources.filter(s=>s.id!=='polymarket'&&s.status==='ready').flatMap(s=>s.items.map(i=>({title:i.title,url:i.url,publishedAt:i.publishedAt})));
   updateDailyContent(state);
   await save(`learning:${marketDate(now)}`,{cards:state.cards.filter(c=>c.topical),update:state.learningUpdate});
   const healthRow=(await database().query('SELECT max(r.created) AS completed_at FROM public.quest_update_requests q JOIN net._http_response r ON r.id=q.id WHERE r.status_code=200 AND NOT COALESCE(r.timed_out,false)')).rows[0];

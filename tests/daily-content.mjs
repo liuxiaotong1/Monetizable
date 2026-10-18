@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const data=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
+const compile=f=>ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const domain=data(compile('src/lib/quest/domain.ts'));
+const {contextualCards,updateDailyContent}=await import(data(compile('src/lib/quest/daily-content.ts').replace("'./domain'",JSON.stringify(domain))));
+const state={now:'2026-10-19T11:00:00Z',events:[{id:'cpi-future',kind:'CPI',at:'2026-10-20T12:30:00Z',sourceUrl:'https://www.bls.gov/cpi/'}],cards:[],learningHeadlines:[{title:'Fed rates and bond yields',url:'https://www.ft.com/content/test',publishedAt:'2026-10-19T09:00:00Z'},{title:'Nvidia earnings',url:'https://www.marketwatch.com/story/test',publishedAt:'2026-10-19T08:00:00Z'},{title:'Old market news',url:'https://www.ft.com/content/old',publishedAt:'2026-10-01T08:00:00Z'}]};
+const cards=contextualCards(state,'en');assert.equal(cards.length,3);assert.ok(cards.every(c=>c.sources.length&&c.choices.length===4));assert.equal(cards[0].asOf,'2026-10-20');assert.ok(!cards.some(c=>c.sources.some(s=>s.url.endsWith('/old'))));
+assert.deepEqual(cards.map(c=>c.conceptId),contextualCards(state,'zh').map(c=>c.conceptId));assert.deepEqual(cards.map(c=>c.id),contextualCards(state,'en').map(c=>c.id),'Polling keeps stable identities');
+updateDailyContent(state);const ids=state.cards.map(c=>c.id);updateDailyContent(state);assert.deepEqual(state.cards.map(c=>c.id),ids,'Repeated refreshes do not duplicate cards');assert.equal(state.learningUpdate.count,3);
+const {completedCardsToday,learningCompletionDay,advanceDeckBatch}=await import(data(compile('src/lib/quest/deck-completion.ts')));
+const day=learningCompletionDay('2026-10-19T11:00:00Z');
+const progress=Array.from({length:4},(_,i)=>({cardId:String(i),lastDispositionAt:'2026-10-19T10:00:00Z'}));
+const restored=completedCardsToday([...progress,{cardId:'old',lastDispositionAt:'2026-10-18T10:00:00Z'}],day);assert.equal(restored.length,4);assert.equal(advanceDeckBatch({seen:restored,batch:restored},'fifth',[]).completed,5,'Reload preserves four completed cards');assert.equal(learningCompletionDay('2026-10-18T22:30:00Z'),day,'Paris midnight boundary');
+console.log('Event/news source freshness, stable bilingual identities, refresh deduplication and persisted five-card completion passed.');
