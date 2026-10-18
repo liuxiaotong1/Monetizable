@@ -2,7 +2,8 @@ const params=new URLSearchParams(location.search),female=params.get('hero')!=='s
 import * as T from 'three';
 import {createCompanionCast} from './rig-motion.js';
 import {createDefeatMotion} from './defeat-motion.js';
-import {createDiceMaterial} from '../heroes/dice-material.js';
+import {createDiceMaterial,DICE_PIP_COLOR} from '../heroes/dice-material.js';
+import {createHandSocket} from '../heroes/arm-gesture.js';
 import {fitArenaCamera,boxCorners} from './camera-fit.js';
 import {createWorlds} from './worlds.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -24,10 +25,10 @@ let actorFrame=null,interactionTime=null,anchorSentAt=0;
 const arenaFrames=worlds.map(w=>{const points=[];w.env.updateMatrixWorld(true);w.env.traverse(o=>{if(o.isMesh){o.geometry.computeBoundingBox();points.push(...boxCorners(o.geometry.boundingBox).map(p=>p.applyMatrix4(o.matrixWorld)))}});return points;});
 worlds.forEach(w=>w.boss.clear());
 let hoverPreview=false,hoverClock=0;
-let dragonMixer,dragonAction,beetleMixer,beetleRig=[],castPose,defeatPose,dragonReady=false;
+let dragonMixer,dragonAction,beetleMixer,beetleRig=[],castPose,defeatPose,handSocket,dragonReady=false;
 const armorParts=[];boss.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;armorParts.push({mesh:o,position:o.position.clone(),rotation:o.rotation.clone(),scale:o.scale.clone()});}});
 const hero=new T.Group();hero.position.x=-1.4;hero.scale.setScalar(1.12);scene.add(hero);
-const dice=new T.Group();scene.add(dice);const diceMat=createDiceMaterial();mesh(new T.BoxGeometry(.32,.32,.32),diceMat,dice);const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(.33,.33,.33)),new T.LineBasicMaterial({color:0xc8ffff}));dice.add(edges);for(const axis of [0,1,2])for(const sign of [-1,1])for(const [a,b] of [[-1,-1],[-1,1],[0,0],[1,-1],[1,1]]){const pip=mesh(new T.SphereGeometry(.025,8,8),new T.MeshBasicMaterial({color:0xffffff}),dice);pip.position.setComponent(axis,sign*.167);pip.position.setComponent((axis+1)%3,a*.08);pip.position.setComponent((axis+2)%3,b*.08);}
+const dice=new T.Group();scene.add(dice);const diceMat=createDiceMaterial();mesh(new T.BoxGeometry(.32,.32,.32),diceMat,dice);const edges=new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(.33,.33,.33)),new T.LineBasicMaterial({color:0xffe3a0}));dice.add(edges);for(const axis of [0,1,2])for(const sign of [-1,1])for(const [a,b] of [[-1,-1],[-1,1],[0,0],[1,-1],[1,1]]){const pip=mesh(new T.SphereGeometry(.025,8,8),new T.MeshBasicMaterial({color:DICE_PIP_COLOR}),dice);pip.position.setComponent(axis,sign*.167);pip.position.setComponent((axis+1)%3,a*.08);pip.position.setComponent((axis+2)%3,b*.08);}
 const meteor=new T.Group();scene.add(meteor);mesh(new T.IcosahedronGeometry(.4,1),new T.MeshStandardMaterial({color:0xb86b29,emissive:0xd1812e,emissiveIntensity:.4,roughness:.6,flatShading:true}),meteor);for(let i=0;i<5;i++){const flame=mesh(new T.ConeGeometry(.08,.65,6),new T.MeshBasicMaterial({color:i%2?0xe1b94b:0xce772e,transparent:true,opacity:.65}),meteor,Math.sin(i*3)*.2,.55,Math.cos(i*3)*.2);}
 const fx=new T.Group();scene.add(fx);const fxMat=new T.MeshBasicMaterial({color:0x78e5ff,transparent:true,opacity:.8,blending:T.NormalBlending,depthWrite:false});
 const rings=Array.from({length:6},(_,i)=>{let m=mesh(new T.TorusGeometry(1,.018,8,128),fxMat.clone(),fx,1.65,1.3,0);m.rotation.set(Math.PI/2,i*.4,i*.4);return m;});
@@ -54,12 +55,14 @@ function secondary(t){
  sway('首',Math.sin(t*1.6)*.018,-Math.sin(t*1.8)*.025,0);
  for(const [name,{bone}] of rig){if(/髪|毛|裾|コート/.test(name))sway(name,Math.sin(t*3.2-name.length*.3)*.018,0,Math.sin(t*2.6-name.length*.4)*.02);}
 }
+let diceReleasePoint=null,diceWasFlying=false;
 function renderCompanionDice(){
- if(interactionTime===null||!castPose)return;
- castPose(interactionTime);hero.updateMatrixWorld(true);
- const wrist=rig.get('右手首')?.bone;if(!wrist)return;
- const palm=wrist.getWorldPosition(new T.Vector3()),flight=T.MathUtils.clamp((interactionTime-1.15)/1.2,0,1);
- dice.visible=true;dice.position.copy(palm).add(new T.Vector3(0,.15+Math.sin(Math.PI*flight)*.65,.15));dice.rotation.set(interactionTime*5,interactionTime*4,interactionTime*2);
+ if(!castPose||!handSocket)return;
+ if(interactionTime!==null){castPose(interactionTime);hero.updateMatrixWorld(true);}
+ const held=handSocket(.176),clock=interactionTime===null?time:interactionTime,releaseAt=interactionTime!==null?1.15:mode===1?1.61:1.32,impact=interactionTime!==null?1.75:impacts[mode],catchAt=interactionTime!==null?2.5:impact+1.45,nowFlying=clock>releaseAt&&clock<catchAt;
+ dice.visible=true;dice.scale.setScalar(.55);dice.position.copy(held.position);dice.quaternion.copy(held.quaternion);
+ if(nowFlying){if(!diceWasFlying||!diceReleasePoint)diceReleasePoint=held.position.clone();const target=interactionTime!==null?diceReleasePoint.clone().add(new T.Vector3(.12,.65,.15)):new T.Vector3(1.65,1.6,0);if(clock<impact){const u=smooth(releaseAt,impact,clock);dice.position.copy(diceReleasePoint).lerp(target,u);dice.position.y+=Math.sin(u*Math.PI)*.4;}else{const u=smooth(impact,catchAt,clock);dice.position.copy(target).lerp(held.position,u);dice.position.y+=Math.sin(u*Math.PI)*.45;}dice.rotation.set(clock*5,clock*7,clock*3);}
+ diceWasFlying=nowFlying;if(!nowFlying)diceReleasePoint=null;canvas.dataset.diceVisible='true';canvas.dataset.dicePhase=nowFlying?'flight':'held';canvas.dataset.dicePalmGap=nowFlying?'flight':dice.position.distanceTo(held.position).toFixed(4);
 }
 const heroRay=new T.Raycaster();function hitCompanion(event){const bounds=canvas.getBoundingClientRect();heroRay.setFromCamera(new T.Vector2((event.clientX-bounds.left)/bounds.width*2-1,1-(event.clientY-bounds.top)/bounds.height*2),camera);return heroRay.intersectObject(hero,true).length>0;}
 canvas.addEventListener('pointermove',event=>{canvas.style.cursor=time>=durations[mode]&&hitCompanion(event)?'pointer':'default'});
@@ -102,9 +105,7 @@ function renderDefeat(){
  if(mode===1&&beetleMixer)beetleMixer.setTime(time);
  boss.visible=true;boss.scale.setScalar(.85);boss.position.set(1.65-.55*attack,0,-.3);boss.rotation.set(0,mode===1?-Math.PI/2:0,0);
  boss.traverse(o=>{if(o.isMesh)for(const mat of(Array.isArray(o.material)?o.material:[o.material])){mat.opacity=mat.userData.defeatOpacity??1;}});
- const hand=rig.get('右手首')?.bone.getWorldPosition(new T.Vector3())||new T.Vector3(-1.1,1.8,.7),flight=smooth(1.32,impact,time);
- dice.visible=time<hit+.8;dice.scale.setScalar(.75);dice.position.copy(hand).lerp(new T.Vector3(1.05,1.65,-.05),flight);dice.position.y+=Math.sin(flight*Math.PI)*.4;
- if(time>impact){const fall=smooth(impact,hit+.8,time);dice.position.set(1.05-2.1*fall,1.65*(1-fall)+.1,.1+.4*fall)}dice.rotation.set(time*5,time*8,time*3);
+
  meteor.visible=false;beam.visible=false;shards.visible=false;glow.intensity=Math.max(0,1.2-Math.abs(q)*7);
  rings.forEach((r,i)=>{r.visible=i<2&&time>impact-.1&&time<hit+.5;r.position.set(i===0?1.05:hero.position.x,1.65,.2);r.rotation.set(0,Math.PI/2,time*.2);r.scale.setScalar(i===0?.7:.55+Math.max(0,q)*1.8);r.material.color.setHex(i===0?0xd0a95f:0xb87556);r.material.opacity=i===0?.65:Math.max(0,.7-q);});
  core.visible=q>0&&q<.35;core.position.set(hero.position.x,1.7,.7);core.scale.setScalar(.35+Math.max(0,q)*2);core.material.color.setHex(0xd8b16a);core.material.opacity=Math.max(0,.55-q*1.5);
@@ -117,15 +118,15 @@ function renderDefeat(){
 function render(){if(lost&&castPose){renderDefeat();return}const impact=impacts[mode],q=time-impact,release=smooth(.65,impact,time),fade=1-smooth(impact+.7,impact+1.7,time),col=mode===0?0x058aa9:mode===1?0xd87922:0x9b7527;fxMat.color.setHex(col);rings.forEach(m=>m.material.color.setHex(col));beam.material.color.setHex(col);core.material.color.setHex(col);glow.color.setHex(col);shards.material.color.setHex(col);shards.material.emissive.setHex(col).multiplyScalar(.22);
  if(castPose){for(const {bone,rest} of rig.values())bone.quaternion.copy(rest);const drive=smooth(1.05,1.6,time),recover=smooth(2.2,3.5,time);hero.position.set(-1.6+.45*drive-.15*recover,-.08*Math.sin(Math.min(time/1.7,1)*Math.PI),.12*Math.sin(time));hero.rotation.set(0,-.25*(smooth(.1,.9,time))+.55*drive-.3*recover,0);castPose(time*(mode===1?.82:1));}else poseHero(time);
  const finish=smooth(impact+1.25,impact+2.5,time);
- if(finish>0){hero.position.x=T.MathUtils.lerp(hero.position.x,-.35,finish);hero.position.y*=1-finish;hero.rotation.y=T.MathUtils.lerp(hero.rotation.y,.04,finish);for(const name of ['右腕','左腕','右ひじ','左ひじ','右足D','左足D','右ひざD','左ひざD']){const r=rig.get(name);if(r)r.bone.quaternion.slerp(r.rest,finish*.95);}const flourish=(name,x,y,z)=>{const r=rig.get(name);if(r)r.bone.quaternion.multiply(new T.Quaternion().setFromEuler(new T.Euler(x*finish,y*finish,z*finish)));};flourish('左腕',.25,0,-.2);flourish('左ひじ',.55,0,0);flourish('右腕',-.2,0,.12);flourish('右手首',0,0,.18);const head=rig.get('頭');if(head)head.bone.quaternion.multiply(new T.Quaternion().setFromEuler(new T.Euler(0,-.08*finish,.04*finish)));}
+ if(finish>0){hero.position.x=T.MathUtils.lerp(hero.position.x,-.35,finish);hero.position.y*=1-finish;hero.rotation.y=T.MathUtils.lerp(hero.rotation.y,.04,finish);for(const name of ['右腕','左腕','右ひじ','左ひじ','右足D','左足D','右ひざD','左ひざD']){const r=rig.get(name);if(r)r.bone.quaternion.slerp(r.rest,finish*.95);}const flourish=(name,x,y,z)=>{const r=rig.get(name);if(r)r.bone.quaternion.multiply(new T.Quaternion().setFromEuler(new T.Euler(x*finish,y*finish,z*finish)));};const head=rig.get('頭');if(head)head.bone.quaternion.multiply(new T.Quaternion().setFromEuler(new T.Euler(0,-.08*finish,.04*finish)));}
 
 
  if(mode===0&&dragonMixer){dragonMixer.setTime(Math.min(time,impact));}if(mode===1&&beetleMixer){beetleMixer.setTime(Math.min(time,impact));for(const {bone,rest,sample} of beetleRig){bone.quaternion.copy(rest);if(sample)bone.quaternion.fromArray(sample.evaluate(Math.min(time,impact)));if(q>0)bone.quaternion.multiply(new T.Quaternion().setFromEuler(new T.Euler(-.45*smooth(0,.65,q),0,.12*Math.sin(q*7))));}} boss.traverse(o=>{if(o.isMesh){for(const mat of (Array.isArray(o.material)?o.material:[o.material])){if(mat.userData.defeatOpacity===undefined)mat.userData.defeatOpacity=mat.opacity;mat.transparent=true;mat.opacity=mat.userData.defeatOpacity*(1-smooth(.75,1.6,q));}}}); boss.rotation.y=0;boss.visible=q<1.6;boss.scale.setScalar(.85*(1+Math.sin(time*2)*.012));armorParts.forEach((p,i)=>{p.mesh.position.copy(p.position);p.mesh.rotation.copy(p.rotation);p.mesh.scale.copy(p.scale);if(q>0){const f=Math.max(0,q-.08);p.mesh.position.x+=Math.sin(i*2.4)*f*1.2;p.mesh.position.y+=Math.cos(i*1.7)*f*.8-f*f*.5;p.mesh.position.z+=Math.sin(i*3.1)*f;p.mesh.rotation.z+=f*Math.sin(i)*.6;p.mesh.scale.multiplyScalar(Math.max(.001,1-f/1.3));}});boss.position.y=mode===2?smooth(.5,impact,time)*.28:0;boss.rotation.z=q>0?Math.sin(q*38)*.09*Math.exp(-q*4):Math.sin(time*1.5)*.015;boss.position.x=1.65+(q>0&&mode===0?q*.8:0);
  if(mode===0&&q>0)boss.rotation.z=-Math.min(q,1)*.75;
  if(mode===1&&q>0){boss.rotation.z=-smooth(0,1.4,q)*1.2;boss.position.y=-smooth(.2,1.4,q)*.45;boss.position.x=1.65+smooth(0,1.4,q)*.6;}
  if(mode===2){boss.position.y=smooth(.6,2.4,time)*.7;boss.rotation.y=time*.6;}
- dice.visible=time<impact+.1;meteor.visible=false;meteor.position.set(1.65,3.7-2.4*smooth(1.7,impact,time),0);meteor.rotation.y=time*2;dice.position.set(-1.05+(2.7*release),1.8+Math.sin(release*Math.PI)*.65,.65*(1-release));if(mode===1){dice.position.set(1.65,4.4-3.1*smooth(1.7,impact,time),0);dice.scale.setScalar(.7+release*1.3);}else dice.scale.setScalar(1);dice.rotation.set(time*6,time*8,time*4);
- if(rig.has('右手首')){hero.updateMatrixWorld(true);const hand=rig.get('右手首').bone.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,.08,.06));const releaseAt=mode===1?1.61:1.32;const u=clamp((time-releaseAt)/(impact-releaseAt),0,1);dice.position.copy(hand).lerp(new T.Vector3(1.65,1.6,0),u);dice.position.y+=Math.sin(u*Math.PI)*.32;dice.scale.setScalar(.75);}
+ meteor.visible=false;
+
 
  for(let i=0;i<6;i++){
  const r=rings[i];r.visible=false;r.material.opacity=.8;
@@ -148,7 +149,7 @@ try{
  const aliases={pelvis:'Hips',spine_01:'Spine',spine_02:'Spine1',spine_03:'Spine2',head:'Head',upperarm_r:'RightArm',lowerarm_r:'RightForeArm',hand_r:'RightHand',upperarm_l:'LeftArm',lowerarm_l:'LeftForeArm'};
  const names={RightArm:'右腕',RightForeArm:'右ひじ',RightHand:'右手首',LeftArm:'左腕',LeftForeArm:'左ひじ',Head:'頭'};
  model.traverse(o=>{if(o.isBone){const n=aliases[o.name]||o.name.replace('mixamorig','').replace(':','');if(names[n])rig.set(names[n],{bone:o,rest:o.quaternion.clone()})}if(o.isMesh){o.castShadow=true;o.frustumCulled=false;for(const mat of(Array.isArray(o.material)?o.material:[o.material])){mat.roughness=.65;mat.metalness=.08}}});
- castPose=createCompanionCast(model,hero);defeatPose=createDefeatMotion(model);
+ castPose=createCompanionCast(model,hero);defeatPose=createDefeatMotion(model);handSocket=createHandSocket(model);
  if(lost){const copy=({zh:['预判未命中 · 重新整备','Boss 仍在。回看证据，为下一次判断积累经验。'],fr:['Prévision manquée · Reprenez vos repères','Le Boss résiste. Revenez aux faits pour préparer votre prochaine prévision.'],en:['Missed call · Regroup','The Boss holds. Review the evidence and prepare your next call.']}[locale]||['Missed call · Regroup','Review the evidence.']);$('victory').querySelector('h2').textContent=copy[0];$('victory').querySelector('p').textContent=copy[1];if(!embedded){$('title').textContent='防御 · 受击 · 后撤 · 重新站稳';document.querySelector('main>header h1').textContent='预测失败 · 完整场景演示';document.querySelector('.notes article:last-child>p').textContent='角色始终面向 Boss：投掷未破防，Boss 反击后防守后撤，再恢复站位。庭院与遗迹背景全程保留。支持重播、半速与拖动时间轴。';}}
  await Promise.all([loadDragon(),loadBeetle()]);$('loading').hidden=true;$('loading').style.display='none';$('play').disabled=false;select(params.get('boss')==='beetle'?1:0);running=true;canvas.dataset.ready='true';if(embedded)parent.postMessage({type:'monetizable-restored-ready',outcome:lost?'loss':'win'},location.origin);if(embedded&&matchMedia('(prefers-reduced-motion: reduce)').matches){time=durations[mode];running=false;completedNotified=true;parent.postMessage({type:'monetizable-restored-complete',outcome:lost?'loss':'win'},location.origin)}resize();requestAnimationFrame(tick);
 }catch(e){$('loading').textContent='模型加载失败，请点击刷新重试。';console.error(e);if(embedded)parent.postMessage({type:'monetizable-restored-error'},location.origin)}

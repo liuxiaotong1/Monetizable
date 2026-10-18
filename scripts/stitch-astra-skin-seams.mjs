@@ -10,6 +10,9 @@ const vectors=Array.from({length:p.count},(_,i)=>{const m=new Map();for(let k=0;
 function average(list){const m=new Map();for(const v of list)for(const[id,weight]of vectors[v])m.set(id,(m.get(id)||0)+weight/list.length);return m}
 const seams=[...groups.values()].filter(v=>v.length>1),active=new Set();
 for(const part of seams){const merged=average(part);if(merged.size>1)for(const i of part){active.add(i);for(const n of neighbors[i])active.add(n)}for(const i of part)vectors[i]=new Map(merged)}
+// Include the entire upper/lower-arm shell, not just coincident UV edges.
+// The auto-rig also contains hard weight transitions inside triangles.
+for(let i=0;i<p.count;i++)if(p.get(i,1)>1.06&&p.get(i,1)<1.58&&Math.abs(p.get(i,0))>.16)active.add(i);
 // Expand the feathering band across topology; a one-ring blend creates a new
 // discontinuity immediately behind the stitched seam.
 for(let ring=0;ring<8;ring++){const grow=[];for(const i of active)for(const n of neighbors[i])if(!active.has(n))grow.push(n);for(const i of grow)active.add(i)}

@@ -1,0 +1,13 @@
+import * as T from 'three';
+// Author small FK rotations in each skeleton's native bend plane. Never drag a
+// wrist target through the torso or rotate a forearm around its long axis.
+export function createArmGesture(model){
+ const bones={};model.traverse(o=>{if(o.isBone)bones[o.name.replace('mixamorig','').replace(':','')]=o});
+ const sides=['Right','Left'].map((side,i)=>{const suffix=i?'l':'r',upper=bones[side+'Arm']||bones['upperarm_'+suffix],lower=bones[side+'ForeArm']||bones['lowerarm_'+suffix],hand=bones[side+'Hand']||bones['hand_'+suffix];if(!upper||!lower||!hand)return null;model.updateMatrixWorld(true);const a=upper.getWorldPosition(new T.Vector3()),b=lower.getWorldPosition(new T.Vector3()),c=hand.getWorldPosition(new T.Vector3()),u=b.clone().sub(a).normalize(),v=c.clone().sub(b).normalize(),hinge=new T.Vector3().crossVectors(u,v);if(hinge.lengthSq()<.001)hinge.set(-1,0,0);hinge.normalize();const forward=new T.Vector3(0,0,1).transformDirection(model.matrixWorld),raise=new T.Vector3().crossVectors(u,forward).normalize();return {side,upper,lower,hand,uq:upper.quaternion.clone(),lq:lower.quaternion.clone(),hq:hand.quaternion.clone(),bend:hinge.applyQuaternion(lower.getWorldQuaternion(new T.Quaternion()).invert()),raise:raise.applyQuaternion(upper.getWorldQuaternion(new T.Quaternion()).invert())}});
+ return ({wind=0,release=0,catching=0,guard=0}={})=>{for(const s of sides){if(!s)continue;const active=s.side==='Right',lift=active?.05*wind+.08*release+.03*guard:.02*wind+.04*guard,bend=active?.025+.08*wind-.015*release+.04*catching+.05*guard:.02+.04*guard;s.upper.quaternion.copy(s.uq).multiply(new T.Quaternion().setFromAxisAngle(s.raise,Math.min(.12,lift)));s.lower.quaternion.copy(s.lq).multiply(new T.Quaternion().setFromAxisAngle(s.bend,T.MathUtils.clamp(bend,0,.17)));s.hand.quaternion.copy(s.hq)}model.updateMatrixWorld(true)};
+}
+export function createHandSocket(model){
+ const bones={};model.traverse(o=>{if(o.isBone)bones[o.name.replace('mixamorig','').replace(':','')]=o});
+ const wrist=bones.RightHand||bones.hand_r,middle=bones.RightHandMiddle1||bones.middle_01_r,index=bones.RightHandIndex1||bones.index_01_r,pinky=bones.RightHandPinky1||bones.pinky_01_r;
+ return (size)=>{model.updateMatrixWorld(true);const point=wrist.getWorldPosition(new T.Vector3()),center=middle?point.clone().lerp(middle.getWorldPosition(new T.Vector3()),.65):point.clone(),normal=index&&pinky?new T.Vector3().crossVectors(index.getWorldPosition(new T.Vector3()).sub(point),pinky.getWorldPosition(new T.Vector3()).sub(point)).normalize():new T.Vector3(0,1,0).applyQuaternion(wrist.getWorldQuaternion(new T.Quaternion()));return {position:center.addScaledVector(normal,size*.5+.004),quaternion:wrist.getWorldQuaternion(new T.Quaternion())}};
+}
