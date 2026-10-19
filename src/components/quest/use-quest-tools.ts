@@ -14,7 +14,7 @@ export function useQuestTools(state: QuestState | null, navigate: (view: View) =
     const register = (tool: Parameters<Context["registerTool"]>[0]) => {
       try { void Promise.resolve(context.registerTool(tool, { signal: lifecycle.signal })).catch(() => {}); } catch { /* Browser support is optional. */ }
     };
-    register({ name: "read_quest_summary", description: "Read the currently displayed QQQ Quest mode, date, XP and task counts without changing saved records.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true }, execute(input) {
+    register({ name: "read_quest_summary", description: "Read the currently displayed Nasdaq-100 ETF Quest mode, date, XP and task counts without changing saved records.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true }, execute(input) {
       if (!input || typeof input !== "object" || Object.keys(input).length) throw new Error("No input fields are accepted");
       const s = current.current;
       if (!s) throw new Error("Workspace has not loaded");

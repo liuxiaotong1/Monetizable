@@ -1464,7 +1464,7 @@
     "choices": [
       "Neither a durable trend nor a market direction",
       "A recession is impossible",
-      "A guaranteed QQQ rally",
+      "A guaranteed Nasdaq-100 ETF rally",
       "All revisions are irrelevant"
     ],
     "answerIndex": 0,
@@ -1604,7 +1604,7 @@
     "choices": [
       "Only whether a number is positive",
       "Only the previous month",
-      "A universal CPI-to-QQQ formula",
+      "A universal CPI-to-Nasdaq-100 ETF formula",
       "Actual data relative to expectations and positioning"
     ],
     "answerIndex": 3,

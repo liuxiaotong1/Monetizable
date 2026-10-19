@@ -7,10 +7,11 @@ import {PremiumGate,useBilling} from "../account/billing-access";
 import {useEffect,useState, type ReactNode} from "react";
 import {ChevronRight} from "lucide-react";
 import type {AgentReport} from "@/lib/quest/agent-report";
+import {relabelMarketText} from "@/lib/quest/market-label";
 import {dualTime} from "./shared";
 import "./agent-reports.css";
 
-const displayText=(text:string)=>text.replace(/trading[ -]?agent/gi,"盘前情报");
+const displayText=(text:string)=>relabelMarketText(text.replace(/trading[ -]?agent/gi,"盘前情报"),"zh");
 function safeLink(value:string) {try {const url=new URL(value);return url.protocol==="https:"&&!url.username&&!url.password?url.href:undefined;}catch{return undefined;}}
 function inline(text:string):ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\(https:\/\/[^\s)]+\))/g).map((part,i)=>{

@@ -573,7 +573,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
         <div className="en-card-heading">
-          <h2>QQQ · This week’s map</h2>
+          <h2>Nasdaq-100 ETF · This week’s map</h2>
           <span className="en-live">DAILY DATA</span>
         </div>
         {latest ? (
@@ -629,7 +629,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
               target="_blank"
               rel="noreferrer"
             >
-              Open QQQ’s live reference chart ↗
+              Open the Nasdaq-100 ETF live chart ↗
             </a>
           </>
         ) : (
@@ -976,7 +976,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
         </p>
         <EventTakeaway event={e} locale="en"/>
         {!!e.report?.metrics?.length&&<><h4>Official release breakdown</h4>{e.report.metrics.map(metric=><p key={metric.kind}>{metric.kind==="headline-mom"?"Headline CPI · monthly, seasonally adjusted":"Core CPI · year over year"}: {metric.value}{metric.unit}</p>)}</>}
-        <h4>Why it matters for QQQ</h4>
+        <h4>Why it matters for the Nasdaq-100 ETF</h4>
         <p>{text.impact}</p>
         <p>
           The response depends on what was already expected, growth, rates and

@@ -258,7 +258,7 @@ const originalCards: LearningCard[] = [
     analogy: "两个摄影师拍同一场宴会，镜头范围和座位权重不一样。",
     explanation: "PCE 价格指数覆盖消费者及代其购买的消费支出，范围、权重和方法与 CPI 不同，也反映消费行为变化。对比前先确认是否同为总体或核心。",
     example: "例如由雇主或政府代付的医疗支出，在不同消费价格指标中的覆盖与权重可能不同。",
-    choices: ["其中一个一定计算错误", "覆盖范围、权重及方法不同", "PCE 就是 QQQ 的价格"], answerIndex: 1,
+    choices: ["其中一个一定计算错误", "覆盖范围、权重及方法不同", "PCE 就是纳斯达克100 ETF 的价格"], answerIndex: 1,
     answerExplanation: "测量口径不同可以产生不同读数，不能简单挑一个当作唯一真相。",
     sources: [source("BEA · PCE 价格指数", "https://www.bea.gov/data/personal-consumption-expenditures-price-index")],
   },

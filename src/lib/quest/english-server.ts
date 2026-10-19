@@ -15,7 +15,7 @@ export function englishState(input: QuestState): QuestState {
       conceptId: "en:market:close-comparison",
       category: "events",
       title: "Today’s market math",
-      question: `QQQ closed at $${latest[0].close.toFixed(2)} on ${latest[0].date}, versus $${latest[1].close.toFixed(2)} the previous session. The approximate change was…`,
+      question: `Nasdaq-100 ETF closed at $${latest[0].close.toFixed(2)} on ${latest[0].date}, versus $${latest[1].close.toFixed(2)} the previous session. The approximate change was…`,
       choices: [
         `${percent.toFixed(2)}%`,
         `${(-percent).toFixed(2)}%`,
@@ -31,7 +31,7 @@ export function englishState(input: QuestState): QuestState {
         "A 1% move and a $1 move are different when the starting price changes.",
       sources: [
         {
-          title: "QQQ historical prices",
+          title: "Nasdaq-100 ETF historical prices",
           url: "https://finance.yahoo.com/quote/QQQ/history/",
         },
       ],

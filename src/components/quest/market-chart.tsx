@@ -59,7 +59,7 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
       script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
       script.async = true;
       script.textContent = JSON.stringify({
-        autosize: true, symbol: "NASDAQ:QQQ", interval, timezone: "America/New_York",
+        autosize: true, symbol: "NASDAQ:QQQ", interval, timezone: "America/New_York", hide_legend: true,
         theme: "light", style: "1", locale: "zh_CN", allow_symbol_change: false,
         withdateranges: true, hide_side_toolbar: true, save_image: false,
         calendar: false, support_host: "https://www.tradingview.com",
@@ -69,7 +69,7 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
         const next = container.querySelector("iframe");
         if (!next || next === frame) return;
         frame = next;
-        frame.title = "TradingView QQQ 参考行情图表";
+        frame.title = "TradingView 纳斯达克100 ETF 参考行情图表";
         frame.addEventListener("load", ready);
       });
       mutation.observe(container, { childList: true, subtree: true });
@@ -92,7 +92,7 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
   const stale = !!brief && brief.date !== (readDate || feed?.expectedDate);
   const failed = !!feed?.lastAttempt && feed.lastAttempt.date === feed.expectedDate && feed.lastAttempt.status === "unavailable";
   return <LocalizeTree>{<section className="panel market-observatory" aria-labelledby="market-title">
-    <div className="market-heading"><div><span className="eyebrow"><Telescope size={13}/> MARKET OBSERVATORY</span><h2 id="market-title">QQQ · 市场望远镜</h2></div><span className="badge purple">免费图表</span></div>
+    <div className="market-heading"><div><span className="eyebrow"><Telescope size={13}/> MARKET OBSERVATORY</span><h2 id="market-title">纳斯达克100 ETF · 市场望远镜</h2></div><span className="badge purple">免费图表</span></div>
     {!demo&&latest&&<div className="market-brief"><div className="market-brief-heading"><strong>最近已确认收盘</strong><span>{latest.date} · 常规交易时段</span></div><div className="brief-quote"><strong>${latest.close.toFixed(2)}</strong><small>日内 ${latest.low.toFixed(2)} — ${latest.high.toFixed(2)} · USD</small></div><small className="brief-time">{latest.source} · 取得于 {dualTime(latest.fetchedAt)}</small></div>}
     <div className="market-brief">
       <div className="market-brief-heading"><strong>盘前摘要 · 保留发布时数据</strong><span>{brief ? `${brief.date} · ${stale ? "上次摘要，今日待更新" : readError ? "上次摘要，刷新中断" : brief.status === "partial" ? "部分数据待确认" : "公开来源核对"}` : readError ? "早报暂时无法读取" : "等待首份行情摘要"}</span></div>
@@ -102,16 +102,16 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
         {!!brief.watchPoints.length && <ul>{brief.watchPoints.map(point => <li key={point}>{point}</li>)}</ul>}
         <div className="brief-sources">{brief.sources.map(source => <a href={source.url} target="_blank" rel="noopener noreferrer" key={source.url}>{source.title}<ExternalLink size={11}/></a>)}</div>
         <small className="brief-time">资料截止 {dualTime(brief.dataAsOf)} · 更新 {dualTime(brief.savedAt)} · v{brief.version}</small>
-      </> : <p>首份早报尚未保存。下方图表可直接查看 QQQ，无需注册新账户。</p>}
+      </> : <p>首份早报尚未保存。下方图表可直接查看纳斯达克100 ETF，无需注册新账户。</p>}
       {failed && <p className="brief-warning" role="status">本次搜索未取得可核对的行情，保留上次摘要与时间。</p>}
       {readError && <p className="brief-warning" role="status">{brief ? "早报刷新暂时中断，保留上次摘要与时间。" : "暂时无法读取早报，请稍后重新打开页面。"}</p>}
     </div>
     <div className="chart-toolbar"><span><CandlestickChart size={15}/>参考行情 · 可能延迟</span><div className="chart-periods" aria-label="图表周期">{[["D", "日线"], ["15", "15 分钟"]].map(([value, label]) => <button key={value} type="button" aria-pressed={interval === value} onClick={() => setIntervalValue(value)}>{label}</button>)}</div></div>
     <div className="external-chart-stage" aria-busy={status === "waiting" || status === "loading"}>
       <div ref={host} className="tradingview-widget-container external-chart-host" inert={status !== "ready"}/>
-      {status !== "ready" && <div className="chart-status" role="status">{status === "error" ? <><strong>图表连接暂时中断</strong><p>可以重试，或直接打开行情来源。</p><button className="secondary" onClick={() => { setStatus("waiting"); setAttempt(n => n + 1); }}><RefreshCw size={14}/>重新连接</button><a href={chartUrl} target="_blank" rel="noopener noreferrer">打开 TradingView <ExternalLink size={13}/></a></> : <><span className="chart-loading-orbit"/><span>正在接通 QQQ 市场望远镜…</span></>}</div>}
+      {status !== "ready" && <div className="chart-status" role="status">{status === "error" ? <><strong>图表连接暂时中断</strong><p>可以重试，或直接打开行情来源。</p><button className="secondary" onClick={() => { setStatus("waiting"); setAttempt(n => n + 1); }}><RefreshCw size={14}/>重新连接</button><a href={chartUrl} target="_blank" rel="noopener noreferrer">打开 TradingView <ExternalLink size={13}/></a></> : <><span className="chart-loading-orbit"/><span>正在接通纳斯达克100 ETF 市场望远镜…</span></>}</div>}
     </div>
-    <div className="chart-attribution"><a href={chartUrl} target="_blank" rel="noopener noreferrer">QQQ chart by TradingView <ExternalLink size={11}/></a><span>美东时间 · 延迟状态以图表标识为准</span></div>
+    <div className="chart-attribution"><a href={chartUrl} target="_blank" rel="noopener noreferrer">Nasdaq-100 ETF chart by TradingView <ExternalLink size={11}/></a><span>美东时间 · 延迟状态以图表标识为准</span></div>
     <p className="chart-note">{demo ? "这里的图表与行情早报使用真实公开资料；下方演示剧本和战报仍为示例。" : "图表随行情来源更新。早报按日保存，来源数据可能延迟。"} 下单时请核对老虎证券报价。搜索摘要与图表不参与判断评分。</p>
   </section>}</LocalizeTree>;
 }

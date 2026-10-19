@@ -4,9 +4,9 @@ import type {AdventureSection,QuestState} from '@/lib/quest/types';
 import {useLocale} from '@/components/i18n/locale-provider';
 import {useHero} from './hero-preference';
 const tasks={
- zh:{today:'参考 QQQ 图表，选出下一交易日的方向，并写下一句判断理由。',events:'查看下一个重大事件与市场预期，预测公布值高于、符合还是低于预期。',learn:'回答一张知识卡，翻面读解释，再标记已学会或需要复习。'},
- en:{today:'Read the QQQ chart, choose a direction for the next session, and write one reason.',events:'Check the next major event and consensus, then predict whether the release will be above, equal to or below expectations.',learn:'Answer a knowledge card, flip it to learn why, then mark it understood or save it for review.'},
- fr:{today:'Lisez le graphique du QQQ, choisissez une direction pour la prochaine séance et donnez une raison.',events:'Consultez le prochain événement et le consensus, puis prévoyez un résultat supérieur, égal ou inférieur aux attentes.',learn:'Répondez à une carte, retournez-la pour comprendre, puis indiquez si vous avez compris ou souhaitez réviser.'}
+ zh:{today:'参考纳斯达克100 ETF 图表，选出下一交易日的方向，并写下一句判断理由。',events:'查看下一个重大事件与市场预期，预测公布值高于、符合还是低于预期。',learn:'回答一张知识卡，翻面读解释，再标记已学会或需要复习。'},
+ en:{today:'Read the Nasdaq-100 ETF chart, choose a direction for the next session, and write one reason.',events:'Check the next major event and consensus, then predict whether the release will be above, equal to or below expectations.',learn:'Answer a knowledge card, flip it to learn why, then mark it understood or save it for review.'},
+ fr:{today:'Lisez le graphique de l’ETF Nasdaq-100, choisissez une direction pour la prochaine séance et donnez une raison.',events:'Consultez le prochain événement et le consensus, puis prévoyez un résultat supérieur, égal ou inférieur aux attentes.',learn:'Répondez à une carte, retournez-la pour comprendre, puis indiquez si vous avez compris ou souhaitez réviser.'}
 };
 const copy={
  zh:{next:'今天这一站尚未完成，先从这里开始？',title:'让伙伴带你开局',tap:'点击角色，听一句鼓励',roll:'掷骰选起点',rolling:'掷骰中…',again:'再掷一次',go:'开始这站任务',all:'今天三站已完成！可以自由重温。',hint:'只推荐学习顺序，由你决定是否出发。',names:{today:'今日预判',events:'事件 Boss',learn:'知识卡牌'},cheers:['别急，我陪你从一个好问题开始。掷个骰子，看看今天先去哪？','做得好！每一次有依据的判断，都在让你变强。','先看风险，再找机会。今天这一步，我们一起走。']},
