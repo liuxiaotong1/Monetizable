@@ -40,5 +40,5 @@ export function validateBriefSession(brief: MarketBriefInput, session: Session, 
 export function dailyBriefNotice(brief: MarketBrief | undefined, session: Session, now: Date): Notice | undefined {
   if (!brief || brief.status === "unavailable" || brief.date !== session.date || !session.isTradingDay || now.toISOString() < nyTimeToUtc(session.date, "08:00") || now.toISOString() >= session.openAt) return;
   const quote = brief.quote;
-  return { id: `daily:${session.date}`, title: "QQQ · 今日行情早报", body: `${quote ? `${quote.date} 收盘 $${quote.close.toFixed(2)}。` : "部分行情待确认。"}${brief.summary}`.slice(0, 180), at: now.toISOString(), read: false, href: "/?view=today" };
+  return { id: `daily:${session.date}`, title: "纳斯达克100 ETF · 今日行情早报", body: `${quote ? `${quote.date} 收盘 $${quote.close.toFixed(2)}。` : "部分行情待确认。"}${brief.summary}`.slice(0, 180), at: now.toISOString(), read: false, href: "/?view=today" };
 }

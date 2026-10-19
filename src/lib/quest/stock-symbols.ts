@@ -4,7 +4,7 @@ const stocks: [string, StockMatch['exchange'], string, string[]][] = [
   ['AAPL','NASDAQ','Apple',['apple','苹果']], ['NVDA','NASDAQ','NVIDIA',['nvidia','英伟达']],
   ['MSFT','NASDAQ','Microsoft',['microsoft','微软']], ['TSLA','NASDAQ','Tesla',['tesla','特斯拉']],
   ['AMZN','NASDAQ','Amazon',['amazon','亚马逊']], ['GOOGL','NASDAQ','Alphabet',['google','alphabet','谷歌']],
-  ['META','NASDAQ','Meta',['meta','facebook']], ['QQQ','NASDAQ','Invesco QQQ',[]],
+  ['META','NASDAQ','Meta',['meta','facebook']], ['QQQ','NASDAQ','Nasdaq-100 ETF',['qqq','nasdaq-100','nasdaq 100','纳斯达克100','纳斯达克100 etf']],
   ['AMD','NASDAQ','AMD',[]], ['AVGO','NASDAQ','Broadcom',['broadcom','博通']],
   ['PLTR','NASDAQ','Palantir',['palantir']], ['WMT','NASDAQ','Walmart',['walmart']],
   ['JPM','NYSE','JPMorgan Chase',['jpmorgan']], ['IBM','NYSE','IBM',[]],

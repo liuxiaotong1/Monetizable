@@ -13,7 +13,8 @@ assert.equal(trans.translateString('Monetizable'),'Monetizable');
 assert.equal(trans.translateString('No eligible prediction for 2026-10-15; calls for other dates are checked separately.'),'Aucune prévision admissible pour le 2026-10-15 ; celles des autres dates sont vérifiées séparément.');
 assert.equal(trans.translateString('Latest verified close: 2026-10-15. Daily data is up to date.').includes('Daily data'),false,'Nested template captures are translated');
 for(const [en,fr]of Object.entries(catalog)){assert.deepEqual((en.match(/\{\d+\}/g)||[]).sort(),(fr.match(/\{\d+\}/g)||[]).sort(),'Placeholders: '+en);}
-assert.equal(trans.translateString('Above consensus · QQQ · potential valuation pressure').includes('potential valuation'),false);
+assert.equal(trans.translateString('Above consensus · Nasdaq-100 ETF · potential valuation pressure').includes('potential valuation'),false);
+assert.equal(trans.translateString('Above consensus · Nasdaq-100 ETF · potential valuation pressure').includes('ETF Nasdaq-100'),true);
 assert.equal(trans.translateString('% · year over year · not seasonally adjusted'),'% · sur un an · non corrigé des variations saisonnières');
 const cards=JSON.parse(fs.readFileSync('src/data/english-cards.json'));
 for(const card of cards){const fr=trans.frenchCopy(card);assert.equal(fr.id,card.id);assert.equal(fr.conceptId,card.conceptId);assert.deepEqual(fr.tags,card.tags);assert.equal(fr.answerIndex,card.answerIndex);assert.equal(fr.choices.length,card.choices.length);assert.deepEqual(fr.sources.map(s=>s.url),card.sources.map(s=>s.url));for(const key of ['title','question','explanation','answerExplanation','analogy','example']){assert.ok(catalog[card[key].replace(/\s+/g,' ').trim()]||!/[A-Za-z]{2}/.test(card[key]),'French coverage: '+card.id+' '+key);}for(const choice of card.choices)assert.ok(catalog[choice.replace(/\s+/g,' ').trim()]||!/[A-Za-z]{2}/.test(choice),'Choice coverage '+choice);}
@@ -38,8 +39,8 @@ assert.equal(locale.formatMarketDate('2026-10-16','fr'),'16 octobre 2026');
 assert.equal(locale.formatMarketDate('2026-10-16','en'),'October 16, 2026');
 assert.ok(locale.formatUsd(728,'fr').includes('728,00')&&locale.formatUsd(728,'fr').includes('$US'));
 assert.equal(locale.formatUsd(728,'en'),'$728.00');
-assert.equal(trans.translateString('QQQ reference chart ↗'),'Graphique de référence QQQ ↗');
-assert.equal(trans.translateString('Open QQQ’s live reference chart ↗'),'Ouvrir le graphique QQQ en direct ↗');
+assert.equal(trans.translateString('Nasdaq-100 ETF reference chart ↗'),'Graphique de référence de l\'ETF Nasdaq-100 ↗');
+assert.equal(trans.translateString('Open the Nasdaq-100 ETF live chart ↗'),'Ouvrir le graphique de l\'ETF Nasdaq-100 en direct ↗');
 const chineseTree=React.createElement(LocaleProvider,{locale:'zh'},React.createElement(LocalizeTree,null,React.createElement('div',null,React.createElement('button',null,'Continue with Google'),React.createElement('input',{value:'My own words',readOnly:true}),React.createElement('p',{'data-user-content':true},'Continue with Google'))));
 const chineseHtml=renderToStaticMarkup(chineseTree);assert.ok(chineseHtml.includes('使用 Google 继续'));assert.ok(chineseHtml.includes('value="My own words"'));assert.ok(chineseHtml.includes('>Continue with Google</p>'));
 const publicSwitcher=renderToStaticMarkup(React.createElement(LocaleProvider,{locale:'fr'},React.createElement(provider.LanguageSwitcher)));
