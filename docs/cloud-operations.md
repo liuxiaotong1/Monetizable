@@ -9,7 +9,7 @@ Production: https://getmonetizable.com, Vercel project `monetizable` in
 | Calendar, actual/prior/consensus, histories, news/sentiment | Same refresh | Independent source caches/retry clocks. Official release failures retain prior verified values. |
 | Daily contextual learning cards | Supabase refresh + independent weekday GitHub Actions | Calendar preparation, verified releases and retrieved financial headlines from the last 72 hours; stored under `learning:YYYY-MM-DD`. Stable source identities prevent polling duplicates. Static concept cards are not relabeled as new. |
 | Closed prediction results | Same refresh | First verified result under private `review:<user-id>:<judgment-id>`. Original judgments are never edited. |
-| Data-only report fallback | Same refresh | Weekdays after Paris 14:15 and before the actual US open; Sunday after Paris 19:00. |
+| Data-only report fallback | Same refresh | Trading days from one hour before the actual Eastern Time market open; Sunday after Paris 19:00. |
 | Cross-asset report + Telegram | GitHub Actions `market-reports.yml` | Both UTC offsets cover Europe/Paris DST. Script gates publication using Paris time and the actual US session. Repeated triggers retry safe failures. |
 
 The GitHub runner needs no checkout from this Mac, no local `.env`, no Codex
@@ -25,7 +25,7 @@ the existing website and the already configured Telegram recipient.
   `delivery:telegram:<kind>:<date>`. All remain service-role-only under RLS.
 - Telegram success records the message ID. An ambiguous send timeout is marked
   `uncertain` and does not automatically resend a possible duplicate.
-- GitHub Actions can queue late. 14:15 / 19:00 are planned start times, not a
+- GitHub Actions can queue late. 08:30 ET / Sunday 19:00 Paris are planned start times, not a
   guaranteed publication second. Daily work never publishes after the US open.
 - Reports explicitly mark unavailable/old quotes. They use deterministic
   conditional explanations and retrieved headlines; no unconfigured AI service
@@ -56,3 +56,9 @@ Verification on 2026-10-18: Vercel reported SUCCESS for the deployed commit; clo
 
 - The completion celebration requires five distinct cards answered and classified on the Paris calendar day. Empty filtered queues do not count as a completed deck. Progress restores from saved dispositions after navigation/reload; a day celebrates only once. Correct answers retain their explanation without individual fireworks.
 - Weekday learning refresh runs independently of visits via `learning-refresh.yml`, in addition to Supabase refresh. `/api/refresh` reports the resulting `learning` date, count and status. Source failures retain honest timestamps; news exercises do not infer article content or fabricate actual release values.
+
+## 2026-10-19 performance and time alignment
+
+- Daily reports use the actual session open minus 60 minutes (normally 08:30 America/New_York), including the weeks when European and US DST changes differ. GitHub checks both 12/13 UTC windows; the runtime session guard prevents holiday/post-open publication. Sunday outlook stays at 19:00 Europe/Paris.
+- Answer validation reads a private server-owned multilingual learning catalog from Supabase; it does not wait for market/calendar/news refresh. Existing allowance and authentication checks remain enforced.
+- Home characters use versioned gzip + meshopt assets. Original GLBs remain available for recovery. Geometry positions, skin weights, animation arrays, triangle winding and original node transforms were checked against the source; textures use smaller display-appropriate versions. A 2D placeholder displays until 3D is ready.

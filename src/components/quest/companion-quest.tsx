@@ -22,13 +22,14 @@ export default function CompanionQuest({state,onRoll,tapCount,ready}:{ready:bool
  const rollAction=useRef(roll);useEffect(()=>{rollAction.current=roll});
  useEffect(()=>{if(tapCount>0){setTalk(true);rollAction.current()}},[tapCount]);
  const sentence=result?(locale==='zh'?`你今天的幸运数字是 ${result.face}。`:locale==='fr'?`Votre chiffre porte-bonheur du jour est le ${result.face}.`:`Your lucky number is ${result.face} today.`):c.cheers[Math.max(0,rollCount-1)%c.cheers.length];
- useEffect(()=>{if(!talk)return;setLine('');if(matchMedia('(prefers-reduced-motion: reduce)').matches){setLine(sentence);return}let n=0;const id=setInterval(()=>{n+=1;setLine(sentence.slice(0,n));if(n>=sentence.length)clearInterval(id)},28);return()=>clearInterval(id)},[sentence,talk,tapCount]);
+ const dialogue=result?`${sentence} ${tasks[locale][result.quest]}`:sentence;
+ useEffect(()=>{if(!talk)return;setLine('');if(matchMedia('(prefers-reduced-motion: reduce)').matches){setLine(dialogue);return}let n=0;const id=setInterval(()=>{n+=1;setLine(dialogue.slice(0,n));if(n>=dialogue.length)clearInterval(id)},28);return()=>clearInterval(id)},[dialogue,talk,tapCount]);
  function open(quest:AdventureSection){const target=quest==='today'?(document.getElementById('judgment')||document.getElementById('en-judgment')):null;if(target){target.scrollIntoView({behavior:'smooth',block:'start'});return}dispatchEvent(new CustomEvent('monetizable-open-quest',{detail:{view:quest}}))}
  return <div className="companion-dialogue-ui companion-unified" aria-label={c.title}>
  <aside className="companion-speech">
  <header><strong>{name}</strong>{talk&&<button aria-label={locale==='zh'?'收起对白':locale==='fr'?'Fermer le dialogue':'Close dialogue'} onClick={()=>setTalk(false)}>×</button>}</header>
- {talk?<><p aria-hidden="true">{line}<span className="speech-caret">▍</span></p><span className="sr-only" role="status">{sentence}</span></>:<p>✧ {c.tap}</p>}
- {talk&&result&&<section className="companion-task" aria-live="polite"><strong>✦ {c.names[result.quest]}</strong><p>{tasks[locale][result.quest]}</p>{result.all&&<small>{c.all}</small>}</section>}
+ {talk?<><p aria-hidden="true">{line}<span className="speech-caret">▍</span></p><span className="sr-only" role="status">{dialogue}</span></>:<p>✧ {c.tap}</p>}
+ {talk&&result&&<section className="companion-task" aria-live="polite"><strong>✦ {c.names[result.quest]}</strong>{result.all&&<small>{c.all}</small>}</section>}
  <div className="companion-actions">
  {talk&&result&&<button className="companion-start" onClick={()=>open(result.quest)}>{c.go} →</button>}
  <button className={`companion-roll ${rolling?'is-rolling':''}`} disabled={rolling||!ready} onClick={roll}><span aria-hidden="true">{rolling?'⚄':result?['⚀','⚁','⚂','⚃','⚄','⚅'][result.face-1]:'⚅'}</span>{rolling?c.rolling:result?c.again:c.roll}</button>

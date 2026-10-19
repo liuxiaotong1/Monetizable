@@ -8,6 +8,7 @@ import {createHandSocket} from '../heroes/arm-gesture.js';
 import {fitArenaCamera,boxCorners} from './camera-fit.js';
 import {createWorlds} from './worlds.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -144,7 +145,7 @@ function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(
 $('play').onclick=()=>{hoverPreview=false;time=0;view.reset();running=true;$('pause').textContent='暂停';};$('pause').onclick=()=>{running=!running;$('pause').textContent=running?'暂停':'继续';};$('seek').oninput=e=>{running=false;time=+e.target.value;$('pause').textContent='继续';render();};$('sound').onclick=()=>{sound=!sound;$('sound').textContent='声音：'+(sound?'开':'关');};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{select(+b.dataset.mode);running=true});
 function tick(now){requestAnimationFrame(tick);const rawDt=(now-last)/1000,dt=Math.min(rawDt,.05);last=now;if(document.hidden||(!running&&!hoverPreview&&interactionTime===null))return;if(interactionTime!==null){interactionTime+=dt;if(interactionTime>4.4)interactionTime=null;}if(hoverPreview){hoverClock+=dt;time=.12+(1-Math.cos(hoverClock*2))*.56;running=false;}if(running){const before=time;time=Math.min(durations[mode],time+dt*+$('speed').value);if(before<impacts[mode]&&time>=impacts[mode])audioHit();if(time===durations[mode])running=false;}render();if(embedded&&!running&&time>=durations[mode]&&!completedNotified){completedNotified=true;parent.postMessage({type:'monetizable-restored-complete',outcome:lost?'loss':'win'},location.origin)}frames++;frameTime+=rawDt;if(frameTime>1){$('stats').textContent=`${Math.round(frames/frameTime)} FPS · ${Math.round(host.clientWidth*renderer.getPixelRatio())} px`;frames=0;frameTime=0;}}
 try{
- const gltf=await new GLTFLoader().loadAsync(female?'../heroes/female-playable.glb':'../heroes/supercharlie-playable.glb?v=native-head-20261018-6'),model=gltf.scene;
+ const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(female?'../heroes/female-fast-20261019.glb.gz':'../heroes/supercharlie-fast-20261019.glb.gz'),model=gltf.scene;
  model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.pose()});model.updateMatrixWorld(true);
  const box=new T.Box3().setFromObject(model,true),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3()),scale=2.8/size.y;
  model.scale.setScalar(scale);model.position.set(-center.x*scale,-box.min.y*scale,-center.z*scale);hero.add(model);
@@ -157,7 +158,7 @@ try{
 }catch(e){$('loading').textContent='模型加载失败，请点击刷新重试。';console.error(e);if(embedded)parent.postMessage({type:'monetizable-restored-error'},location.origin)}
 
 async function loadDragon(){
- const g=await new GLTFLoader().loadAsync('../heroes/market-dragon.glb');const m=g.scene;
+ const g=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('../heroes/market-dragon.glb');const m=g.scene;
  const box=new T.Box3().setFromObject(m),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());
  const wrap=new T.Group();wrap.scale.setScalar(5.8/Math.max(size.x,size.z));m.position.set(-center.x,-box.min.y,-center.z);wrap.add(m);wrap.rotation.y=-Math.PI/2+.25;worlds[0].boss.add(wrap);
  m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(x=>{x.color.multiply(new T.Color(.7,1,1));x.roughness=Math.max(.4,x.roughness);if(x.map)x.map.anisotropy=8;});}});
@@ -165,7 +166,7 @@ async function loadDragon(){
 }
 
 async function loadBeetle(){
- const g=await new GLTFLoader().loadAsync('../heroes/market-beetle.glb'),m=g.scene;
+ const g=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('../heroes/market-beetle.glb'),m=g.scene;
  beetleMixer=new T.AnimationMixer(m);const action=beetleMixer.clipAction(g.animations.find(a=>/idle/.test(a.name))||g.animations[0]);action.play();beetleMixer.setTime(.01);m.updateMatrixWorld(true);
  m.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});
  // The separately exported eye mesh has invalid skin offsets; exclude it rather than distort the whole rig.

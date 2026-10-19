@@ -29,7 +29,7 @@ export function useCardSwipe(enabled:boolean,classify:(action:Action)=>Promise<b
       try{await commit(action);}catch{/* The existing command UI reports save failures; restore this card. */}finally{
         if(nodeRef.current===node){locked.current=false;setPending(false);clear();}
       }
-    },reduced?0:600);
+    },reduced?0:380);
   },[clear,paint]);
   const begin=useCallback((x:number,y:number,id:number)=>{
     if(!enabledRef.current||locked.current)return false;

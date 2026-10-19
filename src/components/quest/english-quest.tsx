@@ -431,6 +431,9 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       setFacts(false);
     }
   }, [review?.id, review?.matched]);
+  const factRequest=useRef(false),[factJump,setFactJump]=useState(0);
+  const openFactTrail=()=>{if(!review)return;factRequest.current=true;setCelebrate(false);setFacts(true);setFactJump(n=>n+1);const url=new URL(location.href);url.hash=`fact-trail-${review.id}`;history.replaceState(null,'',url);};
+  useEffect(()=>{if(!review)return;const id=`fact-trail-${review.id}`;if(location.hash===`#${id}`&&!facts){factRequest.current=true;setFacts(true);return;}if(!facts||!factRequest.current)return;const frame=requestAnimationFrame(()=>{const target=document.getElementById(id);if(target){target.scrollIntoView({behavior:'smooth',block:'start'});target.focus({preventScroll:true});factRequest.current=false;}});return()=>cancelAnimationFrame(frame);},[facts,review?.id,factJump]);
   const pending=pendingJudgment(state);
   const productIntro = !pending && review?.matched !== true && review?.matched !== false;
   const targetSession=predictionSession(state);
@@ -474,7 +477,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             className="primary"
             onClick={() =>
               review
-                ? setFacts(!facts)
+                ? openFactTrail()
                 : document.getElementById("en-judgment")?.scrollIntoView({behavior:"smooth",block:"start"})
             }
           >
@@ -494,7 +497,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         </div>
       </section>
       {review && facts && (
-        <section className="en-card review-facts">
+        <section id={`fact-trail-${review.id}`} tabIndex={-1} className="en-card review-facts" style={{scrollMarginTop:80}}>
           <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>
           <h2>01 / Your original call</h2>
           <p>
@@ -789,7 +792,7 @@ function EventMap({ state }: { state: QuestState }) {
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
             <h3>Premarket brief</h3>
-            <strong>Weekdays · 14:15 Paris</strong>
+            <strong>Trading days · 08:30 ET · 1h before open</strong>
             <p>
               Check the latest close, support and resistance, and the day’s
               official releases before the bell. Data remains timestamped; a

@@ -51,5 +51,5 @@ export function mayReplaceReport(previous:AgentReport|undefined,input:AgentRepor
 }
 export function reportScheduleContext(now:Date) {
   const date=parisDate(now);
-  return {date,weekStart:reportWeekStart(date),timezone:"Europe/Paris",dailyTime:"14:15",backupTime:"14:35",weeklyTime:"周日 19:00"};
+  return {date,weekStart:reportWeekStart(date),timezone:"America/New_York",dailyTime:"08:30",backupTime:"08:35",dailyAt:new Date(Date.parse(sessionFor(now).openAt)-3600000).toISOString(),weeklyTimezone:"Europe/Paris",weeklyTime:"周日 19:00"};
 }

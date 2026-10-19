@@ -1,5 +1,6 @@
 import 'server-only';
 import {refreshEventData,refreshNews} from './data-refresh';
+import {localizedPublicState} from './public-locale';
 import {updateDailyContent} from './daily-content';
 import type {EventIntelligence} from './event-intelligence';
 import { createHash } from 'node:crypto';
@@ -29,6 +30,7 @@ export async function refreshNative(feed:PublicFeed,force=false,strict=false):Pr
   try{feed.intelligence=await refreshNews(feed.intelligence as EventIntelligence,now);const intelligence=feed.intelligence as EventIntelligence;for(const source of intelligence.sources){state.sources.push({name:`新闻与市场情绪 · ${source.name}`,status:source.status==='ready'?'ready':'delayed',lastSuccess:source.fetchedAt,message:source.message});}}catch{state.sources.push({name:'新闻与市场情绪',status:'delayed',message:'新闻更新失败，保留原内容与时间。'});}
   state.learningHeadlines=(feed.intelligence as EventIntelligence).sources.filter(s=>s.id!=='polymarket'&&s.status==='ready').flatMap(s=>s.items.map(i=>({title:i.title,url:i.url,publishedAt:i.publishedAt})));
   updateDailyContent(state);
+  for(const locale of ['zh','en','fr'] as const)await save(`learning-catalog:${locale}`,{cards:localizedPublicState(state,locale).cards});
   await save(`learning:${marketDate(now)}`,{cards:state.cards.filter(c=>c.topical),update:state.learningUpdate});
   const healthRow=(await database().query('SELECT max(r.created) AS completed_at FROM public.quest_update_requests q JOIN net._http_response r ON r.id=q.id WHERE r.status_code=200 AND NOT COALESCE(r.timed_out,false)')).rows[0];
   const health=healthRow?.completed_at?{completedAt:new Date(healthRow.completed_at).toISOString()}:await read<{completedAt:string}>('refresh-health');
@@ -39,7 +41,7 @@ export async function refreshNative(feed:PublicFeed,force=false,strict=false):Pr
   const date=parisDate(now),parisTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now),day=new Date(date+'T12:00:00Z').getUTCDay();
   const kind=day===0?'weekly':'daily',key=`report:${kind}:${date}`;
   let report=await read<AgentReport>(key);
-  const window=kind==='weekly'?parisTime>='19:00':day!==6&&parisTime>='14:15'&&now.getTime()<Date.parse(session.openAt);
+  const window=kind==='weekly'?parisTime>='19:00':session.isTradingDay&&now.getTime()>=Date.parse(session.openAt)-3600000&&now.getTime()<Date.parse(session.openAt);
   if(window&&(!report||!['trading-agent','cloud-scheduler'].includes(report.origin)&&now.getTime()-Date.parse(report.generatedAt)>15*60000)){
    const latest=state.bars.filter(b=>b.symbol==='QQQ').at(-1),previous=state.bars.filter(b=>b.symbol==='QQQ').at(-2);
    const events=state.events.filter(e=>e.at>=now.toISOString()&&e.at<new Date(now.getTime()+(kind==='weekly'?7:1)*86400000).toISOString()).sort((a,b)=>a.at.localeCompare(b.at));

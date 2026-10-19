@@ -1,11 +1,11 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {reportSlot,snapshot,buildReport} from '../scripts/cloud-report.mjs';
-test('Paris 14:15 follows DST, never publishes after the actual NY open',()=>{
- for(const [at,open]of [['2026-07-15T12:15:00Z','2026-07-15T13:30:00Z'],['2026-12-15T13:15:00Z','2026-12-15T14:30:00Z'],['2026-10-27T13:15:00Z','2026-10-27T13:30:00Z']])assert.equal(reportSlot(new Date(at),{isTradingDay:true,openAt:open})?.kind,'daily');
+test('One hour before NY open follows US DST, including the Paris DST gap',()=>{
+ for(const [at,open]of [['2026-07-15T12:30:00Z','2026-07-15T13:30:00Z'],['2026-12-15T13:30:00Z','2026-12-15T14:30:00Z'],['2026-10-27T12:30:00Z','2026-10-27T13:30:00Z']])assert.equal(reportSlot(new Date(at),{isTradingDay:true,openAt:open})?.kind,'daily');
  assert.equal(reportSlot(new Date('2026-10-27T13:30:00Z'),{isTradingDay:true,openAt:'2026-10-27T13:30:00Z'}),null);
  assert.equal(reportSlot(new Date('2026-12-25T13:15:00Z'),{isTradingDay:false}),null);
- assert.equal(reportSlot(new Date('2026-07-15T12:14:00Z'),{isTradingDay:true,openAt:'2026-07-15T13:30:00Z'}),null);
+ assert.equal(reportSlot(new Date('2026-07-15T12:29:59Z'),{isTradingDay:true,openAt:'2026-07-15T13:30:00Z'}),null);
 });
 test('Sunday 19:00 follows Paris DST; Saturday does not publish',()=>{
  assert.equal(reportSlot(new Date('2026-07-19T17:00:00Z'),{})?.kind,'weekly');
