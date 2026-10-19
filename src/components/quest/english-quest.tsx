@@ -1,6 +1,7 @@
 "use client";
 import DeckVictory,{useDeckCompletion} from './deck-victory';
 import WeeklyOutlook from './weekly-outlook';
+import DisciplineReport from './discipline-report';
 import BossAvatar from './boss-avatar';
 import BriefPreview from './brief-preview';
 import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
@@ -496,6 +497,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           />
         </div>
       </section>
+      <button type="button" className="text-button discipline-jump" onClick={()=>document.getElementById("discipline-report")?.scrollIntoView({behavior:"smooth",block:"start"})}>{locale==='fr'?"Rapport de discipline de la semaine":"This week’s discipline report"}</button>
       {review && facts && (
         <section id={`fact-trail-${review.id}`} tabIndex={-1} className="en-card review-facts" style={{scrollMarginTop:80}}>
           <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>
@@ -717,6 +719,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </form>
         )}
       </section>
+      <DisciplineReport state={state} />
       <section className="en-card">
         <span className="eyebrow">YOUR JUDGMENT JOURNAL</span>
         <h2>Every week, a clearer picture.</h2>

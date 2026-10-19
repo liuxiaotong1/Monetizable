@@ -35,6 +35,14 @@ assert.equal(trans.translateString('Complete this stop'),'Terminer cette étape'
 assert.equal(trans.translateString('Open Event Boss'),'Ouvrir la fiche Événement');
 assert.equal(trans.translateString(". Today’s locked call is kept. Late entries do not count as premarket predictions. No precise probability is claimed.").includes('verrouillées'),true);
 assert.equal(trans.translateString('Expand a week to compare daily calls and results. Missing or late predictions are kept separate from eligible premarket results.').includes('quotidiennes'),true);
+const sceneSource=fs.readFileSync('public/battle-demo/scene-source.js','utf8');
+const sceneBundle=fs.readFileSync('public/battle-demo/scene.js','utf8');
+assert.ok(sceneSource.includes("fr:'Le modèle n\\'a pas pu charger. Rechargez la page pour réessayer.'"));
+assert.ok(sceneSource.includes("en:'The model could not load. Reload the page to try again.'"));
+assert.ok(sceneSource.includes("zh:'模型加载失败，请点击刷新重试。'"));
+assert.equal(sceneSource.includes("textContent='模型加载失败"), false);
+assert.ok(sceneBundle.includes('Rechargez la page pour'));
+assert.ok(sceneBundle.includes('The model could not load'));
 assert.equal(locale.formatMarketDate('2026-10-16','fr'),'16 octobre 2026');
 assert.equal(locale.formatMarketDate('2026-10-16','en'),'October 16, 2026');
 assert.ok(locale.formatUsd(728,'fr').includes('728,00')&&locale.formatUsd(728,'fr').includes('$US'));
