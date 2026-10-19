@@ -13,7 +13,7 @@ export async function billingConfig():Promise<BillingConfig|undefined>{const {ro
 export async function setupBilling(){
  const previous=await billingConfig();if(previous)return {configured:true,livemode:previous.livemode};
  const stripe=stripeClient();
- const product=await stripe.products.create({name:'Monetizable Plus',description:'Premarket briefs and unlimited investing knowledge cards.'},{idempotencyKey:'monetizable-plus-product-v1'});
+ const product=await stripe.products.create({name:'Monetizable Plus',description:'Every Sunday: your discipline report — bias, confidence, review. Premarket briefs and unlimited knowledge cards are included.'},{idempotencyKey:'monetizable-plus-product-v1'});
  const price=await stripe.prices.create({product:product.id,currency:'usd',unit_amount:PREMIUM_CENTS,recurring:{interval:'month'}},{idempotencyKey:'monetizable-plus-1990-monthly-v1'});
  const portal=await stripe.billingPortal.configurations.create({business_profile:{headline:'Manage your Monetizable subscription'},features:{subscription_cancel:{enabled:true,mode:'at_period_end'},payment_method_update:{enabled:true},invoice_history:{enabled:true}},default_return_url:APP_URL+'/?view=learn'},{idempotencyKey:'monetizable-plus-portal-v1'});
  const webhook=await stripe.webhookEndpoints.create({url:APP_URL+'/api/billing/webhook',enabled_events:['checkout.session.completed','checkout.session.async_payment_succeeded','customer.subscription.created','customer.subscription.updated','customer.subscription.deleted','invoice.paid','invoice.payment_failed']},{idempotencyKey:'monetizable-plus-webhook-v1'});

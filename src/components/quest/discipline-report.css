@@ -1,0 +1,32 @@
+.discipline-report{scroll-margin-top:88px}
+.discipline-kicker{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.discipline-kicker .badge{flex-shrink:0}
+.discipline-report h2{font-size:23px;letter-spacing:-.4px;margin:8px 0 6px;line-height:1.3;color:#25251F}
+.discipline-range{display:block;color:#746B58;font-size:13px;line-height:1.5}
+.discipline-metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:14px 0;border-top:1px solid #c5bba555}
+.discipline-metric h3{margin:0;font-size:15px;line-height:1.4}
+.discipline-metric strong{font-size:22px;line-height:1.2;color:#436E5A;text-align:right;font-variant-numeric:tabular-nums}
+.discipline-metric strong.discipline-counts{font-size:14px;line-height:1.45;color:#25251F;font-weight:600;max-width:320px}
+.discipline-report .discipline-why,.discipline-report .discipline-note{grid-column:1/-1;margin:0;color:#625a49;font-size:13px;line-height:1.6}
+.discipline-report .discipline-note{color:#8f6b29}
+.discipline-lead{margin:8px 0 0}
+.discipline-locked{display:grid;margin-top:2px}
+.discipline-locked-body,.discipline-cta{grid-area:1/1}
+.discipline-locked-body{filter:blur(7px);opacity:.7;pointer-events:none;user-select:none}
+.discipline-cta{align-self:start;justify-self:center;width:min(100% - 16px,520px);margin-top:12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:18px 16px 20px;border-radius:16px;background:linear-gradient(180deg,#fffdf7f2,#f7edd8fa);border:1px solid #c4ad7d66}
+.discipline-cta h3{margin:0;font-size:20px;line-height:1.35}
+.discipline-report .discipline-cta p{margin:0;max-width:460px;color:#3c382e;font-size:14px;line-height:1.6}
+.discipline-cta .primary{margin-top:4px}
+.discipline-cta small{display:block;max-width:420px;color:#6c624f;font-size:12px;line-height:1.55}
+.discipline-goal{margin-top:4px;padding:14px 16px;border-radius:14px;background:#f9eed266;border:1px solid #c5bba544}
+.discipline-goal h3{margin:0 0 6px;font-size:14px}
+.discipline-report .discipline-goal p{margin:0;color:#3c382e;font-size:14px;line-height:1.6}
+.discipline-foot{display:block;margin-top:14px;color:#746B58;font-size:12px;line-height:1.6}
+.discipline-jump{margin:0 0 8px}
+@media(max-width:760px){
+ .discipline-report h2{font-size:21px}
+ .discipline-metric{grid-template-columns:1fr}
+ .discipline-metric strong{text-align:left;font-size:24px}
+ .discipline-cta{padding:16px 12px}
+ .discipline-cta h3{font-size:18px}
+}
