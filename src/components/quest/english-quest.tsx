@@ -460,7 +460,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       bars.length >= 5
         ? Math.max(...bars.slice(-5).map((b) => b.high))
         : undefined;
-  if(adventureStage==='landing')return <><FirstQuestHero/><TradingDNA state={state}/></>;
+  if(adventureStage==='landing')return <FirstQuestHero state={state}/>;
   return <LocalizeTree>{(
     <>
       <section className="en-hero">
