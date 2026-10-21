@@ -11,7 +11,7 @@ export const PREMIUM_CENTS=MONTHLY_CENTS;
 export function stripeClient(){const key=process.env.STRIPE_SECRET_KEY;if(!key)throw Error('Stripe billing is not configured.');return new Stripe(key,{timeout:20000,maxNetworkRetries:1});}
 export function learningWeek(now=new Date()) {const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}
 type BillingConfig={version?:number;annualPrice?:string;legacyPrices?:string[];price:string;webhookSecret:string;portal:string;livemode:boolean;account?:string};
-export async function billingConfig():Promise<BillingConfig|undefined>{const {rows}=await database().query("SELECT body FROM quest_shared_data WHERE key='billing-config-v1'");return rows[0]?.body;}
+export async function billingConfig():Promise<BillingConfig|undefined>{const {rows}=await database().query("SELECT body FROM quest_shared_data WHERE key IN ('billing-config-v2','billing-config-v1') ORDER BY key DESC LIMIT 1");return rows[0]?.body;}
 export async function setupBilling(){
  const previous=await billingConfig();if(previous?.version===2&&previous.annualPrice)return {configured:true,livemode:previous.livemode};
  const stripe=stripeClient();
@@ -23,7 +23,7 @@ export async function setupBilling(){
  const webhook=previous?.webhookSecret?{secret:previous.webhookSecret}:await stripe.webhookEndpoints.create({url:APP_URL+'/api/billing/webhook',enabled_events:['checkout.session.completed','checkout.session.async_payment_succeeded','customer.subscription.created','customer.subscription.updated','customer.subscription.deleted','invoice.paid','invoice.payment_failed']},{idempotencyKey:'monetizable-pro-webhook-v2'});
  if(!webhook.secret)throw Error('Webhook configuration incomplete.');
  const body:BillingConfig={...previous,version:2,price:price.id,annualPrice:annual.id,legacyPrices:[...new Set([...(previous?.legacyPrices||[]),...(previous?.price?[previous.price]:[])])],webhookSecret:webhook.secret,portal:portal.id,livemode:price.livemode};
- await database().query("INSERT INTO quest_shared_data(key,body) VALUES('billing-config-v1',$1) ON CONFLICT(key) DO UPDATE SET body=EXCLUDED.body,updated_at=now()",[JSON.stringify(body)]);
+ await database().query("INSERT INTO quest_shared_data(key,body) VALUES('billing-config-v2',$1) ON CONFLICT(key) DO UPDATE SET body=EXCLUDED.body,updated_at=now()",[JSON.stringify(body)]);
  return {configured:true,livemode:price.livemode};
 }
 function acceptedPrices(config:BillingConfig){return new Set([config.price,config.annualPrice,...(config.legacyPrices||[])].filter(Boolean));}
