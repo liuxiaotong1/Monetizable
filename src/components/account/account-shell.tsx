@@ -92,9 +92,9 @@ export default function AccountShell({
       } finally {
         if (active) {
           completedTutorial.current=completed;
-          const hero=savedHero(),stage=onboardingStage(!!user,completed,hero);
+          const hero=savedHero(),previewLanding=new URLSearchParams(location.search).get('welcome')==='1',stage=previewLanding?'landing':onboardingStage(!!user,completed,hero);
           setAdventureStage(stage);setTutorial(stage==='tutorial');
-          if(user&&!completed&&!hero)setPickingHero(true);
+          if(user&&!completed&&!hero&&!previewLanding)setPickingHero(true);
           if(user){try{localStorage.removeItem(pendingOnboardingKey)}catch{}}
           setReady(true);
         }
