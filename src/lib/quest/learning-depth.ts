@@ -12,7 +12,8 @@ export function detailedLesson(card:LearningCard):Lesson|undefined {
 }
 const oic='https://www.optionseducation.org/';
 const sec='https://www.sec.gov/about/reports-publications/investorpubsbegfinstmtguide';
-const terms=[
+export const glossaryTerms=[
+  {name:"OIC",pattern:"\\bOIC\\b",zh:"期权行业协会：由期权清算公司 OCC 提供的教育资源，帮助理解期权的原理与风险，不是交易信号。",en:"Options Industry Council: an educational resource provided by OCC to explain how options work and their risks, not a trading signal.",fr:"Options Industry Council : une ressource pédagogique proposée par OCC pour comprendre les options et leurs risques, pas un signal de trading.",url:oic},
   {name:'Put',pattern:'\\bput\\b|看跌期权',zh:'看跌期权：买方取得按执行价卖出标的的权利；卖方收权利金，同时承担被行权后的义务。',en:'A put buyer has the right to sell at the strike; the seller receives premium and takes the exercise obligation.',url:oic+'strategies/all-strategies/long-put'},
   {name:'Call',pattern:'\\bcall\\b|看涨期权',zh:'看涨期权：买方取得按执行价买入标的的权利，不等于已经持有股票。',en:'A call grants its buyer the right to buy at the strike, not immediate stock ownership.',url:oic+'strategies/all-strategies/long-call'},
   {name:'Strike · 执行价',pattern:'执行价|行权价|\\bstrike\\b',zh:'行权时使用的约定价格，与现在的股票价格、买期权支付的权利金不同。',en:'The contract’s exercise price, distinct from the current stock price or option premium.',url:oic+'optionsoverview/options-basics'},
@@ -44,7 +45,7 @@ export function cardTerms(card:LearningCard){
   const lesson=detailedLesson(card);
   const added=lesson?['zh','en'].flatMap(locale=>{const copy=lesson[locale as 'zh'|'en'];return [copy.intro,copy.example,copy.pitfall,...copy.steps.map(step=>step.text)];}):[];
   const text=[card.title,card.question,card.explanation,card.answerExplanation,card.tags.join(' '),...added].join(' ');
-  return terms.filter(term=>new RegExp(term.pattern,'i').test(text));
+  return glossaryTerms.filter(term=>new RegExp(term.pattern,'i').test(text));
 }
 
 const termNames: Record<string, {en:string;fr:string;zh:string}> = {

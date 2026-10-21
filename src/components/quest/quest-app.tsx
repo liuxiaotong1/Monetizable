@@ -48,7 +48,7 @@ export default function QuestApp(){
     sharedState.current.cards=sharedState.current.cards.map(card=>card.id===payload.card.id?payload.card:card);
     command={...command,answerIndex:payload.chosen};
    }
-   const record=readBrowserRecord();const data=applyBrowserCommand(sharedState.current,record,command,new Date().toISOString());saveBrowserRecord(record);if(command.type==="judgment")localStorage.removeItem(draftKey);setState(data);setError("");if(command.type!=="learningVisit")setToast(command.type==="judgment"?"本机盘前判断已封存。":command.type==="review"?"复盘已保存在本机。":"已保存在本机");return data;}
+   const record=readBrowserRecord();const data=applyBrowserCommand(sharedState.current,record,command,new Date().toISOString());saveBrowserRecord(record);if(command.type==="judgment")localStorage.removeItem(draftKey);setState(data);setError("");if(command.type!=="learningVisit"&&command.type!=="card")setToast(command.type==="judgment"?"本机盘前判断已封存。":command.type==="review"?"复盘已保存在本机。":"已保存在本机");return data;}
   catch(e){setError(e instanceof Error?e.message:"本机保存失败，请重试。");return false;}
   finally{actionInFlight.current=false;setBusy(false);}
  }

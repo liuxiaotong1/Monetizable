@@ -1,4 +1,6 @@
 "use client";
+import CardText from "./card-text";
+import {cleanCardText,displayLearningCard} from "@/lib/quest/learning-copy";
 import EarningsWatch from './earnings-watch';
 import {earningsTimingLabel} from '@/lib/quest/earnings-calendar';
 import DeckVictory,{useDeckCompletion} from './deck-victory';
@@ -193,7 +195,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
       if (command.type === "judgment") localStorage.removeItem(draftKey);
       setState(next);
       setError("");
-      if (command.type !== "learningVisit")
+      if (command.type !== "learningVisit" && command.type !== "card")
         setToast(
           command.type === "judgment"
             ? "Your premarket prediction is locked."
@@ -1018,6 +1020,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
     </details>
   )}</LocalizeTree>;
 }
+const cleanCardSource=(text:string)=>cleanCardText(text)||"Reference";
 function Deck({
   state,
   run,
@@ -1055,7 +1058,7 @@ function Deck({
       theme,
       state.learningVisitId,
     ),
-    card = queue[0];
+    card = queue[0] ? displayLearningCard(queue[0]) : undefined;
   const progress = card
       ? state.progress.find((p) => p.cardId === card.id)
       : undefined,
@@ -1231,11 +1234,11 @@ function Deck({
               <Bookmark size={18} />
             </button>
           </div>
-          <h2>{card.title}</h2>
+          <h2><CardText>{card.title}</CardText></h2>
           {answered&&front&&<button type="button" className="text-button quiz-return" onClick={()=>setFront(false)}>Return to explanation ↻</button>}
           {!answered||front ? (
             <>
-              <p className="en-question">{card.question}</p>
+              <p className="en-question"><CardText>{card.question}</CardText></p>
               <div className="en-choices">
                 {choiceOrder.map((originalIndex, i) => (
                   <button
@@ -1256,6 +1259,7 @@ function Deck({
                   </button>
                 ))}
               </div>
+              <button className="card-dont-know" type="button" disabled={busy||answered} onClick={()=>void run({type:"card",cardId:card.id,action:"answer",answerIndex:-1})}>I don’t know · show me</button>
               <p className="muted small-text">
                 {front?"Reviewing the question. Your original answer stays saved.":"Choose an answer to unlock the explanation."}
               </p>
@@ -1273,10 +1277,10 @@ function Deck({
                 Correct answer: {String.fromCharCode(65 + choiceOrder.indexOf(card.answerIndex))} ·{" "}
                 {card.choices[card.answerIndex]}
               </h3>
-              <p>{card.answerExplanation}</p>
-              <blockquote>{card.analogy}</blockquote>
+              <p><CardText>{card.answerExplanation}</CardText></p>
+              <blockquote><CardText>{card.analogy}</CardText></blockquote>
               {card.explanation !== card.answerExplanation && (
-                <p>{card.explanation}</p>
+                <p><CardText>{card.explanation}</CardText></p>
               )}
               <KnowledgeExplanation card={card}/>{card.asOf && <small>Data as of {card.asOf}</small>}
               {card.sources.map((s) => (
@@ -1287,7 +1291,7 @@ function Deck({
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {s.title} ↗
+                  {cleanCardSource(s.title)} ↗
                 </a>
               ))}
             </div>

@@ -71,7 +71,7 @@ export function assignDaily(cards:LearningCard[],progress:CardProgress[],date:st
 }
 /** Repeated requests in one visit cannot overwrite an answer or award twice. */
 export function answerCard(progress:CardProgress,card:LearningCard,chosen:number,correct:number,choiceCount:number,now:string,visitId?:string) {
- if(!Number.isInteger(chosen)||chosen<0||chosen>=choiceCount)throw new Error("请选择一个有效答案");
+ if(!Number.isInteger(chosen)||chosen< -1||chosen>=choiceCount)throw new Error("请选择一个有效答案");
  if(progress.lastAnswerAt && (visitId?progress.lastAnswerVisitId===visitId:dateAt(progress.lastAnswerAt)===dateAt(now)))return {progress,award:0,chosen:progress.lastAnswerIndex??chosen};
  const next:CardProgress={...progress,conceptId:conceptKey(card),questionKey:questionKey(card),lastAnswerAt:now,lastAnswerIndex:chosen,lastAnswerVisitId:visitId,learningStatus:"seen",attempts:progress.attempts+1,correctCount:progress.correctCount+Number(chosen===correct),intervalDays:0,skipped:false};
  delete next.dueDate;
