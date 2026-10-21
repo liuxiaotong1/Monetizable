@@ -13,7 +13,7 @@ export const verifiedEarnings:EarningsSchedule[]=[
 export function earningsDates(now:Date){const date=marketDate(now),day=new Date(date+'T12:00:00Z').getUTCDay(),start=addDays(date,-((day+6)%7));return Array.from({length:14},(_,i)=>addDays(start,i)).filter(d=>![0,6].includes(new Date(d+'T12:00:00Z').getUTCDay()));}
 export function parseEarningsCalendar(raw:unknown,date:string):EarningsSchedule[]{
  const data=(raw as {data?:{rows?:unknown[]}})?.data;if(!Array.isArray(data?.rows))throw Error('Earnings calendar rows unavailable');
- return data.rows.flatMap(value=>{const row=value as Record<string,unknown>,symbol=String(row.symbol||'').toUpperCase();if(!majorEarningsSymbols.has(symbol))return [];
+ return data.rows.flatMap(value=>{const row=value as Record<string,unknown>,inputSymbol=String(row.symbol||'').toUpperCase(),symbol=inputSymbol==='GOOG'?'GOOGL':inputSymbol;if(!majorEarningsSymbols.has(symbol))return [];
  const timing=/after/i.test(String(row.time))?'after-close':/pre|before/i.test(String(row.time))?'before-open':'unknown',rawEPS=String(row.epsForecast??''),eps=Number(rawEPS.replace(/[$,]/g,''));
  return [{symbol,name:String(row.name||symbol),date,timing,sourceUrl:`https://www.nasdaq.com/market-activity/stocks/${symbol.toLowerCase()}/earnings`,sourceName:'Nasdaq earnings calendar',...(rawEPS.trim()&&!['--','N/A'].includes(rawEPS)&&Number.isFinite(eps)?{consensus:eps}:{})}];
  });

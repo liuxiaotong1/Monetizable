@@ -23,6 +23,7 @@ function eventDate(at: string) {
 }
 function countdown(event: MarketEvent, now: string) {
   if (event.status === "unconfirmed") return "日期待确认";
+  if(event.earningsTiming)return Date.parse(event.at)>Date.parse(now)?"关注公司公告":"查看财报公告";
   const mins = Math.ceil((Date.parse(event.at) - Date.parse(now)) / 60000);
   if (mins <= 0) return event.status === "confirmed" ? (event.report?"报告已发布":"结果已确认") : "等待结果确认";
   if (mins < 60) return `${mins} 分钟后`;
