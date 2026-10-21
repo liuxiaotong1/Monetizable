@@ -111,7 +111,7 @@ export function eventUnit(e: MarketEvent) {
   if (e.kind === "TRADE") return "USD billions";
   if (e.kind === "ISM" || e.kind === "CONFIDENCE") return "index";
   return e.kind === "EARNINGS"
-    ? "source-reported units"
+    ? e.unit === "USD / EPS" ? "USD / EPS" : "source-reported units"
     : "index / source-reported units";
 }
 export function englishState(input: QuestState): QuestState { return structuredClone(input); }
