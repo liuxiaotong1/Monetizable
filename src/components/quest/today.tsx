@@ -1,4 +1,5 @@
 "use client";
+import TradingDNA from "./trading-dna";
 import {readPredictionDraft} from "@/lib/quest/guest-access";
 import ScenarioChoices from "./scenario-choices";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
@@ -53,7 +54,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  <section className="learning-teaser"><div className="panel-top"><BookOpen size={21}/><span className="badge gold">五个方向 · 每日新题</span></div><h3>今天，点亮一点新技能。</h3><p>把市场里的问号，变成你的知识装备。</p><div className="mini-cards"><span>δ</span><span>EPS</span><span>✦</span></div><button className="text-button" onClick={()=>navigate("learn")}>抽取今日卡牌 <ArrowUpRight size={15}/></button></section>
  <section className="next-boss"><div className="panel-top"><span className="eyebrow">NEXT CHALLENGE</span><Swords size={17}/></div>{next?<><h3>{next.title}</h3><p>{new Date(next.at).toLocaleDateString("zh-CN",{month:"long",day:"numeric",timeZone:"America/New_York"})} · {dualTime(next.at)}</p></>:<><h3>下一场事件正在确认</h3><p>官方日历同步后展示。</p></>}<button className="text-button" onClick={()=>navigate("events")}>打开事件地图 <ChevronRight size={14}/></button></section>
  </aside></div>
- <div id="judgment-journal" className="journal-wide"><WeeklyTracking state={state} onReview={setReviewing}/></div>
+ <TradingDNA state={state}/><div id="judgment-journal" className="journal-wide"><WeeklyTracking state={state} onReview={setReviewing}/></div>
  <EntryScore locale="zh" symbol={activeSymbol}/>
  {reviewing&&<ReviewDialog review={reviewing} state={state} onClose={()=>setReviewing(null)} run={run} busy={busy}/>}
  </>}</LocalizeTree>;

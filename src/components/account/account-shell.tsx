@@ -1,4 +1,5 @@
 "use client";
+import ProEntry from "./pro-entry";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
@@ -239,7 +240,7 @@ export default function AccountShell({
             </>
           )}
         </div>
-        <nav>
+        <nav><ProEntry compact/>
           <button className="account-guide" disabled={!ready} onClick={openGuide} aria-label={zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}>
             <CircleHelp size={16}/><span>{zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}</span>
           </button>

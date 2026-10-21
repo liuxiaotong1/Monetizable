@@ -1,0 +1,4 @@
+'use client';
+import {useLocale} from '@/components/i18n/locale-provider';
+import './pro.css';
+export default function ProEntry({compact=false}:{compact?:boolean}){const locale=useLocale(),c={en:{title:'Turn your calls into a training plan.',body:'Trading DNA, full history and personalized discipline practice.',cta:'Explore Pro',price:'$9.99/month · $79/year · 7 days free'},fr:{title:'Transformez vos prévisions en entraînement.',body:'Votre ADN, votre historique complet et des exercices de discipline personnalisés.',cta:'Découvrir Pro',price:'9,99 $US/mois · 79 $US/an · 7 jours gratuits'},zh:{title:'把每次预判，变成下一关的训练。',body:'Trading DNA、完整历史、个性化纪律训练与弱点观察。',cta:'探索 Pro',price:'$9.99/月 · $79/年 · 7 天免费'}}[locale];return compact?<a className="pro-nav" href="/pricing" aria-label={c.cta}>🎮 Pro</a>:<aside className="pro-entry"><div><strong>🎮 {c.title}</strong><p>{c.body}</p><small>{c.price}</small></div><a className="primary" href="/pricing">{c.cta} ↗</a></aside>;}

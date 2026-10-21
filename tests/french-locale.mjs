@@ -6,7 +6,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 const catalog=JSON.parse(fs.readFileSync('src/lib/i18n/fr.json'));
 function load(file,deps={}){const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;const module={exports:{}};new Function('require','module','exports',code)(name=>{if(name in deps)return deps[name];throw Error('Unmocked dependency '+name);},module,module.exports);return module.exports;}
 const locale=load('src/lib/i18n/locale.ts');
-assert.equal(locale.resolveLocale(undefined),'fr');assert.equal(locale.resolveLocale('en'),'en');assert.equal(locale.resolveLocale('zh'),'zh');assert.equal(locale.resolveLocale(undefined,true),'zh');assert.equal(locale.resolveLocale('fr',true),'fr');
+assert.equal(locale.resolveLocale(undefined),'en');assert.equal(locale.resolveLocale('en'),'en');assert.equal(locale.resolveLocale('zh'),'zh');assert.equal(locale.resolveLocale(undefined,true),'zh');assert.equal(locale.resolveLocale('fr',true),'fr');
 const trans=load('src/lib/i18n/translate.ts',{'./fr.json':catalog,'./zh.json':JSON.parse(fs.readFileSync('src/lib/i18n/zh.json'))});
 assert.equal(trans.translateString('Daily Quest'),'Quête du jour');assert.equal(trans.translateString('Daily Quest','en'),'Daily Quest');
 assert.equal(trans.translateString('Monetizable'),'Monetizable');
@@ -22,7 +22,7 @@ const jsx=await import('react/jsx-runtime');const provider=load('src/components/
 const {LocaleProvider,LocalizeTree}=provider;
 const tree=React.createElement(LocaleProvider,{locale:'fr'},React.createElement(LocalizeTree,null,React.createElement('div',null,React.createElement('button',{onClick:()=>{},title:'Daily Quest'},'Daily Quest'),React.createElement('p',{translate:'no'},'Bullish'),React.createElement('input',{value:'Bullish',readOnly:true,placeholder:'Daily Quest'}),React.createElement('textarea',{value:'My reason',readOnly:true,placeholder:'What evidence matters? What would change your mind?'}))));
 const html=renderToStaticMarkup(tree);assert.ok(html.includes('title="Quête du jour"'));assert.ok(html.includes('translate="no">Bullish'));assert.ok(html.includes('value="Bullish"'));assert.ok(html.includes('placeholder="Quête du jour"'));assert.ok(html.includes('My reason'));assert.ok(html.includes("Quelles informations comptent"));assert.ok(!html.includes('What evidence matters'));
-const billing=fs.readFileSync('src/lib/account/billing.ts','utf8');assert.ok(billing.includes('PREMIUM_CENTS=1990,TRIAL_DAYS=7'));assert.ok(billing.includes('locale:await requestLocale(isAdmin(user))'));assert.ok(billing.includes('s.locale===locale'));assert.ok(billing.includes('19,90 $US par mois'));
+const billing=fs.readFileSync('src/lib/account/billing.ts','utf8');assert.ok(billing.includes('PREMIUM_CENTS=MONTHLY_CENTS'));assert.ok(billing.includes('locale:await requestLocale(isAdmin(user))'));assert.ok(billing.includes('s.locale===locale'));assert.ok(billing.includes("frAmount=plan==='annual'?'79':'9,99'"));
 console.log('French locale: defaults, admin exception, nested templates, all 62 card identities/content, user text and form values, and unchanged subscription terms passed.');
 assert.equal(trans.translateString('Continue with Google','zh'),'使用 Google 继续');
 assert.equal(trans.translateString('Finance, played like a game.'),'La finance, comme un jeu.');

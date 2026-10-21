@@ -1,4 +1,7 @@
 "use client";
+import TradingDNA from "./trading-dna";
+import {historyWindow} from "@/lib/quest/trading-dna";
+import ProEntry from "../account/pro-entry";
 import CardText from "./card-text";
 import {cleanCardText,displayLearningCard} from "@/lib/quest/learning-copy";
 import EarningsWatch from './earnings-watch';
@@ -104,6 +107,7 @@ const numbers = (n: number | undefined) =>
     ? "—"
     : new Intl.NumberFormat(clientLocale(), { maximumFractionDigits: 3 }).format(n);
 export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean }) {
+  const historyAccess=useBilling().access;
   const [view, setView] = useState<View>("today"),
     [state, setState] = useState<QuestState>(),
     [error, setError] = useState(""),
@@ -351,13 +355,13 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
             </div>
           </section>
           {view === "today" ? (
-            <Daily state={state} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount} />
+            <Daily state={historyWindow(state,historyAccess.premium)} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount} />
           ) : view === "events" ? (
             <EventMap state={state} />
           ) : (
             <Deck state={state} run={run} busy={busy} signedIn={signedIn} trialCards={trialCards} requireAccount={requireAccount} />
           )}
-          <div className="journey-footer">
+          <ProEntry/><div className="journey-footer">
             <div>
               <strong>Finished exploring this stop?</strong>
               <p>Your effort counts. Your trading activity does not.</p>
@@ -721,7 +725,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           </form>
         )}
       </section>
-      <section className="en-card">
+      <TradingDNA state={state}/><section className="en-card">
         <span className="eyebrow">YOUR JUDGMENT JOURNAL</span>
         <h2>Every week, a clearer picture.</h2>
         {state.trackingWeeks?.map((week) => (
