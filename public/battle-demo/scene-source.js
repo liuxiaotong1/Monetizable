@@ -1,5 +1,6 @@
 const params=new URLSearchParams(location.search),female=params.get('hero')!=='supercharlie',embedded=params.get('embed')==='1',locale=params.get('locale')||'en',lost=params.get('outcome')==='loss';let completedNotified=false;
 import * as T from 'three';
+import {configureOutcomeCaption} from './outcome-caption.js';
 import {createCharacterView} from '../heroes/character-view.js';
 import {createCompanionCast} from './rig-motion.js';
 import {createDefeatMotion} from './defeat-motion.js';
@@ -15,6 +16,7 @@ import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 
 const $=id=>document.getElementById(id),canvas=$('scene'),host=canvas.parentElement;
+configureOutcomeCaption($('victory'),locale);
 const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,host.clientWidth<600?1.25:1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
 const scene=new T.Scene();scene.background=new T.Color(1.5,1.38,1.15);scene.fog=new T.FogExp2('#f5efdf',.018);
 const camera=new T.PerspectiveCamera(38,1,.1,70);camera.userData.compact=params.get('chrome')==='compact';const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));const bloom=new UnrealBloomPass(new T.Vector2(1000,600),.14,.2,2.8);composer.addPass(bloom);composer.addPass(new OutputPass());

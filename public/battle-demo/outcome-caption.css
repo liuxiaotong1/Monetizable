@@ -1,0 +1,23 @@
+/* Loaded last in both the embedded scene and full battle preview. */
+.victory.show{pointer-events:none}
+.victory .outcome-caption-toggle{position:absolute;right:5px;top:5px;display:grid;place-items:center;min-width:30px;min-height:30px;border:1px solid #c9ad71;border-radius:9px;background:#fffaf1;color:#745521;font:600 16px system-ui;cursor:pointer;pointer-events:auto;box-shadow:0 2px 5px #6e542017;text-shadow:none}
+.victory .outcome-caption-toggle:focus-visible{outline:3px solid #8e6a2a;outline-offset:2px}
+.victory:has(.outcome-caption-toggle){padding-right:38px}
+.spotlight-scene .victory.is-collapsed,.spotlight-scene:not(.loss-scene) .victory.is-collapsed,.victory.is-collapsed{width:max-content;max-width:calc(100% - 20px);padding:0!important;border:0;background:none;box-shadow:none;backdrop-filter:none;text-shadow:none}
+.victory.is-collapsed>h2,.victory.is-collapsed>p,.victory.is-collapsed>small{display:none!important}
+.victory.is-collapsed .outcome-caption-toggle{position:static;padding:7px 11px;font-size:11px;border-radius:12px}
+@media(max-width:650px){
+ .spotlight-scene .victory,.spotlight-scene:not(.loss-scene) .victory,.loss-scene .victory,.victory{top:auto!important;bottom:10px!important;left:10px!important;right:auto!important;transform:translateY(8px);width:auto;max-width:56%!important;padding:9px 32px 9px 11px!important;text-align:left;border-radius:12px;max-height:98px;background:#fff8e9f0;text-shadow:none;box-shadow:0 4px 14px #71551c1c}
+ .spotlight-scene .victory.show,.victory.show{transform:none}
+ .victory h2,.spotlight-scene .victory h2,.loss-scene .victory h2{font:600 14px/1.3 Georgia,serif!important;margin:0!important;overflow-wrap:anywhere}
+ .victory .win-kicker{font:700 10px/1.3 system-ui!important;letter-spacing:0;margin:0 0 3px!important}
+ .victory .win-title{font:600 14px/1.3 Georgia,serif!important}
+ .victory>p,.victory>small{display:none!important}
+ .victory .outcome-caption-toggle{min-width:26px;min-height:26px;font-size:15px;right:3px;top:3px}
+ .victory.is-collapsed .outcome-caption-toggle{font-size:10px;padding:7px 10px}
+ .character-view-controls{left:auto!important;right:8px!important;bottom:8px!important;max-width:40%!important;justify-content:flex-end}
+ .character-view-controls>span{display:none!important}
+ .spotlight-scene:has(.victory.show) .hud{display:none}
+ .victory-confetti i{width:5px;height:8px}
+}
+.victory:not(.show) .outcome-caption-toggle{visibility:hidden;pointer-events:none}
