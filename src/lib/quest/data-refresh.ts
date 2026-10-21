@@ -1,4 +1,5 @@
 import 'server-only';
+import {fetchMajorEarnings,earningsEvents} from './earnings-calendar';
 import {cacheDue,releaseCandidates,releaseParserVersion,refreshIssues,reconcileFomcCalendar} from './refresh-policy';
 import {enrichReleaseMetrics} from './bls-api';
 import {database} from '@/lib/account/db';
@@ -105,6 +106,9 @@ async function refreshHistory(state:QuestState,now:Date){
  }));
 }
 export async function refreshEventData(state:QuestState,now=new Date()):Promise<void>{
+ const earnings=await cached(`major-earnings:${marketDate(now).slice(0,7)}:${Math.floor(+now/604800000)}`,6*3600_000,()=>fetchMajorEarnings(now),[],now);
+ const merged=new Map(state.events.map(e=>[e.id,e]));for(const e of [...earnings.body,...earningsEvents([],now)]){const prior=merged.get(e.id);merged.set(e.id,prior?.status==='confirmed'?{...e,...prior}:{...prior,...e,consensus:e.consensus??prior?.consensus});}state.events=[...merged.values()].sort((a,b)=>a.at.localeCompare(b.at));
+ setSource(state,status('大盘权重股财报日历',earnings,'大盘公司财报已核对；公司公告优先于日历估计，电话会议单独标注。'));
  try{await refreshCalendars(state,now);await refreshAgencyCalendars(state,now);await refreshReleases(state,now);
   const [values]=await Promise.all([cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined as EventValuesFeed|undefined,now),refreshHistory(state,now)]);
   state.events=applyEventValues(state.events,values.body).map(enrichReleaseMetrics);setSource(state,status('经济日历 · 前值与市场预测',values,'共识单独标注来源；不以媒体或模型预测代替调查值。'));

@@ -1,4 +1,5 @@
 "use client";
+import {earningsTimingLabel} from "@/lib/quest/earnings-calendar";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import EventTakeaway from "./event-takeaway";
 import EventBossQuest from "./event-boss-quest";
@@ -54,7 +55,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
       return <button key={event.id} className={`event-row ${status === "pending" || status === "confirmed" ? "event-past" : ""}`} onClick={() => setSelectedId(event.id)}>
         <div className={`event-emblem ${event.kind.toLowerCase()}`}><BossAvatar kind={event.kind}/></div>
         <div className="event-row-copy"><div><span className="event-kind">{event.title.split("·")[0].trim()}</span><span className={`badge ${status === "confirmed" ? "green" : "purple"}`}>{status === "confirmed" ? (event.report?"官方报告已发布":"官方结果已确认") : status === "unconfirmed" ? "日期待确认" : status === "pending" ? (event.calendarValues?.reported!==undefined&&Date.parse(event.at)<=Date.parse(event.calendarValues.fetchedAt)?"日历已报告 · 官方待确认":"已到公布时间 · 结果待确认") : "Boss 预告"}</span></div><h3>{event.title}</h3><p>{event.analogy}</p>{event.actual!==undefined&&<small className="event-row-values">公布值 {event.actual.toLocaleString("zh-CN")} · 前值 {event.previous?.toLocaleString("zh-CN")??"—"} · {event.unit}</small>}{event.report&&<small className="event-row-values">{event.report.summary[0]}</small>}{event.calendarValues&&event.actual===undefined&&<small className="event-row-values">前值 {event.previous??"—"} · 市场共识 {event.consensus??"—"} · {event.unit}</small>}<small className="event-row-source">{event.sourceName}{event.history.length?` · 历史 ${event.history.length} 条 · 最新 ${event.history.at(-1)?.date}`:""}</small></div>
-        <div className="event-row-time"><strong>{status === "unconfirmed" ? "日期待确认" : eventDate(event.at)}</strong><span>{status === "unconfirmed" ? "官方尚未确认" : dualTime(event.at)}</span><small>{countdown(event, state.now)}</small></div><ChevronRight size={18} />
+        <div className="event-row-time"><strong>{status === "unconfirmed" ? "日期待确认" : eventDate(event.at)}</strong><span>{status === "unconfirmed" ? "官方尚未确认" : event.earningsTiming?earningsTimingLabel(event,'zh'):dualTime(event.at)}</span><small>{countdown(event, state.now)}</small></div><ChevronRight size={18} />
       </button>;
     }) : <div className="empty-large"><CalendarDays size={34} /><h3>这个范围暂未取得事件</h3><p>这不代表没有重大事件。可切换“全部日程”，并查看日历同步状态；自选股财报也可在设置中补充。</p></div>}</div>
     {state.mode === "live" && <details className={`calendar-coverage ${coverage.unavailable.length ? "partial" : ""}`}>
@@ -74,7 +75,7 @@ function EventDialog({ event, now, mode, onClose }: { event: MarketEvent; now: s
   const status = eventStatusAt(event, now), numeric = numericEvent(event);
   return <LocalizeTree>{<div className="modal-backdrop" onClick={onClose}><section ref={dialogRef} className="modal event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" onClick={e => e.stopPropagation()}>
     <button className="modal-close" onClick={onClose} aria-label="关闭事件">×</button><span className="eyebrow">事件情报 · {event.title.split("·")[0].trim()}</span><BossAvatar kind={event.kind} named/><h2 id="event-title">{event.title}</h2>
-    <p className="muted"><Clock3 size={14} /> {status === "unconfirmed" ? "日期与时间等待官方公告" : `${eventDate(event.at)} · ${dualTime(event.at)}`}{mode === "demo" ? " · 示例事件" : ""}</p>
+    <p className="muted"><Clock3 size={14} /> {status === "unconfirmed" ? "日期与时间等待官方公告" : `${eventDate(event.at)} · ${event.earningsTiming?earningsTimingLabel(event,'zh'):dualTime(event.at)}`}{mode === "demo" ? " · 示例事件" : ""}</p>
     <div className="analogy-box"><Sparkles size={20} /><p>{event.analogy}</p></div><p>{event.description}</p>
     {numeric ? <EventNumbers event={event}/> : <div className="report-story"><h4>{event.report?"官方纪要已发布":"这是一份文字报告"}</h4>{event.report?<>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方纪要全文 <ExternalLink size={12}/></SourceLink></>:<><p>{status==="pending"?"公布时间已过，尚未取得可验证的官方正文。":"等待官方发布正文。"}</p><SourceLink href={event.sourceUrl}>查看官方来源 <ExternalLink size={12}/></SourceLink></>}</div>}
     {numeric&&event.report&&<div className="report-story"><h4>官方公布摘要 · 分清指标口径</h4>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方报告全文 <ExternalLink size={12}/></SourceLink></div>}

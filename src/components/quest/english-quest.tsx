@@ -1,4 +1,6 @@
 "use client";
+import EarningsWatch from './earnings-watch';
+import {earningsTimingLabel} from '@/lib/quest/earnings-calendar';
 import DeckVictory,{useDeckCompletion} from './deck-victory';
 import WeeklyOutlook from './weekly-outlook';
 import BossAvatar from './boss-avatar';
@@ -459,7 +461,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <div className="en-hero-copy">
           {productIntro?<NextQuestPrompt/>:<>
           <span className="eyebrow">✦ YOUR DAILY QUEST</span>
-          <h1>
+          {!(review?.matched&&!pending)&&<h1>
             {<>
             {pending ? `Your ${day(pending.date)} call is sealed.` : review?.matched
               ? "Your call matched."
@@ -467,7 +469,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
             <br />
             <em>{pending ? "Awaiting the verified close." : "Now follow the evidence."}</em>
             </>}
-          </h1>
+          </h1>}
           <p>
             {pending ? <>{directions[pending.direction]} · <span translate="no">{pending.reason}</span>. {"Sealed before the target session opened; eligible for scoring once its complete daily bar is confirmed."}</> : review
               ? `${day(review.date)} · ${directions[review.actualDirection]} · ${review.returnPct.toFixed(2)}%. ${review.matched ? "Your premarket direction matched the verified close." : "Your original call and the close differed. A thoughtful review still earns XP."}`
@@ -791,7 +793,7 @@ function EventMap({ state }: { state: QuestState }) {
   const dailyBrief = <PremiumGate key="daily" preview={<BriefPreview events={state.events} now={state.now}/>}><article className="brief-card brief-daily">
             <span className="brief-emoji" aria-hidden="true">☀️ 🎮</span>
             <span className="eyebrow">BEFORE THE BELL</span>
-            <h3>Premarket brief</h3>
+            <h3>Premarket brief</h3><EarningsWatch events={state.events} now={state.now} today/>
             <strong>Trading days · 08:30 ET · 1h before open</strong>
             <p>
               Check the latest close, support and resistance, and the day’s
@@ -821,6 +823,7 @@ function EventMap({ state }: { state: QuestState }) {
       </header>
       <DataFreshness state={state} locale="en"/>
       <EventBossQuest events={state.events} now={state.now} onDetails={id=>{setFilter('all');setFocusedEvent(id);}}/>
+      <EarningsWatch events={state.events} now={state.now}/>
       <section className="en-card event-brief-hub" data-tour="briefs">
         <span className="eyebrow">PREMARKET & WEEK AHEAD</span>
         <h2>{isSunday ? "🔮 Map your next week’s adventure." : "☀️ Your premarket power-up."}</h2>
@@ -938,7 +941,7 @@ function EventDetail({ event: e, now }: { event: MarketEvent; now: string }) {
             day: "numeric",
             timeZone: "America/New_York",
           })}
-          <small>{clocks(e.at)}</small>
+          <small>{e.earningsTiming?earningsTimingLabel(e,locale):clocks(e.at)}</small>
           <ChevronRight size={18} />
         </div>
       </summary>

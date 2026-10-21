@@ -1,3 +1,4 @@
+import {earningsTimingLabel} from './earnings-calendar';
 import 'server-only';
 import {refreshEventData,refreshNews} from './data-refresh';
 import {localizedPublicState} from './public-locale';
@@ -48,7 +49,7 @@ export async function refreshNative(feed:PublicFeed,force=false,strict=false):Pr
    const title=kind==='weekly'?`${date} · 一周前瞻`:`${date} · 盘前快报`;
    const summary=latest?`最近核对收盘 ${latest.date}：纳斯达克100 ETF $${latest.close.toFixed(2)}。${latest.date===session.previousDate?'已取得上一交易日完整日线。':'最新交易日资料仍待恢复；以下仅为已确认历史参考。'}关注 ${events.length} 项已取得事件日程。`:'行情尚待确认；保留事件日程，不提供未经核实的价格。';
    const f=preparationForecast(state.bars,session.isTradingDay?session.date:session.nextDate,now);
-   const body=`## ${title}\n${summary}\n\n## 行情快照\n${latest?`日线日期：${latest.date}；收盘 $${latest.close.toFixed(2)}；高低 $${latest.low.toFixed(2)}–$${latest.high.toFixed(2)}；取得 ${latest.fetchedAt}。${previous?`相对前收盘 ${((latest.close/previous.close-1)*100).toFixed(2)}%。`:''}`:'暂无已确认日线。'}\n\n## 事件 Boss 地图\n${events.length?events.map(e=>`- ${e.title} · ${e.at} · [官方来源](${e.sourceUrl})`).join('\n'):'这个窗口尚未取得可靠事件日程；不代表没有事件。'}\n\n## 观察条件\n${f?f.scenarios.map(s=>`- ${s.title}：${s.condition} 失效条件：${s.invalidation}`).join('\n'):'日线不足，暂不生成价位情景。'}\n\n这是网站自动生成的数据准备版，不包含未接入的实时期货、新闻或跨资产数据；官方公布值未核实前保留待确认。`;
+   const body=`## ${title}\n${summary}\n\n## 行情快照\n${latest?`日线日期：${latest.date}；收盘 $${latest.close.toFixed(2)}；高低 $${latest.low.toFixed(2)}–$${latest.high.toFixed(2)}；取得 ${latest.fetchedAt}。${previous?`相对前收盘 ${((latest.close/previous.close-1)*100).toFixed(2)}%。`:''}`:'暂无已确认日线。'}\n\n## 事件 Boss 地图\n${events.length?events.map(e=>`- ${e.title} · ${e.kind==='EARNINGS'?e.at.slice(0,10)+' '+earningsTimingLabel(e,'zh'):e.at} · [官方来源](${e.sourceUrl})`).join('\n'):'这个窗口尚未取得可靠事件日程；不代表没有事件。'}\n\n## 观察条件\n${f?f.scenarios.map(s=>`- ${s.title}：${s.condition} 失效条件：${s.invalidation}`).join('\n'):'日线不足，暂不生成价位情景。'}\n\n这是网站自动生成的数据准备版，不包含未接入的实时期货、新闻或跨资产数据；官方公布值未核实前保留待确认。`;
    report={kind,date,generatedAt:now.toISOString(),title,summary,body,status:'partial',origin:kind==='weekly'?'weekly-quest':'cloud-backup',sources:[{title:'纳斯达克100 ETF 日线',url:'https://finance.yahoo.com/quote/QQQ/history/'},...events.slice(0,8).map(e=>({title:e.title,url:e.sourceUrl}))],version:(report?.version||0)+1,savedAt:now.toISOString(),digest:createHash('sha256').update(body).digest('hex'),...(kind==='weekly'?{weekStart:reportWeekStart(date)}:{})};const previousReport=await read<AgentReport>(key);if(previousReport)await save(`${key}:v${previousReport.version}`,previousReport);await save(key,report);
   }
   const {rows}=await database().query("SELECT body FROM quest_shared_data WHERE key LIKE 'report:%' AND key !~ ':v[0-9]+$' ORDER BY updated_at DESC LIMIT 20");

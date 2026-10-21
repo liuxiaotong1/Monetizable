@@ -40,3 +40,9 @@ test('fresh premarket candles replace an older regular-session quote',async()=>{
  const fetcher=async()=>({ok:true,json:async()=>({chart:{result:[{meta:{symbol:'QQQ',regularMarketPrice:100,regularMarketTime:at-50000,previousClose:100},timestamp:[at,at+3600],indicators:{quote:[{close:[101,999]}]}}]}})});
  const quote=await snapshot('QQQ','QQQ',now,fetcher);assert.equal(quote.price,101);assert.equal(quote.stale,false);assert.equal(quote.at,new Date(at*1000).toISOString());
 });
+
+test('Premarket report includes this week’s large-cap earnings and distinguishes calls from releases',()=>{
+ const earnings=[{id:'meta',kind:'EARNINGS',symbol:'META',title:'Meta',at:'2026-10-21T20:00:00Z',earningsTiming:'after-close',earningsCallAt:'2026-10-21T20:30:00Z',sourceUrl:'https://investor.atmeta.com/'},{id:'spcx',kind:'EARNINGS',symbol:'SPCX',title:'SpaceX',at:'2026-10-20T20:00:00Z',earningsTiming:'after-close',sourceUrl:'https://ir.spacex.com/'}];
+ const r=buildReport({bars:[],events:earnings,forecasts:[],session:{}},{sources:[]},[],{date:'2026-10-21',kind:'daily'},new Date('2026-10-21T12:30:00Z'));
+ assert.match(r.body,/META/);assert.match(r.body,/SPCX/);assert.match(r.body,/美东盘后/);assert.match(r.body,/电话会议/);assert(r.sources.some(s=>s.url==='https://ir.spacex.com/'));
+});
