@@ -9,8 +9,8 @@ for(const locale of ['en','fr','zh']){const component=load('src/components/quest
 console.log('Passed three social QR previews and exact profile links in all supported locales.');
 const plans=load('src/lib/account/plans.ts');
 for(const locale of ['en','fr','zh']){
- const pricing=load('src/components/quest/landing-plans.tsx',{'@/components/i18n/locale-provider':{useLocale:()=>locale},'@/lib/account/plans':plans}).default;
- const markup=renderToStaticMarkup(React.createElement(pricing));assert(markup.includes('79'));assert(markup.includes(locale==='fr'?'9,99':'9.99'));assert(markup.includes('data-trial-days="7"'));assert(markup.includes('href="/pricing"'));
+ const pricing=load('src/components/quest/landing-plans.tsx',{'@/components/i18n/locale-provider':{useLocale:()=>locale},'@/lib/account/plans':plans,'@/lib/account/pricing-copy':load('src/lib/account/pricing-copy.ts'),'../account/billing-access':{useBilling:()=>({access:{premium:false}}),SubscribeButton:({label})=>React.createElement('button',null,label)}}).default;
+ const markup=renderToStaticMarkup(React.createElement(pricing));assert(markup.includes('79'));assert(markup.includes(locale==='fr'?'9,99':'9.99'));assert(markup.includes('data-trial-days="7"'));assert(!markup.includes('href="/pricing"'));assert.equal((markup.match(/<li>/g)||[]).length,14);
  const reviews=load('src/components/quest/tester-interviews.tsx',{'@/components/i18n/locale-provider':{useLocale:()=>locale}}).default;
  const html=renderToStaticMarkup(React.createElement(reviews,{verifiedAccounts:6}));for(const name of ['Mathild Anna','Louis Green','Linda Xi'])assert(html.includes(name));assert.equal((html.match(/<article>/g)||[]).length,3);assert(html.includes('<strong>6</strong>'));assert(!html.includes('50%'));assert(!renderToStaticMarkup(React.createElement(reviews)).includes('beta-account-proof'));if(locale==='en')assert(!/\p{Script=Han}/u.test(html));
 }

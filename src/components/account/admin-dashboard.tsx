@@ -12,9 +12,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 interface Dashboard {
-  users: {supabaseUrl:string;hasMore:boolean;storage:string;items:{id:string;email:string;name:string;registered_at:string;last_sign_in_at?:string;last_seen_at?:string;verified:boolean;provider:string;has_profile:boolean;subscription:string}[]};
+  users: {supabaseUrl:string;hasMore:boolean;storage:string;items:{id:string;email:string;name:string;registered_at:string;last_sign_in_at?:string;last_seen_at?:string;active_today?:boolean;verified:boolean;provider:string;has_profile:boolean;subscription:string}[]};
   metrics: {
     todayVisitors: number;
+    todayActive:number;
     todayDate: string;
     visitors: number;
     views: number;
@@ -97,6 +98,7 @@ export default function AdminDashboard() {
       )}
       <section className="admin-grid">
         {[
+          { label: "今日活跃账户 · 巴黎", value: metric?.todayActive, icon: Users },
           { label: "今日访客 · 巴黎", value: metric?.todayVisitors, icon: Users },
           { label: "近 30 天访客", value: metric?.visitors, icon: Users },
           { label: "近 30 天浏览量", value: metric?.views, icon: BarChart3 },
@@ -110,11 +112,11 @@ export default function AdminDashboard() {
           </article>
         ))}
       </section>
-      <p className="muted small-text">今日访客：{metric?.todayDate || "今天"} · 巴黎 00:00 起按匿名浏览器去重，同一浏览器访问多个页面只计一次。</p>
+      <p className="muted small-text">今日活跃账户：巴黎当天有站内访问的登录账户，按账户去重；不等于匿名访客。今日访客：{metric?.todayDate || "今天"} · 巴黎 00:00 起按匿名浏览器去重，同一浏览器访问多个页面只计一次。</p>
       <section className="admin-panel admin-users">
         <div className="admin-users-heading"><div><span className="eyebrow">EXPLORER DIRECTORY</span><h2>用户信息 · Supabase</h2></div>{data?.users?.supabaseUrl&&<a className="secondary" href={data.users.supabaseUrl} target="_blank" rel="noopener noreferrer">打开 Supabase 用户管理 ↗</a>}</div>
         <p className="muted small-text">注册、登录身份保存在 Supabase Auth；学习进度、自选股、判断与订阅记录保存在同一 Supabase 项目的数据库中。名单包含尚未验证邮箱或尚未进入网站的账户；仅管理员可见。</p>
-        <div className="admin-user-list">{data?.users?.items.map(user=><details key={user.id}><summary><strong>{user.name||user.email||'未填写邮箱'}</strong>{user.name&&<span>{user.email}</span>}<span>{user.verified?'已验证':'待验证'} · {user.subscription==='none'?'免费':user.subscription}</span></summary><dl><dt>用户 ID</dt><dd>{user.id}</dd><dt>邮箱</dt><dd>{user.email||'—'}</dd><dt>注册时间</dt><dd>{new Date(user.registered_at).toLocaleString('zh-CN',{timeZone:'Europe/Paris'})} 巴黎</dd><dt>最近登录</dt><dd>{user.last_sign_in_at?new Date(user.last_sign_in_at).toLocaleString('zh-CN',{timeZone:'Europe/Paris'}):'尚未登录'}</dd><dt>登录方式</dt><dd>{user.provider}</dd><dt>网站档案</dt><dd>{user.has_profile?'已建立并同步':'尚未进入网站'}</dd></dl></details>)}</div>{data?.users?.hasMore&&<p className="muted">此处显示最新 100 个账户；完整名单请打开 Supabase。</p>}
+        <div className="admin-user-list">{data?.users?.items.map(user=><details key={user.id}><summary><strong>{user.name||user.email||'未填写邮箱'}</strong>{user.name&&<span>{user.email}</span>}<span>{user.active_today?'🟢 今日活跃 · ':''}{user.verified?'已验证':'待验证'} · {user.subscription==='none'?'免费':user.subscription}</span></summary><dl><dt>用户 ID</dt><dd>{user.id}</dd><dt>邮箱</dt><dd>{user.email||'—'}</dd><dt>注册时间</dt><dd>{new Date(user.registered_at).toLocaleString('zh-CN',{timeZone:'Europe/Paris'})} 巴黎</dd><dt>最近站内活动</dt><dd>{user.last_seen_at?new Date(user.last_seen_at).toLocaleString('zh-CN',{timeZone:'Europe/Paris'}):'暂无记录'}</dd><dt>Supabase</dt><dd><a href={data.users.supabaseUrl+'?search='+encodeURIComponent(user.email||user.id)} target="_blank" rel="noopener noreferrer">查询此账户 ↗</a></dd><dt>最近登录</dt><dd>{user.last_sign_in_at?new Date(user.last_sign_in_at).toLocaleString('zh-CN',{timeZone:'Europe/Paris'}):'尚未登录'}</dd><dt>登录方式</dt><dd>{user.provider}</dd><dt>网站档案</dt><dd>{user.has_profile?'已建立并同步':'尚未进入网站'}</dd></dl></details>)}</div>{data?.users?.hasMore&&<p className="muted">此处按最近活动显示 100 个账户；完整名单请打开 Supabase。</p>}
       </section>
       <section className="admin-panels">
         <article className="admin-panel">

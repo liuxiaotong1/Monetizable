@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
-import { sameOrigin } from "@/lib/account/auth";
+import { sameOrigin,currentUser } from "@/lib/account/auth";
 import { database } from "@/lib/account/db";
 export async function POST(request: Request) {
   if (!sameOrigin(request))
@@ -18,6 +18,8 @@ export async function POST(request: Request) {
       "INSERT INTO quest_visits(visitor,path) VALUES($1,$2) ON CONFLICT(day,visitor,path) DO UPDATE SET views=quest_visits.views+1,last_at=now()",
       [visitor, path],
     );
+    const user=await currentUser();
+    if(user)await database().query("INSERT INTO quest_profiles(user_id) VALUES($1) ON CONFLICT(user_id) DO UPDATE SET last_seen_at=now()",[user.id]);
     const res = NextResponse.json({ ok: true });
     res.cookies.set("quest-visitor", visitor, {
       httpOnly: true,

@@ -10,7 +10,7 @@ export async function adminMetrics() {
       "SELECT count(DISTINCT visitor)::int visitors,COALESCE(sum(views),0)::int views FROM quest_visits WHERE day>=current_date-29",
     ),
     database().query(
-      "SELECT count(*)::int accounts,count(*) FILTER(WHERE p.last_seen_at>now()-interval'7 days')::int active FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id",
+      "SELECT count(*) FILTER(WHERE p.last_seen_at>=((now() AT TIME ZONE 'Europe/Paris')::date::timestamp AT TIME ZONE 'Europe/Paris'))::int today_active,count(*)::int accounts,count(*) FILTER(WHERE p.last_seen_at>now()-interval'7 days')::int active FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id",
     ),
     database().query(
       "SELECT count(DISTINCT visitor)::int AS today_visitors,(now() AT TIME ZONE 'Europe/Paris')::date::text AS today_date FROM quest_visits WHERE last_at>=((now() AT TIME ZONE 'Europe/Paris')::date::timestamp AT TIME ZONE 'Europe/Paris') AND last_at<(((now() AT TIME ZONE 'Europe/Paris')::date+1)::timestamp AT TIME ZONE 'Europe/Paris')",
@@ -21,6 +21,7 @@ export async function adminMetrics() {
     ...totals.rows[0],
     ...profiles.rows[0],
     todayVisitors: today.rows[0].today_visitors,
+    todayActive: profiles.rows[0].today_active,
     todayDate: today.rows[0].today_date,
     todayTimezone: "Europe/Paris",
     timezone: "UTC",
@@ -97,7 +98,7 @@ export async function paymentMetrics() {
 
 /** Only returned by the administrator-protected endpoint. No secrets or arbitrary metadata. */
 export async function adminUsers(){
- const {rows}=await database().query(`SELECT u.id,u.email,left(COALESCE(u.raw_user_meta_data->>'full_name',u.raw_user_meta_data->>'name',''),100) AS name,u.created_at AS registered_at,u.last_sign_in_at,u.email_confirmed_at IS NOT NULL AS verified,COALESCE(u.raw_app_meta_data->>'provider','email') AS provider,p.last_seen_at,p.user_id IS NOT NULL AS has_profile,COALESCE(s.status,'none') AS subscription FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id LEFT JOIN quest_subscriptions s ON s.user_id=u.id ORDER BY u.created_at DESC LIMIT 101`);
+ const {rows}=await database().query(`SELECT u.id,u.email,left(COALESCE(u.raw_user_meta_data->>'full_name',u.raw_user_meta_data->>'name',''),100) AS name,u.created_at AS registered_at,u.last_sign_in_at,u.email_confirmed_at IS NOT NULL AS verified,COALESCE(u.raw_app_meta_data->>'provider','email') AS provider,p.last_seen_at,(p.last_seen_at>=((now() AT TIME ZONE 'Europe/Paris')::date::timestamp AT TIME ZONE 'Europe/Paris')) AS active_today,p.user_id IS NOT NULL AS has_profile,COALESCE(s.status,'none') AS subscription FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id LEFT JOIN quest_subscriptions s ON s.user_id=u.id ORDER BY p.last_seen_at DESC NULLS LAST,u.created_at DESC LIMIT 101`);
  const ref=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split('.')[0];
  return {items:rows.slice(0,100),hasMore:rows.length>100,supabaseUrl:`https://supabase.com/dashboard/project/${encodeURIComponent(ref)}/auth/users`,storage:'Supabase Auth + Postgres'};
 }

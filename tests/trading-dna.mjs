@@ -9,3 +9,11 @@ assert.equal(tradingDNA({...state,reviews:[{...reviews[0],matched:undefined}]},t
 assert.equal(tradingDNA({...state,judgment:{...calls[0],id:'changed',lockedAt:'2026-10-21T12:00:00Z'}},true).count,8,'One target day is one observation');
 const window=historyWindow(state,false);assert.equal(window.reviews.length,7);assert.equal(state.reviews.length,8,'Entitlements must not delete records');assert.strictEqual(historyWindow(state,true),state);assert(window.trackingWeeks.every(w=>w.days.every(d=>d.date>='2026-10-15')));
 console.log('Passed genuine eligible records, 7-day/full history, unique dates, matched-forecast-only outcomes, pending guards, transparent habits and no deletion.');
+
+const plan={system:'Trend method',rules:['reason'],custom:'Wait for support',since:'2026-10-18T12:00:00Z'};
+assert.equal(tradingDNA(state,true,plan).count,3,'Exclude calls locked before the system existed');
+assert.equal(tradingDNA(state,true,{...plan,since:'2026-10-10T00:00:00Z'}).score,100,'Selected reason rule is scored independently of unselected review');
+assert.equal(tradingDNA(state,true,{...plan,since:'2026-10-22T00:00:00Z'}).count,0,'Never back-score an older call against new rules');
+const {validateDiscipline}=load('src/lib/quest/discipline-plan.ts');
+assert.equal(validateDiscipline({...plan,rules:[]}),null);assert.equal(validateDiscipline({...plan,rules:['profit']}),null);assert.deepEqual(validateDiscipline(plan),{system:plan.system,rules:plan.rules,custom:plan.custom});
+console.log('Passed prospective rule assessment, rule selection and validation.');
