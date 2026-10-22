@@ -18,9 +18,13 @@ let countValue=6,dbFail=false;const publicRoute=load('src/app/api/homepage/route
 console.log('Passed visible plan amounts and trial, three localized interview summaries, genuine account aggregate and no invented fallback count on storage failure.');
 
 for(const locale of ['en','fr','zh']){
- const proof=load('src/components/quest/landing-proof.tsx',{'@/components/i18n/locale-provider':{useLocale:()=>locale}});
+ const proof=load('src/components/quest/landing-proof.tsx',{'@/components/i18n/locale-provider':{useLocale:()=>locale},'./in-view-reveal':({children})=>React.createElement('div',null,children)});
  const cards=renderToStaticMarkup(React.createElement(proof.ProductProof)),insights=renderToStaticMarkup(React.createElement(proof.InsightExamples));
  assert.equal((cards.match(/<article/g)||[]).length,3);assert(cards.includes('battle-action.png'));assert.match(insights,/80/);assert.match(insights,/10/);
  const label=locale==='zh'?'示例':locale==='fr'?'Exemple':'Example';assert(cards.includes(label));assert((insights.match(new RegExp(label,'g'))||[]).length>=2);
 }
 console.log('Passed labeled product and insight examples, with no account-count proof.');
+
+const demo=load('src/lib/journal/home-demo.ts',{'./core':load('src/lib/journal/core.ts')}).homeDemo;
+assert.equal(demo.winRate,60);assert.equal(demo.net,240);assert.equal(demo.profitFactor,3);assert.equal(demo.adherence,demo.followed/demo.checks*100);
+console.log('Passed internally consistent illustrative journal metrics.');

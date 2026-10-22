@@ -33,3 +33,4 @@
 /* Give the score a full line; two supporting cards stay legible in the narrow portrait column. */
 .hero-proof{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-proof .proof-score{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;align-items:center}.proof-score>small{grid-column:1/-1}.proof-score>strong{font-size:16px;margin:4px 0}.proof-score>.proof-meter{grid-column:1/-1;margin:5px 0}.proof-score>p{grid-column:1/-1;margin:0}.hero-proof .proof-boss img{height:50px}.hero-proof .proof-streak strong{font-size:13px}
 @media(max-width:760px){.hero-proof{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-proof .proof-score{grid-column:1/-1}.hero-proof small,.hero-proof p{font-size:11px}.hero-proof strong{font-size:14px}.hero-proof .proof-score>strong{font-size:15px}}
+.tester-quote{margin:0;font-style:normal}.tester-quote p{line-height:1.75}.tester-quote .tester-before p::first-letter{color:#a38440;font-weight:600}
