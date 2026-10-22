@@ -1,0 +1,3 @@
+Trade ID,Close date,Symbol,Realized P&L,Fees,Currency,Strategy
+DEMO-001,2026-10-01,QQQ,25.00,1.00,USD,Trend
+DEMO-002,2026-10-02,QQQ,-12.00,1.00,USD,Trend

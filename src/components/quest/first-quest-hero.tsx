@@ -10,6 +10,7 @@ import './hero-experience.css';
 import './play-first-home.css';
 import FounderSocials from './founder-socials';
 import LandingPlans from './landing-plans';
+import JournalHomePreview from '../journal/home-preview';
 import {ProductProof,InsightExamples} from './landing-proof';
 import TesterInterviews from './tester-interviews';
 const copy={
@@ -32,6 +33,7 @@ export default function FirstQuestHero({state}:{state:QuestState}){
  {direction&&<div className="landing-result" role="status"><strong>✦ {c.picked}</strong><p>{c.save}</p><small>{c.draft}{storageIssue&&` ${locale==='zh'?'浏览器未允许保存草稿，请在注册后重新选择。':locale==='fr'?'Le navigateur ne peut pas garder ce brouillon : choisissez à nouveau après inscription.':'Your browser cannot keep this draft; select it again after signing in.'}`}</small><button className="primary" onClick={start}>{c.cta} →</button></div>}
  </section><small className="landing-hint">{c.hint}</small></div>
  <div className="hero-product-preview"><figure className="landing-astra"><img src="/heroes/astra-portrait.webp" width={640} height={960} alt={locale==='zh'?'星澜，你的游戏伙伴':'Astra'} fetchPriority="high" decoding="async"/><figcaption><span>✦</span> {c.hero}</figcaption></figure><ProductProof/></div></section>
+ <JournalHomePreview/>
  <TesterInterviews/>
  <LandingPlans/>
  <section className="landing-features" aria-labelledby="landing-features-title"><h2 id="landing-features-title">{c.features}</h2><div className="landing-feature-grid">
