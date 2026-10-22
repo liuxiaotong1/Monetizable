@@ -1,5 +1,7 @@
 "use client";
 import TradingDNA from "./trading-dna";
+import PredictionFocus from "./prediction-focus";
+import MonthlyAccuracy from "./monthly-accuracy";
 import {historyWindow} from "@/lib/quest/trading-dna";
 import ProEntry from "../account/pro-entry";
 import CardText from "./card-text";
@@ -429,7 +431,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
     previous = bars.at(-2),
     review = state.reviews[0],
     f = state.forecast;
-  useEffect(() => { const draft = readPredictionDraft(); if (draft) { setDirection(draft.direction); setConfidence(draft.confidence); setReason(draft.reason); } }, []);
   const revealBattleFacts=useCallback(()=>{setCelebrate(false);setFacts(true);},[]);
   const past = useRef("");
   useEffect(() => {
@@ -445,9 +446,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   const pending=pendingJudgment(state);
   const productIntro = !pending && review?.matched !== true && review?.matched !== false;
   const targetSession=predictionSession(state);
-  const afterOpen = Date.parse(state.now) >= Date.parse(targetSession.openAt);
-  const locked =
-    signedIn && (!!state.judgment || !targetSession.isTradingDay || afterOpen || !f);
+  useEffect(()=>{const draft=readPredictionDraft();if(draft&&draft.date===targetSession.date&&!state.judgment){setDirection(draft.direction);setConfidence(draft.confidence);setReason(draft.reason);}},[targetSession.date,state.judgment]);
   const ma20 =
       bars.length >= 20
         ? bars.slice(-20).reduce((n, b) => n + b.close, 0) / 20
@@ -463,6 +462,8 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   if(adventureStage==='landing')return <FirstQuestHero state={state}/>;
   return <LocalizeTree>{(
     <>
+      <PredictionFocus state={state} id="en-judgment" direction={direction} onDirection={setDirection} confidence={confidence} onConfidence={setConfidence} reason={reason} onReason={setReason} busy={busy} signedIn={signedIn} onSeal={async()=>{if(!direction)return;if(!signedIn){requireAccount("prediction",{direction,confidence,reason,date:targetSession.date,at:new Date().toISOString()});return;}if(f)return run({type:"judgment",forecastId:f.id,direction,confidence,reason});}}/>
+      <MonthlyAccuracy state={state}/>
       <section className="en-hero">
         <div className="en-hero-copy">
           {productIntro?<NextQuestPrompt/>:<>
@@ -577,7 +578,8 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           )}
         </section>
       )}
-      <WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/>
+      <TradingDNA state={state}/>
+      <div id="daily-market-chart" style={{scrollMarginTop:80}}><WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/></div>
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
         <div className="en-card-heading">
@@ -644,88 +646,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           <p>Waiting for verified daily prices.</p>
         )}
       </section>
-      <section className="en-card" id="en-judgment" style={{ scrollMarginTop: 72 }}>
-        <span className="eyebrow">YOUR NEXT MARKET QUEST</span>
-        <h2>Choose your next market quest.</h2>
-        <p className="scenario-mission-copy">No trade needed. Pick a direction, explain your thinking, and come back to test it.</p>
-        <p>Target trading session: <strong>{day(targetSession.date)}</strong></p>
-        {targetSession.date!==state.session.date&&state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment&&<p>Today’s prediction is sealed and remains in your judgment journal.</p>}
-        {f && (
-          <>
-            <ScenarioChoices forecast={f} value={signedIn&&state.judgment?state.judgment.direction:direction} onChange={setDirection} disabled={locked||busy}/>
-            <details className="scenario-basis"><summary>View scenario data & rules</summary>            <p>
-              Scenario v{f.version} · baseline {money(f.baselineClose)} · data
-              as of {f.dataAsOf.includes("T")?clocks(f.dataAsOf):day(f.dataAsOf)}
-            </p>
-            {f.provisional&&<p>Early preparation: the prior session has not closed. These levels use the latest completed daily candle; the direction result will use the actual prior-session close.</p>}
-<p>Ranges are saved scenario references, not price targets. Reassess when price or verified events invalidate the premise.</p></details>
-          </>
-        )}
-        {state.judgment && signedIn ? (
-          <div className="account-success">
-            <strong>Locked: {directions[state.judgment.direction]}</strong>
-            <p translate="no">{state.judgment.reason}</p>
-            <small>
-              {clocks(state.judgment.lockedAt)} · original scenario preserved
-            </small>
-          </div>
-        ) : (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!direction) return;
-              if (!signedIn) { requireAccount("prediction", { direction, confidence, reason, date: targetSession.date, at: new Date().toISOString() }); return; }
-              if (f)
-                await run({
-                  type: "judgment",
-                  forecastId: f.id,
-                  direction,
-                  confidence,
-                  reason,
-                });
-            }}
-          >
-            <label htmlFor="en-confidence">Confidence</label>
-            <select
-              id="en-confidence"
-              value={confidence}
-              disabled={locked}
-              onChange={(e) =>
-                setConfidence(e.target.value as typeof confidence)
-              }
-            >
-              <option value="low">Low · still observing</option>
-              <option value="medium">Medium · some evidence</option>
-              <option value="high">High · a clear thesis</option>
-            </select>
-            <label htmlFor="en-reason">One-sentence reason</label>
-            <textarea
-              id="en-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              required
-              maxLength={2000}
-              disabled={locked}
-              placeholder="What evidence matters? What would change your mind?"
-            />
-            <button className="primary" disabled={busy || locked || !direction}>
-              {locked
-                ? !state.session.isTradingDay
-                  ? "Market closed · return before the next bell"
-                  : afterOpen
-                    ? "Premarket window closed"
-                    : "Waiting for a verified premarket scenario"
-                : signedIn ? "Seal my scenario · +10 XP" : "Save my scenario"}
-            </button>
-            <p className="muted small-text">
-              {!signedIn && <>Try filling in your call. An account is required when saving. Drafts entered outside the premarket window are not scored.<br/></>}
-              Your call targets {day(targetSession.date)} and locks at {clocks(targetSession.openAt)}. Today’s locked call is kept. Late entries do not count as premarket
-              predictions. No precise probability is claimed.
-            </p>
-          </form>
-        )}
-      </section>
-      <TradingDNA state={state}/><section className="en-card">
+      <section className="en-card">
         <span className="eyebrow">YOUR JUDGMENT JOURNAL</span>
         <h2>Every week, a clearer picture.</h2>
         {state.trackingWeeks?.map((week) => (

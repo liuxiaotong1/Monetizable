@@ -222,9 +222,19 @@ export interface AdventureProgress {
   sections: AdventureSection[];
   completedAt?: string;
 }
+/** Direction accuracy by target-session month, separate from broker-trade win rate. */
+export interface PredictionMonth {
+  month: string;
+  recorded: number;
+  verified: number;
+  matched: number;
+  pending: number;
+  accuracy?: number;
+}
 export interface QuestState {
   learningVisitId?: string;
   trackingWeeks?: import("./weekly-tracking").TrackingWeek[];
+  predictionMonths?: PredictionMonth[];
   adventure?: AdventureProgress;
   mode: Mode;
   now: string;

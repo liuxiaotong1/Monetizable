@@ -1,5 +1,4 @@
 "use client";
-import FounderEditor from "./founder-editor";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useEffect, useState } from "react";
 import { LineChart } from "@/components/quest/charts";
@@ -79,7 +78,6 @@ export default function AdminDashboard() {
           <a href="/">返回冒险 →</a>
         </div>
       </header>
-      <FounderEditor/>
       <div className="admin-title">
         <div>
           <span className="eyebrow">YOUR MISSION CONTROL</span>

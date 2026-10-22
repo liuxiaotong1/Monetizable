@@ -7,7 +7,7 @@ assert.equal(tradingDNA(state).count,7);assert.equal(tradingDNA(state,true).coun
 const bad={...reviews[0],forecastId:'unrelated',matched:true};assert.equal(tradingDNA({...state,reviews:[bad]},true).verified.length,0,'Do not score a different forecast');
 assert.equal(tradingDNA({...state,reviews:[{...reviews[0],matched:undefined}]},true).verified.length,0,'Pending data is not a miss');
 assert.equal(tradingDNA({...state,judgment:{...calls[0],id:'changed',lockedAt:'2026-10-21T12:00:00Z'}},true).count,8,'One target day is one observation');
-const window=historyWindow(state,false);assert.equal(window.reviews.length,7);assert.equal(state.reviews.length,8,'Entitlements must not delete records');assert.strictEqual(historyWindow(state,true),state);assert(window.trackingWeeks.every(w=>w.days.every(d=>d.date>='2026-10-15')));
+const window=historyWindow(state,false);assert.equal(window.reviews.length,7);assert.equal(state.reviews.length,8,'Entitlements must not delete records');assert.deepEqual(historyWindow(state,true).reviews,state.reviews);assert.deepEqual(historyWindow(state,true).predictionMonths,window.predictionMonths,'Monthly aggregates do not depend on archive access');assert(window.trackingWeeks.every(w=>w.days.every(d=>d.date>='2026-10-15')));
 console.log('Passed genuine eligible records, 7-day/full history, unique dates, matched-forecast-only outcomes, pending guards, transparent habits and no deletion.');
 
 const plan={system:'Trend method',rules:['reason'],custom:'Wait for support',since:'2026-10-18T12:00:00Z'};
