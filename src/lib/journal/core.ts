@@ -64,7 +64,7 @@ export function mutateJournal(j:Journal,action:any,now=new Date().toISOString())
   for(const raw of action.trades){
    check(raw&&text(raw.account,80)&&raw.account.trim()&&text(raw.externalId,120)&&raw.externalId.trim()&&text(raw.symbol,80)&&raw.symbol.trim()&&validDate(raw.date)&&typeof raw.net==='number'&&Number.isFinite(raw.net)&&Math.abs(raw.net)<=1e10&&/^[A-Z]{3}$/.test(raw.currency)&&text(raw.strategy,100));
    const t:Trade={id:JSON.stringify([raw.account,raw.externalId]),account:raw.account,externalId:raw.externalId,date:raw.date,symbol:raw.symbol,net:raw.net,currency:raw.currency,strategy:raw.strategy};
-   const old=known.get(t.id);if(old){check(JSON.stringify(old)===JSON.stringify(t),'DUPLICATE_CONFLICT');continue;}
+   const old=known.get(t.id);if(old){check((Object.keys(t) as (keyof Trade)[]).every(k=>old[k]===t[k]),'DUPLICATE_CONFLICT');continue;}
    check(!next.days[t.date]?.finishedAt,'DAY_LOCKED');known.set(t.id,t);next.trades.push(t);added++;
   }
   check(next.trades.length<=25000,'CAPACITY');check(added>0,'NO_NEW_TRADES');
@@ -76,14 +76,17 @@ export function mutateJournal(j:Journal,action:any,now=new Date().toISOString())
   check(!p.image||(typeof p.image==='string'&&p.image.length<=220000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(p.image)));
   next.days[p.date]={date:p.date,system:p.system,rules:[...new Set<string>(p.rules)],mood:p.mood,direction:p.direction,note:p.note,image:p.image||undefined,createdAt:old?.createdAt||now};
  }else if(action.type==='note'){
+  check(validDate(action.date));
   const d=next.days[action.date];check(d,'PLAN_REQUIRED');check(!d.finishedAt,'DAY_LOCKED');check(text(action.note,2000));check(!action.image||(typeof action.image==='string'&&action.image.length<=220000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(action.image)));d.note=action.note;d.image=action.image||undefined;
  }else if(action.type==='review'){
   const t=next.trades.find(t=>t.id===action.id);check(t,'TRADE_REQUIRED');const d=next.days[t!.date];check(d,'PLAN_REQUIRED');check(!d.finishedAt,'DAY_LOCKED');const r=action.review;
   check(r&&text(r.strategy,100)&&r.strategy.trim()&&text(r.note,1000)&&Array.isArray(r.followed)&&r.followed.every((v:unknown)=>d.rules.includes(v as string))&&Array.isArray(r.mistakes)&&r.mistakes.length>0&&r.mistakes.every((v:unknown)=>mistakeIds.includes(v as any))&&!(r.mistakes.includes('none')&&r.mistakes.length>1));
   next.reviews[t!.id]={strategy:r.strategy,followed:[...new Set<string>(r.followed)],mistakes:[...new Set<string>(r.mistakes)],note:r.note,reviewedAt:now};
  }else if(action.type==='finish'){
+  check(validDate(action.date));
   const d=next.days[action.date];check(d,'PLAN_REQUIRED');check(!d.finishedAt,'DAY_LOCKED');const trades=next.trades.filter(t=>t.date===action.date);check(trades.length?trades.every(t=>next.reviews[t.id]):action.noTrades===true,'REVIEW_REQUIRED');d.finishedAt=now;
  }else if(action.type==='reopen'){
+  check(validDate(action.date));
   const d=next.days[action.date];check(d,'PLAN_REQUIRED');delete d.finishedAt;
  }else check(false);
  next.revision++;check(JSON.stringify(next).length<=6_000_000,'CAPACITY');return next;
