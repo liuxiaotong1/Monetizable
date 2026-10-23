@@ -96,6 +96,10 @@ export function saveBrowserRecord(record: BrowserRecord) {
     );
   }
 }
+function reviewNotes(note:Partial<Review>|undefined):Partial<Review> {
+ if(!note)return {};
+ return {updatedAt:note.updatedAt,traded:note.traded,tradeReason:note.tradeReason,tradeResult:note.tradeResult,lesson:note.lesson,completedAt:note.completedAt};
+}
 export function hydrateBrowserState(
   shared: QuestState,
   record: BrowserRecord,
@@ -149,7 +153,7 @@ export function hydrateBrowserState(
     )
       state.reviews.push({
         ...scoreForecast(forecast.provisional ? {...forecast,baselineClose:priorClose!} : forecast, actual, judgment),
-        ...record.notes[`review:${day}`],
+        ...reviewNotes(record.notes[`review:${day}`]),
       });
   }
   state.reviews.sort((a, b) => b.date.localeCompare(a.date));

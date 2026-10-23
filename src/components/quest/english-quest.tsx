@@ -438,6 +438,9 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       past.current = review.id;
       setCelebrate(true);
       setFacts(false);
+    } else if (review?.matched !== true) {
+      setCelebrate(false);
+      setFacts(false);
     }
   }, [review?.id, review?.matched]);
   const factRequest=useRef(false),[factJump,setFactJump]=useState(0);
@@ -498,9 +501,8 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
         <div className="en-hero-character">
           <YelanViewer state={state}
             locale="en"
-            celebrate={celebrate}
-            failed={!pending&&review?.matched===false}
-            victoryDate={review?.matched===true?review.date:undefined}
+            review={pending?undefined:review}
+            celebrate={!pending&&review?.matched===true&&celebrate}
             onCelebrationComplete={revealBattleFacts}
           />
         </div>

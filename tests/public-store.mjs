@@ -238,3 +238,15 @@ assert.throws(() => saveBrowserRecord(a), /尚未保存/);
 console.log(
   "Passed: public-only export, separate visitor records, answer/review/mastery persistence, same-day XP idempotence, immutable judgment and scenario, cutoff, daily three-stop completion, storage failure handling.",
 );
+
+// Old reflection records must not replace a freshly verified loss with a cached win.
+const resultRecord=emptyBrowserRecord();
+resultRecord.judgments=[{id:'result-call',date:day,forecastId:forecast.id,direction:'bullish',eligible:true,lockedAt:'2026-10-12T12:00:00Z'}];
+resultRecord.forecasts=[forecast];
+resultRecord.notes[`review:${day}`]={matched:true,actualDirection:'bullish',judgmentSnapshot:{...resultRecord.judgments[0],direction:'bearish'},lesson:'Keep my original reflection'};
+const verified=hydrateBrowserState({...market,now:'2026-10-13T12:00:00Z',bars:[{symbol:'QQQ',date:day,open:forecast.baselineClose,high:forecast.baselineClose,low:forecast.baselineClose*.98,close:forecast.baselineClose*.99,volume:1000,fetchedAt:'2026-10-12T21:00:00Z',source:'test regular session'}]},resultRecord).reviews[0];
+assert.equal(verified.matched,false);
+assert.equal(verified.actualDirection,'bearish');
+assert.equal(verified.judgmentSnapshot.direction,'bullish','The original sealed call remains unchanged');
+assert.equal(verified.lesson,'Keep my original reflection');
+console.log('Passed: legacy reflection data cannot override the verified verdict or sealed call.');

@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import ts from 'typescript';
+const code=ts.transpileModule(await fs.readFile('src/lib/quest/battle-result.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText;
+const {predictionBattleOutcome}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const call={id:'call-22',date:'2026-10-22',forecastId:'forecast-22',direction:'bullish',eligible:true};
+const win={id:'review:2026-10-22',date:call.date,forecastId:call.forecastId,judgmentId:call.id,judgmentSnapshot:call,actual:{date:call.date,symbol:'QQQ'},actualDirection:'bullish',matched:true};
+const loss={...win,actualDirection:'bearish',matched:false};
+assert.equal(predictionBattleOutcome(win),'win');
+assert.equal(predictionBattleOutcome(loss),'loss','A losing result replaces a previous win immediately');
+assert.equal(predictionBattleOutcome({...loss,matched:true}),'loss','Contradictory cached success cannot celebrate a different direction');
+assert.equal(predictionBattleOutcome(undefined),undefined,'Pending calls cannot inherit a historical win');
+assert.equal(predictionBattleOutcome({...win,matched:undefined}),undefined,'Unscored calls never celebrate');
+assert.equal(predictionBattleOutcome({...win,judgmentSnapshot:{...call,eligible:false}}),undefined);
+assert.equal(predictionBattleOutcome({...win,judgmentSnapshot:undefined}),undefined);
+for(const altered of [{date:'2026-10-21'},{forecastId:'other'},{judgmentId:'other'},{actual:{date:'2026-10-21',symbol:'QQQ'}}])assert.equal(predictionBattleOutcome({...win,...altered}),undefined,'Only the exact verified call may celebrate');
+console.log('Passed: win→loss, pending, unscored, contradictory cache and review/call identity checks.');
