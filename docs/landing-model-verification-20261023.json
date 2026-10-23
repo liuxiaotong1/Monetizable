@@ -1,0 +1,56 @@
+[
+  {
+    "hero": "female",
+    "source": "public/heroes/female-fast-20261019.glb.gz",
+    "output": "public/heroes/female-landing-20261023.glb.gz",
+    "before": 8394794,
+    "after": 6550442,
+    "savedPercent": 22,
+    "maximumComponentError": {
+      "POSITION": 0.00000762939453125,
+      "NORMAL": 0.00000762939453125,
+      "TEXCOORD_0": 0.00000762939453125
+    },
+    "positionErrorOverHeight": 0.0000040189122474906445,
+    "vertices": [
+      194077
+    ],
+    "triangles": [
+      323144
+    ],
+    "bones": [
+      66
+    ],
+    "animations": 1,
+    "unreferencedViewsRemoved": 0,
+    "unchanged": "indices, skin weights, joints, skeleton transforms, inverse binds, animations, materials, textures"
+  },
+  {
+    "hero": "supercharlie",
+    "source": "public/heroes/supercharlie-fast-20261019.glb.gz",
+    "output": "public/heroes/supercharlie-landing-20261023.glb.gz",
+    "before": 9244423,
+    "after": 6904957,
+    "savedPercent": 25.3,
+    "maximumComponentError": {
+      "POSITION": 0.00000762939453125,
+      "NORMAL": 0.00000762939453125,
+      "TEXCOORD_0": 0.00000762939453125
+    },
+    "positionErrorOverHeight": 0.000004487879010147796,
+    "vertices": [
+      128751,
+      12679
+    ],
+    "triangles": [
+      202151,
+      21137
+    ],
+    "bones": [
+      93
+    ],
+    "animations": 0,
+    "unreferencedViewsRemoved": 1,
+    "unchanged": "indices, skin weights, joints, skeleton transforms, inverse binds, animations, materials, textures"
+  }
+]
