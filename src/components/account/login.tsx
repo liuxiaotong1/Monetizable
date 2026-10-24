@@ -1,5 +1,6 @@
 "use client";
 import {useLocale,LocalizeTree} from '@/components/i18n/locale-provider';
+import {CookieSettingsLink} from '@/components/cookie-consent';
 import {LanguageSwitcher} from '@/components/i18n/locale-provider';
 import { useState } from "react";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
@@ -77,6 +78,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            data-clarity-mask="true"
           />
           <button className="primary full" disabled={busy}>
             {busy ? "Sending your link…" : "Send me a sign-in link"}
@@ -98,6 +100,7 @@ export default function Login() {
           No password. No trading account connection.
         </div>
         <p className="small-text"><a href="/privacy">Privacy notice</a> · Google sign-in uses only your basic profile and email.</p>
+        <p className="small-text"><CookieSettingsLink /></p>
         <a className="muted" href="/">
           Explore without an account →
         </a>

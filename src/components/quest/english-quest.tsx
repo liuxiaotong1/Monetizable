@@ -14,6 +14,7 @@ import WeeklyOutlook from './weekly-outlook';
 import BossAvatar from './boss-avatar';
 import BriefPreview from './brief-preview';
 import {LocalizeTree, useLocale} from '@/components/i18n/locale-provider';
+import {CookieSettingsLink} from '@/components/cookie-consent';
 import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/locale";
 import ScenarioChoices from "./scenario-choices";
 import EventBossQuest from "./event-boss-quest";
@@ -383,6 +384,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
             <span>
               Educational context. Check your broker’s quotes before trading.
             </span>
+            <CookieSettingsLink />
           </footer>
         </main>
       </div>
