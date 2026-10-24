@@ -16,7 +16,7 @@ export default function LandingDuo({state}:{state:QuestState}){
  useEffect(()=>{const ready=(e:MessageEvent)=>{if(e.origin===location.origin&&e.source===frame.current?.contentWindow&&e.data?.type==='monetizable-restored-ready')setBattleReady(true)};addEventListener('message',ready);return()=>removeEventListener('message',ready)},[]);
  function pickHero(value:HeroId){setHero(value);chooseHero(value);setStep(1)}
  function restart(){setStep(0);setHero(null);setDirection(null);setSealed(false);setBossPick(null);setAnswer(null)}
- return <section className="landing-demo" aria-label={c.role} translate="no" data-demo-step={step}>
+ return <section id="landing-product-demo" className="landing-demo" aria-label={c.role} translate="no" data-demo-step={step}>
   <header className="landing-demo-header"><small>✦ {c.tag}</small><strong>{c.title}</strong></header>
   <nav className="demo-step-nav" aria-label={c.role}>{c.steps.map((label,i)=><button type="button" key={label} aria-current={step===i?'step':undefined} disabled={i>0&&!hero} onClick={()=>setStep(i)}><span>{i+1}</span>{label}</button>)}</nav>
   <div key={step} className="demo-panel">
