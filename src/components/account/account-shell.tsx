@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
   CircleHelp,
+  BookOpen,
   LogIn,
   LogOut,
   ShieldCheck,
@@ -240,7 +241,7 @@ export default function AccountShell({
             </>
           )}
         </div>
-        <nav><ProEntry compact/>
+        <nav><a className="account-blog" href="/blog"><BookOpen size={16}/><span>Blog</span></a><ProEntry compact/>
           <button className="account-guide" disabled={!ready} onClick={openGuide} aria-label={zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}>
             <CircleHelp size={16}/><span>{zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}</span>
           </button>

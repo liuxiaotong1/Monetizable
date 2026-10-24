@@ -20,15 +20,22 @@ const positioning = load('src/lib/marketing/positioning.ts');
 const pages = load('src/lib/marketing/pages.ts', {'./positioning': positioning});
 const sitemap = load('src/app/sitemap.ts', {'@/lib/marketing/pages': pages, '@/lib/marketing/positioning': positioning}).default();
 assert.equal(new Set(sitemap.map(item => item.url)).size, sitemap.length);
-assert.equal(sitemap.length, 10);
+assert.equal(sitemap.length, 11);
 assert(sitemap.every(item => item.url.startsWith(positioning.SITE_URL)));
 assert(!sitemap.some(item => /career|skill-stack|post\//.test(item.url)));
 const overview = load('src/components/marketing/public-overview.tsx', {'@/lib/marketing/positioning': positioning}).default;
 for (const locale of ['en', 'fr', 'zh']) {
   const html = renderToStaticMarkup(React.createElement(overview, {locale}));
   assert(html.includes(positioning.positioning[locale].description));
-  for (const page of pages.answerPages) assert(html.includes(`href="/${page.slug}"`));
+  assert(html.includes('href="/blog"'));
+  assert(html.includes('href="/pricing"'));
 }
+const blog = load('src/app/blog/page.tsx', {'@/lib/marketing/pages': pages, '@/lib/marketing/positioning': positioning});
+const blogHTML = renderToStaticMarkup(React.createElement(blog.default));
+for (const page of pages.answerPages) assert(blogHTML.includes(`href="/${page.slug}"`));
+assert.equal((blogHTML.match(/class="blog-resource-card"/g) || []).length, 7);
+assert.equal(blog.metadata.alternates.canonical, `${positioning.SITE_URL}/blog`);
+assert(fs.readFileSync('src/components/account/account-shell.tsx', 'utf8').includes('className="account-blog" href="/blog"'));
 const route = load('src/app/[slug]/page.tsx', {'next/navigation': {notFound: () => {throw Error('NOT_FOUND');}}, '@/lib/marketing/pages': pages, '@/lib/marketing/positioning': positioning});
 for (const page of pages.answerPages) {
   const props = {params: Promise.resolve({slug: page.slug})};
@@ -51,4 +58,4 @@ const robots = load('src/app/robots.ts').default();
 assert.equal(robots.rules.allow, '/');
 assert.equal(robots.sitemap, `${positioning.SITE_URL}/sitemap.xml`);
 assert(fs.readFileSync('public/461fa8052c4edd6325892fa2fa1e4882.txt', 'utf8').trim() === '461fa8052c4edd6325892fa2fa1e4882');
-console.log('Passed: approved positioning, three-language server-visible homepage, seven public pages, ten canonical sitemap URLs, related links, schema, positive summaries and unknown-route 404.');
+console.log('Passed: positioning, server-rendered homepage, Blog hub with all seven resources, top-bar Blog link, eleven canonical sitemap URLs, related links, schema and unknown-route 404.');

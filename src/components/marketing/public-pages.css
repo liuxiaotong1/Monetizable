@@ -19,4 +19,6 @@
 .answer-page footer{border-top:1px solid #dfd4bc;padding-top:26px;margin-top:30px}
 .answer-related{margin:16px 0 28px;font:400 14px/1.6 system-ui}
 .answer-page .answer-note{font-size:12px;color:#746a55}
+.blog-hub>header{max-width:800px}.blog-hub .blog-group{max-width:none;margin-top:44px}.blog-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:24px}.blog-resource-card{padding:24px;border:1px solid #dfd4bc;border-radius:16px;background:#faf6ea;min-width:0}.blog-resource-card h3{font:500 23px/1.35 Georgia,serif;margin:0 0 14px}.blog-resource-card h3 a{text-decoration:none;color:#353523}.blog-resource-card p{font-size:14px;margin:0 0 18px}.blog-read{font:600 14px/1.5 system-ui}.blog-hub footer{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:600px){.blog-card-grid{grid-template-columns:1fr}.blog-resource-card{padding:20px}.blog-resource-card h3{font-size:22px}}
 @media(max-width:600px){.public-overview,.answer-page{width:calc(100% - 24px);padding:24px 20px;border-radius:18px}.answer-page h1{font-size:33px}.answer-nav{gap:14px}.answer-page .answer-summary{padding:18px;font-size:16px}.public-overview p,.answer-page p,.answer-page li{font-size:15px}}

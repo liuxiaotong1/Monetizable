@@ -6,6 +6,8 @@ on:
       - 'src/lib/marketing/**'
       - 'src/components/marketing/**'
       - 'src/app/[slug]/**'
+      - 'src/app/blog/**'
+      - 'src/components/account/account-shell.tsx'
       - 'src/app/page.tsx'
       - 'src/app/layout.tsx'
       - 'src/app/sitemap.ts'

@@ -22,7 +22,7 @@ export default async function AnswerPage({params}: Props) {
   ]};
   return <main className="answer-page" lang="en">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replace(/</g, '\\u003c')}}/>
-    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/product">Product</a><a href="/trading-discipline-app">Trading discipline</a><a href="/faq">FAQ</a><a href="/pricing">Pricing</a></nav>
+    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog">Blog</a><a href="/pricing">Pricing</a></nav>
     <article>
       <small>MONETIZABLE · {page.kind === 'guide' ? 'PRACTICE GUIDE' : 'PRODUCT & METHOD'}</small>
       <h1>{page.title}</h1>
