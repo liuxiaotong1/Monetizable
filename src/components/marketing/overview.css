@@ -1,0 +1,18 @@
+.public-overview.quest-overview{background:linear-gradient(135deg,#fff8df,#f6f1e3);border:1px solid #cdb77c;border-radius:28px;box-shadow:0 7px 0 #e5d7b2;padding:clamp(24px,3vw,40px)}
+.play-first-home .quest-overview{width:100%;max-width:none;margin:0}
+.quest-overview .overview-tag{color:#8e682d;letter-spacing:.06em}
+.quest-overview h2{margin:12px 0;color:#373924;font-size:clamp(28px,3vw,42px)}
+.quest-overview .overview-lead{font-weight:600;font-size:clamp(18px,1.7vw,22px);color:#476655;margin:0 0 12px;line-height:1.6}
+.quest-overview .overview-definition{max-width:940px;margin:0;color:#74684e;font-size:15px;line-height:1.8}
+.overview-quests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:26px 0}
+.overview-quests article{display:flex;flex-direction:column;padding:22px;background:#fffdf7;border:1px solid #ddcda7;border-radius:20px;box-shadow:0 4px 0 #e8dfc6;min-width:0}
+.overview-quests header{display:grid;grid-template-columns:48px 1fr;column-gap:14px;align-items:center}
+.overview-icon{grid-row:span 2;display:grid;place-items:center;width:48px;height:48px;background:#f7edcf;border:1px solid #dfc48c;border-radius:15px;font-size:25px;box-shadow:0 3px 0 #e4d5ac}
+.overview-quests header small{font-size:11px;color:#ab853b;line-height:1.2}
+.overview-quests h3{font:650 18px/1.5 system-ui;margin:3px 0 0;color:#363b2e}
+.quest-overview .overview-quests p{font-size:15px;line-height:1.8;margin:18px 0;color:#70674f}
+.overview-reward{font:600 13px/1.6 system-ui;color:#4f755d;margin-top:auto;padding-top:12px;border-top:1px dashed #dfd3b4}
+.quest-overview nav{align-items:center;margin-top:0;font:600 14px/1.5 system-ui}
+.quest-overview .overview-start{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(#ffeab0,#efd18c);border:1px solid #c39646;box-shadow:0 4px 0 #b38b3d;padding:13px 21px;border-radius:13px;text-decoration:none;color:#57421e}
+.quest-overview a:focus-visible{outline:3px solid #557f6d;outline-offset:5px}
+@media(max-width:650px){.overview-quests{grid-template-columns:1fr;gap:14px;margin:22px 0}.overview-quests article{padding:19px}.quest-overview nav{gap:18px}.quest-overview .overview-start{flex-basis:100%}.public-overview.quest-overview{border-radius:22px;padding:24px 20px}.overview-quests h3{font-size:17px}}

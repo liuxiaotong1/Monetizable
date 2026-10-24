@@ -35,6 +35,7 @@ export default function FirstQuestHero({state}:{state:QuestState}){
  </section><small className="landing-hint">{c.hint}</small></div>
  <div className="hero-product-preview"><LandingDuo state={state}/></div></section>
  <JournalHomePreview/>
+ <div id="landing-overview-slot"/>
  <TesterInterviews/>
  <section className="landing-features" aria-labelledby="landing-features-title"><h2 id="landing-features-title">{c.features}</h2><div className="landing-feature-grid">
  <article className="landing-feature"><div className="feature-visual chart-preview">{bars.length>1?<><div><strong>QQQ</strong><span>{bars.at(-1)?.date}</span></div><svg viewBox="0 0 380 190" role="img" aria-label={c.chart}><path d="M18 45H362M18 100H362M18 160H362" stroke="#b1ab94" strokeDasharray="4 5" opacity=".5"/><polyline points={points} fill="none" stroke="#386d62" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round"/></svg><small>{c.chart}</small></>:<p>{c.empty}</p>}</div><h3>{c.daily}</h3><p>{c.dailyText}</p></article>

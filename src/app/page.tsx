@@ -4,6 +4,7 @@ import {requestLocale} from '@/lib/i18n/server-locale';
 import EnglishQuest from "@/components/quest/english-quest";
 import AccountShell from "@/components/account/account-shell";
 import { currentUser, isAdmin } from "@/lib/account/auth";
+import OverviewPlacement from '@/components/marketing/overview-placement';
 import PublicOverview from '@/components/marketing/public-overview';
 import {applicationSchema, organizationSchema} from '@/lib/marketing/positioning';
 export const dynamic = "force-dynamic";
@@ -15,6 +16,6 @@ export default async function Page() {
       user={user ? { id: user.id, email: user.email, admin } : null}
     >
       {locale==='zh' ? <QuestApp /> : <EnglishQuest signedIn={!!user} />}
-    </AccountShell></BillingProvider>{!user && <PublicOverview locale={locale}/>}</>
+    </AccountShell></BillingProvider>{!user && <OverviewPlacement><PublicOverview locale={locale}/></OverviewPlacement>}</>
   );
 }
