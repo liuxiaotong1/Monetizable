@@ -18,9 +18,9 @@ try{
  db=serverModule('src/lib/account/db.ts').database();
  const result=await serverModule('src/lib/account/billing.ts').setupBilling();
  if(!result.livemode)throw Error('Expected live Stripe billing; test configuration was not activated for production.');
- const {rows}=await db.query("SELECT body FROM quest_shared_data WHERE key='billing-config-v2'");const config=rows[0]?.body;
+ const {rows}=await db.query("SELECT body FROM quest_shared_data WHERE key='billing-config-v3'");const config=rows[0]?.body;
  const stripe=serverModule('src/lib/account/billing.ts').stripeClient();
  const prices=await Promise.all([stripe.prices.retrieve(config.price),stripe.prices.retrieve(config.annualPrice)]);
- if(prices[0].unit_amount!==999||prices[0].recurring?.interval!=='month'||prices[1].unit_amount!==7900||prices[1].recurring?.interval!=='year'||prices.some(p=>!p.active||!p.livemode||p.currency!=='usd'))throw Error('Stripe prices do not match the published Pro plans.');
- console.log(JSON.stringify({proBilling:'verified',livemode:true,monthly:{amount:999,currency:'usd',interval:'month'},annual:{amount:7900,currency:'usd',interval:'year'},trialDays:7,legacySubscriptions:'preserved'}));
+ if(prices[0].unit_amount!==1799||prices[0].recurring?.interval!=='month'||prices[1].unit_amount!==11988||prices[1].recurring?.interval!=='year'||prices.some(p=>!p.active||!p.livemode||p.currency!=='usd'))throw Error('Stripe prices do not match the published Pro plans.');
+ console.log(JSON.stringify({proBilling:'verified',livemode:true,monthly:{amount:1799,currency:'usd',interval:'month'},annual:{amount:11988,currency:'usd',interval:'year'},trialDays:7,legacySubscriptions:'preserved'}));
 }catch(error){console.error('Pro billing verification failed:',String(error.message||'Unavailable').replaceAll(process.env.STRIPE_SECRET_KEY,'[redacted]').replace(/[rs]k_(live|test)_[A-Za-z0-9_]+/g,'[redacted]'));process.exitCode=1;}finally{if(db)await db.end();}
