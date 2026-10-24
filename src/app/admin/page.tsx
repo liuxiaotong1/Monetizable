@@ -8,7 +8,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 export default async function Page() {
   if (!(await administrator())) {
-    if (!(await currentUser())) redirect("/auth");
+    if (!(await currentUser())) redirect("/auth?next=%2Fadmin");
     redirect("/");
   }
   return <AdminDashboard />;

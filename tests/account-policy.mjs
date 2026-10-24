@@ -8,6 +8,12 @@ const compile = async (path) => {
 const { isAdmin, sameOrigin } = await import(
   await compile("../src/lib/account/policy.ts")
 );
+const {loginDestination, oauthRecoveryPath} = await import(await compile('../src/lib/account/redirect.ts'));
+assert.equal(oauthRecoveryPath('/', new URLSearchParams('error=invalid_request&error_code=bad_oauth_state&error_description=private'), '/admin'), '/auth?error=google_signin&next=%2Fadmin');
+assert.equal(oauthRecoveryPath('/', new URLSearchParams('error=x&error_code=x'), '//evil.example'), '/auth?error=google_signin&next=%2F');
+assert.equal(oauthRecoveryPath('/blog', new URLSearchParams('error=x&error_code=x')), null);
+assert.equal(oauthRecoveryPath('/', new URLSearchParams()), null);
+assert.equal(loginDestination('/admin'), '/admin');
 assert.equal(isAdmin(null), false);
 assert.equal(
   isAdmin({ email: "liuxiaotong268@gmail.com" }),

@@ -47,7 +47,14 @@ export async function paymentMetrics() {
         signal: AbortSignal.timeout(10000),
       },
     );
-    if (!response.ok) throw Error();
+    if (!response.ok) {
+      const reason = response.status === 403 ? 'permission_denied' : response.status === 401 ? 'authentication_failed' : response.status === 429 ? 'rate_limited' : 'stripe_api_error';
+      return {
+        status: 'unavailable', reason, httpStatus: response.status,
+        message: response.status === 403 ? 'Stripe 拒绝读取交易（403）：请检查生产 API key 的 Charges 读取权限；未将失败计为零收入。' : response.status === 401 ? 'Stripe 身份验证失败（401）：请检查生产环境密钥配置；未将失败计为零收入。' : `Stripe 交易读取失败（HTTP ${response.status}）；未将失败计为零收入。`,
+        payments: [], currencies: {}, hasMore: false,
+      };
+    }
     const value = await response.json();
     const currencies: Record<string, number> = {};
     for (const charge of value.data)

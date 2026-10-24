@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { oauthRecoveryPath } from "@/lib/account/redirect";
 export async function proxy(request: NextRequest) {
+  const recovery = oauthRecoveryPath(request.nextUrl.pathname, request.nextUrl.searchParams, request.cookies.get('quest_login_next')?.value);
+  if (recovery) {
+    const retry = NextResponse.redirect(new URL(recovery, request.url));
+    retry.headers.set('Cache-Control', 'private, no-store');
+    return retry;
+  }
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
     key =
