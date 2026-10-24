@@ -5,7 +5,6 @@ import {LocalizeTree} from '@/components/i18n/locale-provider';
 import EventTakeaway from "./event-takeaway";
 import EventBossQuest from "./event-boss-quest";
 import { compactEventUnit } from "@/lib/quest/event-presentation";
-import DataFreshness from "./data-freshness";
 import BossAvatar from './boss-avatar';
 import AgentReports from "./agent-reports";
 import EventIntelligencePanel from "./event-intelligence";
@@ -47,7 +46,6 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
   const acquired = coverage.ready.map(source => source.lastSuccess).filter(Boolean).sort().at(-1);
   return <LocalizeTree>{<>
     <div className="page-intro"><span className="eyebrow">KNOW YOUR NEXT CHALLENGE</span><h1>大事件，<span>先读懂再应对。</span></h1><p>本周发生了什么，接下来要等什么。把数据背后的故事看清楚。</p></div>
-    <DataFreshness state={state}/>
     <EventBossQuest events={state.events} now={state.now} onDetails={setSelectedId}/>
     <AgentReports bars={state.bars} events={state.events} demo={state.mode==="demo"} now={state.now}/>
     <SectionHeading title="重大事件地图" subtitle="先看事件与官方数据，再看市场如何解读" action={<div className="segmented" aria-label="事件类别">{categories.map(([value, name]) => <button key={value} aria-pressed={filter === value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>{name}</button>)}</div>} />

@@ -23,3 +23,7 @@ Describe what the product does in positioning, marketing, social posts and SEO/G
 The user prefers editing through GitHub and running builds/deployments in the cloud. Vercel builds `main` automatically; `npm run build` also bundles both 3D source entries. Cloud reports run through GitHub Actions and data refresh through Supabase scheduling. Do not require this Mac to stay on.
 
 Keep the local checkout lean. Reinstall dependencies or create large caches only when necessary for the requested work, then clean reproducible caches after successful cloud verification. Original asset exports must be backed up and hash-verified remotely before local removal. Recovery instructions and the backup release are documented in `docs/cloud-operations.md`. Never include `.env*`, account screenshots or credentials in a backup/release.
+
+## User-facing wording
+
+The user requests positive capability-led wording throughout the product and future communication: state what Monetizable does and how it helps. Replace contrastive feature explanations with direct benefits and concrete next steps.

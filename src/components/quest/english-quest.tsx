@@ -18,7 +18,6 @@ import {clientLocale, formatMarketDate, formatUsd, intlLocale} from "@/lib/i18n/
 import ScenarioChoices from "./scenario-choices";
 import EventBossQuest from "./event-boss-quest";
 import EventTakeaway from "./event-takeaway";
-import DataFreshness from "./data-freshness";
 import { pendingJudgment } from "@/lib/quest/pending-judgment";
 import KnowledgeExplanation from "./knowledge-explanation";
 import EntryScore from "./entry-score";
@@ -751,7 +750,6 @@ function EventMap({ state }: { state: QuestState }) {
           picture.
         </p>
       </header>
-      <DataFreshness state={state} locale="en"/>
       <EventBossQuest events={state.events} now={state.now} onDetails={id=>{setFilter('all');setFocusedEvent(id);}}/>
       <EarningsWatch events={state.events} now={state.now}/>
       <section className="en-card event-brief-hub" data-tour="briefs">

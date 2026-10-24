@@ -14,7 +14,6 @@ export default function YelanViewer({celebrate=false,review,onCelebrationComplet
  useEffect(()=>{setReady(false);setError(false);setBattleDone(false)},[hero,outcome,attempt,review?.id]);
  useEffect(()=>{if(ready){setError(false);return}const timer=setTimeout(()=>setError(true),25000);return()=>clearTimeout(timer)},[ready,hero,outcome,attempt]);
  useEffect(()=>{const listen=(e:MessageEvent)=>{if(e.origin!==location.origin||e.source!==frame.current?.contentWindow)return;if(e.data?.type==='monetizable-hero-anchor'&&Number.isFinite(e.data.x)&&Number.isFinite(e.data.y))setAnchor(previous=>Math.abs(previous.x-e.data.x)<.6&&Math.abs(previous.y-e.data.y)<.6?previous:{x:Math.min(95,Math.max(5,e.data.x)),y:Math.min(85,Math.max(5,e.data.y))});if(e.data?.type==='monetizable-hero-tap')setTapCount(n=>n+1);if(e.data?.type==='monetizable-hero-ready'||e.data?.type==='monetizable-restored-ready')setReady(true);if(e.data?.type==='monetizable-hero-error'||e.data?.type==='monetizable-restored-error')setError(true);if(e.data?.type==='monetizable-battle-complete'||e.data?.type==='monetizable-restored-complete')setBattleDone(true);if((e.data?.type==='monetizable-battle-complete'||e.data?.type==='monetizable-restored-complete')&&e.data?.outcome==='win'&&outcome==='win'){onCelebrationComplete?.()}};addEventListener('message',listen);return()=>removeEventListener('message',listen)},[onCelebrationComplete,outcome]);
- const cast=()=>{setBattleDone(false);frame.current?.contentWindow?.postMessage({type:'monetizable-cast'},location.origin)};
  useEffect(()=>{if(outcome!=='win'||!celebrate||!ready)return;const t=setTimeout(()=>onCelebrationComplete?.(),10000);return()=>clearTimeout(t)},[outcome,celebrate,ready,onCelebrationComplete]);
  const asset=`/heroes/${hero==='female'?'female':'supercharlie'}-fast-20261019.glb.gz`;
  return <div className="yelan-stage companion-stage" data-outcome={outcome||'idle'} data-status={ready?'ready':'loading'}>
@@ -24,7 +23,7 @@ export default function YelanViewer({celebrate=false,review,onCelebrationComplet
  </div>
  {!ready&&<div className="companion-loading" role="status"><span>{error?({zh:'角色加载暂时失败',en:'Your hero could not load',fr:'Le personnage n’a pas pu être chargé'}[locale]):({zh:'正在准备你的伙伴…',en:'Preparing your companion…',fr:'Votre partenaire se prépare…'}[locale])}</span>{error&&<button onClick={()=>setAttempt(n=>n+1)}>{({zh:'重新加载角色',en:'Reload hero',fr:'Recharger le personnage'}[locale])}</button>}</div>}
 
- {outcome&&<div className="companion-footer"><button onClick={cast} disabled={!ready}>{({zh:'重播战斗演出',en:'Replay the battle',fr:'Rejouer le combat'}[locale])}</button></div>}
+
 
  </div>
 }
