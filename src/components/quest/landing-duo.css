@@ -68,3 +68,12 @@
 .landing-study-card .card-back>.demo-next{margin:16px 0 0}
 .demo-complete{padding:28px 8px}
 @media(max-width:760px){.app-shell .landing-demo .swipe-deck>.landing-study-card{min-height:min(570px,78dvh);padding:20px 18px}.app-shell .landing-demo .landing-study-card h2{font-size:20px}.app-shell .landing-demo .landing-study-card .card-question{font-size:14px}.landing-study-card .quiz-choices button{font-size:12px;padding:9px}.landing-demo .demo-panel{max-width:var(--card-width,420px)}}
+@media(min-width:761px){
+ .main-content:has(.play-first-home) .first-quest-hero.play-first-hero{align-items:start;row-gap:24px}
+ .play-first-hero .landing-intro{grid-column:1/-1;grid-row:1}
+ .play-first-hero .landing-intro>p{max-width:760px}
+ .play-first-hero .landing-challenge{grid-column:1;grid-row:2;align-self:start}
+ .play-first-hero .hero-product-preview{grid-column:2;grid-row:2;align-self:start}
+ .play-first-hero .landing-hint{grid-column:1;grid-row:3;margin-top:0}
+ .hero-product-preview>.landing-demo{flex:initial}
+}
