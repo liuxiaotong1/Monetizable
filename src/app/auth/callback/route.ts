@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { authClient, APP_URL, isAdmin } from '@/lib/account/auth';
 import { loginDestination } from '@/lib/account/redirect';
+import {associateGrowthUser} from '@/lib/marketing/growth-server';
 
 export async function GET(request: Request) {
   const url = new URL(request.url), jar = await cookies();
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
       const client = await authClient();
       if (client) {
         const { data, error } = await client.auth.exchangeCodeForSession(code);
-        if (!error && data.user) return NextResponse.redirect(new URL(isAdmin(data.user) && next === '/' ? '/admin' : next, APP_URL), { headers: { 'Cache-Control': 'private, no-store' } });
+        if (!error && data.user) {await associateGrowthUser(data.user);return NextResponse.redirect(new URL(isAdmin(data.user) && next === '/' ? '/admin' : next, APP_URL), { headers: { 'Cache-Control': 'private, no-store' } });}
       }
     } catch { /* Fail closed; never trust an email from callback parameters. */ }
   }

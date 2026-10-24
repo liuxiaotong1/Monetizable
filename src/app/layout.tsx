@@ -66,7 +66,7 @@ export default async function RootLayout({
     <html lang={locale==='zh'?'zh-CN':locale}>
       <body>
         <LocaleProvider locale={locale}>{children}</LocaleProvider>
-        <AnalyticsTracker />
+        <AnalyticsTracker internal={isAdmin(await currentUser())} />
       </body>
     </html>
   );

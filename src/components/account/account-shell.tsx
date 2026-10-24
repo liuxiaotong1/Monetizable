@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { transferKey } from "@/lib/quest/guest-access";
+import {sendGrowth} from '@/lib/marketing/growth-client';
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
 import ProductTour from "./product-tour";
 import {chooseHero,savedHero,setAdventureStage,setTourActive} from "@/components/quest/hero-preference";
@@ -288,10 +289,10 @@ export default function AccountShell({
           <p>{label("Preparing your adventure…", "正在准备你的冒险…")}</p>
         </main>
       )}
-      {ready && pickingHero && <HeroPicker onClose={()=>{guideRequested.current=false;setPickingHero(false)}} onContinue={()=>{
+      {ready && pickingHero && <HeroPicker onClose={()=>{guideRequested.current=false;setPickingHero(false)}} onContinue={async()=>{
         setPickingHero(false);const hero=savedHero()||'supercharlie';
         if(guideRequested.current){guideRequested.current=false;setAdventureStage('tutorial');setTutorial(true);return;}
-        if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
+        if(!user){try{localStorage.setItem(pendingOnboardingKey,hero)}catch{}await Promise.race([sendGrowth('signup_start'),new Promise(resolve=>setTimeout(resolve,500))]);location.assign('/auth?next='+encodeURIComponent(onboardingDestination(hero)));return;}
         window.scrollTo({top:0,behavior:'instant'});
         const stage=guideRequested.current?'tutorial':onboardingStage(true,completedTutorial.current,hero);guideRequested.current=false;setAdventureStage(stage);setTutorial(stage==='tutorial');
       }}/> }

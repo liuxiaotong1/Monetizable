@@ -13,6 +13,10 @@ on:
       - 'src/app/sitemap.ts'
       - 'src/app/robots.ts'
       - 'tests/search-foundation.mjs'
+      - 'tests/growth-attribution.mjs'
+      - 'src/app/api/growth/**'
+      - 'src/app/api/billing/**'
+      - 'src/components/account/analytics.tsx'
       - '.github/workflows/search-foundation.yml'
   workflow_dispatch:
 permissions:
@@ -31,3 +35,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node tests/search-foundation.mjs
+      - run: node tests/growth-attribution.mjs
+      - run: node tests/pro-plans.mjs
+      - run: node tests/learning-card-ux.mjs
+      - run: node tests/account-policy.mjs

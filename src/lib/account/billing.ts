@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { database } from './db';
 import { learningUsage } from './learning-access';
 import { APP_URL, currentUser, isAdmin } from './auth';
+import {recordCheckout} from '@/lib/marketing/growth-server';
 export const PREMIUM_CENTS=MONTHLY_CENTS;
 export function stripeClient(){const key=process.env.STRIPE_SECRET_KEY;if(!key)throw Error('Stripe billing is not configured.');return new Stripe(key,{timeout:20000,maxNetworkRetries:1});}
 export function learningWeek(now=new Date()) {const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);}
@@ -57,7 +58,7 @@ export async function checkout(plan:PaidPlan='monthly'){
  let sub=(await client.query('SELECT * FROM quest_subscriptions WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];
  if(sub.subscription_id){const live=await stripe.subscriptions.retrieve(sub.subscription_id);if(['active','trialing','past_due','incomplete','paused'].includes(live.status))throw Error('Manage your existing subscription instead of starting another.');}
  if(!sub.customer_id){const customer=await stripe.customers.create({email:user.email,metadata:{quest_user_id:user.id}},{idempotencyKey:'quest-customer:'+user.id});await client.query('UPDATE quest_subscriptions SET customer_id=$2 WHERE user_id=$1',[user.id,customer.id]);sub={...sub,customer_id:customer.id};}
- const open=await stripe.checkout.sessions.list({customer:sub.customer_id,status:'open',limit:20});const existing=open.data.find(s=>s.metadata?.quest_user_id===user.id&&s.metadata?.quest_price===selectedPrice&&s.locale===locale);if(existing?.url){await client.query('COMMIT');return existing.url;}
+ const open=await stripe.checkout.sessions.list({customer:sub.customer_id,status:'open',limit:20});const existing=open.data.find(s=>s.metadata?.quest_user_id===user.id&&s.metadata?.quest_price===selectedPrice&&s.locale===locale);if(existing?.url){await client.query('COMMIT');await recordCheckout(user.id,existing.id);return existing.url;}
  const history=await stripe.subscriptions.list({customer:sub.customer_id,status:'all',limit:100});
  const relevant=history.data.filter(s=>s.items.data.some(i=>acceptedPrices(config).has(i.price.id)));
  if(relevant.some(s=>['active','trialing','past_due','incomplete','paused'].includes(s.status)))throw Error('Manage your existing subscription instead of starting another.');
@@ -65,7 +66,7 @@ export async function checkout(plan:PaidPlan='monthly'){
  if(used)await client.query('UPDATE quest_subscriptions SET trial_used=true WHERE user_id=$1',[user.id]);
  const trial=!used;
  const session=await stripe.checkout.sessions.create({mode:'subscription',customer:sub.customer_id,client_reference_id:user.id,line_items:[{price:selectedPrice,quantity:1}],payment_method_collection:'always',subscription_data:{metadata:{quest_user_id:user.id},...(trial?{trial_period_days:TRIAL_DAYS,trial_settings:{end_behavior:{missing_payment_method:'cancel' as const}}}:{})},metadata:{quest_user_id:user.id,quest_price:selectedPrice,quest_plan:plan},success_url:APP_URL+'/?view=learn&billing=success',cancel_url:APP_URL+'/pricing?billing=canceled',custom_text:{submit:{message:fr?`${trial?'7 jours gratuits, puis ':''}${frAmount} $US par ${frPeriod}, renouvellement automatique. Annulez dans votre espace de facturation avant la prochaine échéance pour éviter le renouvellement.`:locale==='zh'?`${trial?'7 天免费试用，之后':''}每${plan==='annual'?'年':'月'}自动续费 ${amount} 美元。可在下次扣款前通过账单管理取消。`:`${trial?'7 days free, then ':''}USD $${amount} every ${period}, renews automatically. Cancel in your billing portal before the next renewal to avoid the charge.`}},integration_identifier:'monetizable_'+[...randomBytes(8)].map(byte=>String.fromCharCode(97+byte%26)).join(''),locale});
- await client.query('COMMIT');if(!session.url)throw Error('Stripe did not provide a checkout URL.');return session.url;
+ await client.query('COMMIT');if(!session.url)throw Error('Stripe did not provide a checkout URL.');await recordCheckout(user.id,session.id);return session.url;
  }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
 }
 export async function portal(){const user=await currentUser();if(!user)throw Error('Sign in first.');const config=await billingConfig(),{rows}=await database().query('SELECT customer_id FROM quest_subscriptions WHERE user_id=$1',[user.id]);if(!config||!rows[0]?.customer_id)throw Error('No billing account yet.');return (await stripeClient().billingPortal.sessions.create({customer:rows[0].customer_id,configuration:config.portal,return_url:APP_URL+'/?view=learn',locale:await requestLocale(isAdmin(user))})).url;}

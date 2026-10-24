@@ -2,6 +2,7 @@
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { useEffect, useState } from "react";
 import { LineChart } from "@/components/quest/charts";
+import GrowthReport from './growth-report';
 import {
   BarChart3,
   Users,
@@ -111,6 +112,7 @@ export default function AdminDashboard() {
         ))}
       </section>
       <p className="muted small-text">今日活跃账户：巴黎当天有站内访问的登录账户，按账户去重；不等于匿名访客。今日访客：{metric?.todayDate || "今天"} · 巴黎 00:00 起按匿名浏览器去重，同一浏览器访问多个页面只计一次。</p>
+      <GrowthReport key={metric?.updatedAt||'initial'}/>
       <section className="admin-panel admin-users">
         <div className="admin-users-heading"><div><span className="eyebrow">EXPLORER DIRECTORY</span><h2>用户信息 · Supabase</h2></div>{data?.users?.supabaseUrl&&<a className="secondary" href={data.users.supabaseUrl} target="_blank" rel="noopener noreferrer">打开 Supabase 用户管理 ↗</a>}</div>
         <p className="muted small-text">注册、登录身份保存在 Supabase Auth；学习进度、自选股、判断与订阅记录保存在同一 Supabase 项目的数据库中。名单包含尚未验证邮箱或尚未进入网站的账户；仅管理员可见。</p>

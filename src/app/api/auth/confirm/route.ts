@@ -2,6 +2,7 @@ import {loginDestination} from "@/lib/account/redirect";
 import { NextResponse } from "next/server";
 import { authClient, isAdmin, sameOrigin } from "@/lib/account/auth";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import {associateGrowthUser} from '@/lib/marketing/growth-server';
 export async function POST(request: Request) {
   if (!sameOrigin(request))
     return NextResponse.json({ error: "Invalid request." }, { status: 403 });
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
         },
         { status: 400 },
       );
+    await associateGrowthUser(data.user);
     return NextResponse.json({
       ok: true,
       next: isAdmin(data.user)&&loginDestination(next)==='/'?'/admin':loginDestination(next),
