@@ -37,3 +37,34 @@
 .landing-plan-grid>article{display:flex;flex-direction:column}
 .landing-plan-grid>article>ul{flex:1}
 .landing-plan-grid>article>div:last-child{margin-top:18px}
+/* Align the content itself; keep every stage on the same readable centre line. */
+.landing-demo-header{grid-template-columns:1fr;gap:5px;padding-bottom:18px}
+.landing-demo .demo-panel{width:100%;max-width:var(--card-width,540px);margin-inline:auto;min-height:0;box-sizing:border-box;flex:initial}
+.landing-demo .demo-panel>h2{margin:0 0 18px;min-height:0}
+.landing-demo .demo-scripted{flex:initial}
+.landing-demo .demo-companion{margin-top:24px}
+.landing-demo .demo-disclaimer{margin-top:14px}
+.hero-product-preview>.landing-demo{min-height:0}
+.demo-knowledge.landing-study-card{background:linear-gradient(135deg,#fffffd,#fff9eb);color:#292b24}
+.app-shell .landing-demo .swipe-deck>.landing-study-card{display:flex;flex-direction:column;gap:0;width:100%;max-width:var(--card-width,540px);min-height:650px;max-height:none;margin:0 auto;padding:var(--card-padding,28px);text-align:left;overflow:visible}
+.landing-study-card .card-header{display:flex;justify-content:space-between;align-items:center;width:100%;color:#847145}
+.landing-stock-emblem{display:grid;place-items:center;width:60px;height:60px;margin:18px auto;border:1px solid #d3c294;border-radius:50%;font-size:32px;color:#547c69;background:#f6efdb}
+.landing-study-card .card-level{font-size:10px;letter-spacing:.6px;color:#87754e}
+.app-shell .landing-demo .landing-study-card h2{font-size:23px;line-height:1.4;margin:16px 0;text-align:left}
+.app-shell .landing-demo .landing-study-card .card-question{font-size:15px;line-height:1.8;margin:0 0 14px;text-align:left}
+.landing-study-card .quiz-instruction{font-size:11px;margin:0 0 8px}
+.landing-study-card .quiz-choices{display:grid;gap:8px;width:100%;margin:0}
+.landing-study-card .quiz-choices button{display:flex;align-items:center;gap:9px;width:100%;min-height:50px;padding:10px 12px;text-align:left;border:1px solid #d8c9a5;border-radius:12px;background:#fffdf7;font-size:13px;line-height:1.5;color:#57482c}
+.landing-study-card .quiz-choices button>span:first-child{display:grid;place-items:center;width:26px;height:26px;flex:none;border:1px solid #e1d7bf;border-radius:8px;font-size:11px}
+.landing-study-card .quiz-choices button>span:last-child{margin-left:auto;color:#688c76}
+.landing-study-card .demo-unknown{margin:12px 0;padding:10px;font-size:12px}
+.landing-study-card .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:22px;font-size:10px;color:#8d7a51;border:0}
+.landing-study-card .card-back{display:flex;flex-direction:column;flex:1;text-align:left}
+.app-shell .landing-demo .landing-study-card .answer-explanation{padding:18px 16px;margin-top:6px;border:1px solid #c4d3b3;border-radius:14px;background:#edf1e2;text-align:left}
+.landing-study-card .answer-explanation strong{margin:0 0 12px;font-size:20px}
+.landing-study-card .answer-explanation p{font-size:14px;line-height:1.85;margin:0}
+.landing-study-card .card-analogy{display:flex;align-items:flex-start;gap:10px;margin:16px 0;padding:14px;background:#f6edd6;border-radius:12px;text-align:left}
+.landing-study-card .card-analogy p{margin:0;font-size:13px;line-height:1.8}
+.landing-study-card .card-back>.demo-next{margin:16px 0 0}
+.demo-complete{padding:28px 8px}
+@media(max-width:760px){.app-shell .landing-demo .swipe-deck>.landing-study-card{min-height:min(570px,78dvh);padding:20px 18px}.app-shell .landing-demo .landing-study-card h2{font-size:20px}.app-shell .landing-demo .landing-study-card .card-question{font-size:14px}.landing-study-card .quiz-choices button{font-size:12px;padding:9px}.landing-demo .demo-panel{max-width:var(--card-width,420px)}}

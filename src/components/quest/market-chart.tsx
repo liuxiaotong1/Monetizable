@@ -112,6 +112,6 @@ export default function MarketChart({ demo, latest }: { demo: boolean; latest?: 
       {status !== "ready" && <div className="chart-status" role="status">{status === "error" ? <><strong>图表连接暂时中断</strong><p>可以重试，或直接打开行情来源。</p><button className="secondary" onClick={() => { setStatus("waiting"); setAttempt(n => n + 1); }}><RefreshCw size={14}/>重新连接</button><a href={chartUrl} target="_blank" rel="noopener noreferrer">打开 TradingView <ExternalLink size={13}/></a></> : <><span className="chart-loading-orbit"/><span>正在接通纳斯达克100 ETF 市场望远镜…</span></>}</div>}
     </div>
     <div className="chart-attribution"><a href={chartUrl} target="_blank" rel="noopener noreferrer">Nasdaq-100 ETF chart by TradingView <ExternalLink size={11}/></a><span>美东时间 · 延迟状态以图表标识为准</span></div>
-    <p className="chart-note">{demo ? "这里的图表与行情早报使用真实公开资料；下方演示剧本和战报仍为示例。" : "图表随行情来源更新。早报按日保存，来源数据可能延迟。"} 下单时请核对老虎证券报价。搜索摘要与图表不参与判断评分。</p>
+    <p className="chart-note">{demo ? "这里的图表与行情早报使用真实公开资料；下方练习剧本和战报仍为示例。" : "图表随行情来源更新。早报按日保存，来源数据可能延迟。"} 下单时请核对老虎证券报价。搜索摘要与图表不参与判断评分。</p>
   </section>}</LocalizeTree>;
 }
