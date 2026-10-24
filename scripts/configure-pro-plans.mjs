@@ -10,6 +10,7 @@ function serverModule(filename){const absolute=path.resolve(filename);if(cache.h
  if(name==='server-only')return{}; // This script runs exclusively in the server build process.
  if(name==='./auth')return {APP_URL:'https://getmonetizable.com',currentUser:()=>{throw Error('Provisioning never creates a user session');},isAdmin:()=>false};
  if(name==='./learning-access'||name==='@/lib/i18n/server-locale')return{}; // Not used by setupBilling.
+ if(name==='@/lib/marketing/growth-server')return {recordCheckout:()=>{throw Error('Provisioning never tracks or creates a checkout');}};
  if(name.startsWith('.'))return serverModule(path.resolve(path.dirname(absolute),name+'.ts'));
  return require(name);
 },module,module.exports);return module.exports;}
