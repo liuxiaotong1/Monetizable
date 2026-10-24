@@ -21,12 +21,12 @@ export default function LandingDuo({state}:{state:QuestState}){
  useEffect(()=>{const observer=new IntersectionObserver(([entry])=>setVisible(entry.isIntersecting),{threshold:.2});if(root.current)observer.observe(root.current);const visibility=()=>setPageVisible(!document.hidden);visibility();document.addEventListener('visibilitychange',visibility);return()=>{observer.disconnect();document.removeEventListener('visibilitychange',visibility)}},[]);
  useEffect(()=>{
   if(!visible||!pageVisible||paused||phase>10||(phase===0&&portraitsReady<2))return;
-  const selectors=['.demo-partner','.demo-directions button','.demo-reasons button','.demo-next','.demo-next','.demo-directions button','.demo-battle','.demo-next','.demo-knowledge button:nth-child(2)','.demo-next','.demo-restart'];
+  const selectors=['.demo-partner','.demo-directions button','.demo-reasons button:nth-child(2)','.demo-next','.demo-next','.demo-directions button','.demo-battle','.demo-next','.demo-knowledge button:nth-child(2)','.demo-next','.demo-restart'];
   const target=root.current?.querySelector(selectors[phase]);
   if(target&&root.current){const a=target.getBoundingClientRect(),b=root.current.getBoundingClientRect();setCursor({x:a.left-b.left+a.width*.6,y:a.top-b.top+a.height*.55,click:false})}
   // Keep the existing battle on screen until its own completion message arrives.
   const delay=phase===6?(battleDone?3500:45000):phase===0?2800:phase===9?6000:phase===10?10000:2400;
-  const pulse=setTimeout(()=>setCursor(v=>({...v,click:true})),Math.max(700,delay-350));
+  const pulse=setTimeout(()=>setCursor(v=>({...v,click:phase!==6})),Math.max(700,delay-350));
   const timer=setTimeout(()=>{switch(phase){case 0:pickHero('female');break;case 1:setDirection(0);break;case 2:setReason(1);break;case 3:setSealed(true);break;case 4:setStep(2);break;case 5:setBossPick(0);break;case 6:break;case 7:setStep(3);break;case 8:setAnswer(1);break;case 9:setStep(4);break;case 10:restart();return}setPhase(v=>v+1)},delay);
   return()=>{clearTimeout(pulse);clearTimeout(timer)};
  },[phase,visible,pageVisible,paused,battleDone,portraitsReady]);
@@ -41,7 +41,7 @@ export default function LandingDuo({state}:{state:QuestState}){
   <div className="demo-complete"><span aria-hidden="true">✦</span><h2>{c.done}</h2><p>{c.doneHint}</p><button type="button" className="primary demo-next" onClick={()=>dispatchEvent(new Event('quest-start-playing'))}>{c.start}</button><button type="button" className="demo-restart" onClick={restart}>{c.replay} ↻</button></div>}
   </div>
   {step>0&&hero&&<footer className="demo-companion"><img src={hero==='female'?'/heroes/astra-portrait.webp':'/heroes/supercharlie-portrait.webp'} alt=""/><span>{c.partner} · {hero==='female'?c.astra:c.charlie}</span><button type="button" onClick={()=>setStep(0)}>{c.change}</button></footer>}
-  </div>{visible&&phase<10&&<span aria-hidden="true" className={`demo-cursor ${cursor.click?'is-clicking':''}`} style={{left:cursor.x,top:cursor.y}}>➤</span>}
+  </div>{visible&&phase<10&&<span aria-hidden="true" className={`demo-cursor ${cursor.click?'is-clicking':''}`} style={{left:cursor.x,top:cursor.y}}><svg viewBox="0 0 28 34" width="28" height="34" fill="none"><path d="M2 2V26L8.5 19.5L14 31L19 28.5L13.5 17H25L2 2Z" fill="#292b22" stroke="#fffdf5" strokeWidth="2" strokeLinejoin="round"/></svg></span>}
   <small className="demo-disclaimer">{c.demo}</small>
  </section>;
 }
