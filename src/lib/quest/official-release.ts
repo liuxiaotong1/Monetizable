@@ -1,3 +1,4 @@
+import {fetchEarningsRelease} from './earnings-releases';
 import {fetchBlsSeries} from './bls-api';
 import {load} from 'cheerio';
 import type {MarketEvent} from './types';
@@ -58,6 +59,7 @@ export function parseBeaArchive(kind:MarketEvent['kind'],html:string,date:string
  });return [...new Set(urls)];
 }
 export async function fetchOfficialRelease(event:MarketEvent,now:Date,contentLoader=officialContent):Promise<MarketEvent>{
+ if(event.kind==='EARNINGS')return fetchEarningsRelease(event,now);
  const date=marketDate(new Date(event.at)),stamp=date.slice(5,7)+date.slice(8,10)+date.slice(0,4),nowISO=now.toISOString();
  const bls:Record<string,string>={CPI:'cpi',NFP:'empsit',PPI:'ppi',JOLTS:'jolts'};
  if(bls[event.kind]){

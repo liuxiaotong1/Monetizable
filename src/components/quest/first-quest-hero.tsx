@@ -33,7 +33,7 @@ export default function FirstQuestHero({state}:{state:QuestState}){
  <div className="landing-directions">{(['bullish','neutral','bearish'] as const).map((d,i)=><button key={d} type="button" className={`landing-direction ${d}`} aria-pressed={direction===d} onClick={()=>choose(d)}><span aria-hidden="true">{['↗','↔','↘'][i]}</span><strong>{c.directions[i]}</strong></button>)}</div>
  {direction&&<div className="landing-result" role="status"><strong>✦ {c.picked}</strong><p>{c.save}</p><small>{c.draft}{storageIssue&&` ${locale==='zh'?'浏览器未允许保存草稿，请在注册后重新选择。':locale==='fr'?'Le navigateur ne peut pas garder ce brouillon : choisissez à nouveau après inscription.':'Your browser cannot keep this draft; select it again after signing in.'}`}</small><button className="primary" onClick={start}>{c.cta} →</button></div>}
  </section><small className="landing-hint">{c.hint}</small></div>
- <div className="hero-product-preview"><LandingDuo/></div></section>
+ <div className="hero-product-preview"><LandingDuo state={state}/></div></section>
  <JournalHomePreview/>
  <TesterInterviews/>
  <section className="landing-features" aria-labelledby="landing-features-title"><h2 id="landing-features-title">{c.features}</h2><div className="landing-feature-grid">

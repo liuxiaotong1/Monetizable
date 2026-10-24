@@ -1,4 +1,5 @@
 "use client";
+import EarningsReport from './earnings-report';
 import {earningsTimingLabel} from "@/lib/quest/earnings-calendar";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import EventTakeaway from "./event-takeaway";
@@ -78,7 +79,7 @@ function EventDialog({ event, now, mode, onClose }: { event: MarketEvent; now: s
     <button className="modal-close" onClick={onClose} aria-label="关闭事件">×</button><span className="eyebrow">事件情报 · {event.title.split("·")[0].trim()}</span><BossAvatar kind={event.kind} named/><h2 id="event-title">{event.title}</h2>
     <p className="muted"><Clock3 size={14} /> {status === "unconfirmed" ? "日期与时间等待官方公告" : `${eventDate(event.at)} · ${event.earningsTiming?earningsTimingLabel(event,'zh'):dualTime(event.at)}`}{mode === "demo" ? " · 示例事件" : ""}</p>
     <div className="analogy-box"><Sparkles size={20} /><p>{event.analogy}</p></div><p>{event.description}</p>
-    {numeric ? <EventNumbers event={event}/> : <div className="report-story"><h4>{event.report?"官方纪要已发布":"这是一份文字报告"}</h4>{event.report?<>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方纪要全文 <ExternalLink size={12}/></SourceLink></>:<><p>{status==="pending"?"公布时间已过，尚未取得可验证的官方正文。":"等待官方发布正文。"}</p><SourceLink href={event.sourceUrl}>查看官方来源 <ExternalLink size={12}/></SourceLink></>}</div>}
+    {event.earningsReport?<EarningsReport event={event}/>:numeric ? <EventNumbers event={event}/> : <div className="report-story"><h4>{event.report?"官方纪要已发布":"这是一份文字报告"}</h4>{event.report?<>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方纪要全文 <ExternalLink size={12}/></SourceLink></>:<><p>{status==="pending"?"公布时间已过，尚未取得可验证的官方正文。":"等待官方发布正文。"}</p><SourceLink href={event.sourceUrl}>查看官方来源 <ExternalLink size={12}/></SourceLink></>}</div>}
     {numeric&&event.report&&<div className="report-story"><h4>官方公布摘要 · 分清指标口径</h4>{event.report.summary.map(point=><p key={point}>{point}</p>)}<SourceLink href={event.report.bodyUrl}>阅读官方报告全文 <ExternalLink size={12}/></SourceLink></div>}
     {event.revised !== undefined && <p className="muted">前值修订为 {event.revised}{compactEventUnit(event.unit)}，保留原始公布记录。</p>}
     <h3>为什么和纳斯达克100 ETF 有关？</h3><p>{event.impact}</p><div className="impact-path"><span>{numeric ? "数据变化" : "报告内容"}</span><ArrowRight size={14} /><span>{event.kind === "EARNINGS" ? "盈利预期" : "利率与盈利预期"}</span><ArrowRight size={14} /><span>市场重新定价</span></div>

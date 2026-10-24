@@ -110,6 +110,7 @@ export type EventKind =
   | "TRADE"
   | "JOLTS";
 export interface MarketEvent {
+  earningsReport?: import('./earnings-releases').EarningsReport;
   earningsTiming?: 'after-close'|'before-open'|'unknown';
   earningsCallAt?:string;
   calendarVerified?:boolean;

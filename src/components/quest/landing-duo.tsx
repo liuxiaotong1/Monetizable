@@ -1,26 +1,32 @@
 'use client';
+import {useEffect,useRef,useState} from 'react';
 import {useLocale} from '@/components/i18n/locale-provider';
+import type {QuestState} from '@/lib/quest/types';
+import {chooseHero,type HeroId} from './hero-preference';
 import InViewReveal from './in-view-reveal';
+import {landingDemoCopy} from './landing-demo-copy';
 import './landing-duo.css';
-
-const copy={
- en:{title:'Meet your quest companions',astra:'Astra',charlie:'Charlie',example:'Example · demo data',accuracy:'Monthly accuracy',sample:'3 / 5 verified calls',boss:'Market Boss',battle:'Predict · battle',streak:'Learning streak',days:'days',},
- fr:{title:'Vos partenaires de quête',astra:'Astra',charlie:'Charlie',example:'Exemple · données fictives',accuracy:'Précision du mois',sample:'3 / 5 prévisions',boss:'Boss du marché',battle:'Prévoir · combattre',streak:'Série quotidienne',days:'jours',},
- zh:{title:'你的冒险双搭档',astra:'星澜',charlie:'查理',example:'示例 · 演示数据',accuracy:'月度命中率',sample:'3 / 5 次已核实',boss:'市场 Boss',battle:'预判 · 战斗',streak:'连续打卡',days:'天',}
-};
-export default function LandingDuo(){
- const locale=useLocale(),c=copy[locale];
- return <section className="landing-duo" aria-label={c.title} translate="no">
-  <div className="duo-backdrop" aria-hidden="true"><span/><span/></div>
-  <div className="duo-models">
-   <div className="duo-posters"><img src="/heroes/astra-portrait.webp" alt={c.astra} width={640} height={960} fetchPriority="high" decoding="async"/><img src="/heroes/supercharlie-portrait.webp" alt={c.charlie} width={640} height={960} fetchPriority="high" decoding="async"/></div>
+export default function LandingDuo({state}:{state:QuestState}){
+ const locale=useLocale(),c=landingDemoCopy[locale],frame=useRef<HTMLIFrameElement>(null);
+ const [step,setStep]=useState(0),[hero,setHero]=useState<HeroId|null>(null),[direction,setDirection]=useState<number|null>(null),[reason,setReason]=useState(0),[sealed,setSealed]=useState(false),[bossPick,setBossPick]=useState<number|null>(null),[answer,setAnswer]=useState<number|null>(null),[battleReady,setBattleReady]=useState(false);
+ const bars=state.bars.filter(b=>b.symbol==='QQQ').sort((a,b)=>a.date.localeCompare(b.date)).slice(-20),low=Math.min(...bars.map(b=>b.close)),high=Math.max(...bars.map(b=>b.close));
+ const points=bars.map((b,i)=>`${8+i/Math.max(1,bars.length-1)*304},${88-(b.close-low)/Math.max(.01,high-low)*65}`).join(' ');
+ const outcome=bossPick===0?'win':'loss';
+ useEffect(()=>{setBattleReady(false)},[hero,bossPick,step]);
+ useEffect(()=>{const ready=(e:MessageEvent)=>{if(e.origin===location.origin&&e.source===frame.current?.contentWindow&&e.data?.type==='monetizable-restored-ready')setBattleReady(true)};addEventListener('message',ready);return()=>removeEventListener('message',ready)},[]);
+ function pickHero(value:HeroId){setHero(value);chooseHero(value);setStep(1)}
+ function restart(){setStep(0);setHero(null);setDirection(null);setSealed(false);setBossPick(null);setAnswer(null)}
+ return <section className="landing-demo" aria-label={c.role} translate="no" data-demo-step={step}>
+  <header className="landing-demo-header"><small>✦ {c.tag}</small><strong>{c.title}</strong></header>
+  <nav className="demo-step-nav" aria-label={c.role}>{c.steps.map((label,i)=><button type="button" key={label} aria-current={step===i?'step':undefined} disabled={i>0&&!hero} onClick={()=>setStep(i)}><span>{i+1}</span>{label}</button>)}</nav>
+  <div key={step} className="demo-panel">
+  {step===0?<><h2>{c.choose}</h2><div className="demo-partners">{(['female','supercharlie'] as const).map(id=><button className="demo-partner" type="button" key={id} onClick={()=>pickHero(id)} aria-label={`${c.select} ${id==='female'?c.astra:c.charlie}`}><div className="demo-portrait"><img src={id==='female'?'/heroes/astra-portrait.webp':'/heroes/supercharlie-portrait.webp'} alt={id==='female'?c.astra:c.charlie} width={640} height={960} fetchPriority="high" decoding="async"/></div><span><strong>{id==='female'?c.astra:c.charlie}</strong><small>{c.select} →</small></span></button>)}</div><div className="demo-proof">{[[<><strong>60<small>%</small></strong></>,c.accuracy],[<strong>⚔</strong>,'Boss'],[<strong>3<small> {c.days}</small></strong>,c.streak]].map(([value,label],i)=><InViewReveal className="demo-metric" index={i} key={i}><span className="demo-metric-ring">{value}</span><span>{label}<small>{c.example}</small></span></InViewReveal>)}</div></>:
+  step===1?<><h2>{c.predict}</h2><div className="demo-chart"><small>{c.chart}</small><svg viewBox="0 0 320 100" role="img" aria-label={c.chart}><path d="M8 25H312M8 60H312M8 90H312" stroke="#c6b894" strokeDasharray="3 5"/>{bars.length>1&&<polyline points={points} fill="none" stroke="#547c69" strokeWidth="3" strokeLinejoin="round"/>}</svg></div>{!sealed?<><div className="demo-directions">{c.directions.map((label,i)=><button type="button" key={label} aria-pressed={direction===i} onClick={()=>setDirection(i)}><b>{['↗','↔','↘'][i]}</b>{label}</button>)}</div><p className="demo-instruction">{c.reason}</p><div className="demo-reasons">{c.reasons.map((label,i)=><button type="button" aria-pressed={reason===i} onClick={()=>setReason(i)} key={label}>{label}</button>)}</div><button type="button" className="primary demo-next" disabled={direction===null} onClick={()=>setSealed(true)}>🔒 {c.seal}</button></>:<div className="demo-sealed" role="status"><strong>✓ {c.sealed}</strong><p>{c.directions[direction??0]} · {c.reasons[reason]}</p><p>{c.sealedHint}</p><button type="button" className="primary demo-next" onClick={()=>setStep(2)}>{c.bossNext}</button></div>}</>:
+  step===2?<><h2>{c.bossTitle}</h2>{bossPick===null?<><div className="demo-boss-intro"><span>🐉</span><strong>CPI</strong><b>3.0%</b></div><p>{c.bossHint}</p><div className="demo-directions">{c.bossPicks.map((label,i)=><button type="button" key={label} onClick={()=>setBossPick(i)}>{['↓','＝','↑'][i]} {label}</button>)}</div></>:<><div className="demo-release" role="status"><strong>{c.release}</strong><span>{bossPick===0?c.win:c.loss}</span></div><div className="demo-battle"><iframe ref={frame} title={c.battle} src={`/battle-demo/embed.html?embed=1&hero=${hero}&boss=${hero==='female'?'dragon':'beetle'}&locale=${locale}&outcome=${outcome}&chrome=compact`}/>{!battleReady&&<div className="demo-battle-loading"><img src="/homepage/battle-action.png" alt=""/><span>{c.loading}</span></div>}</div><button type="button" className="primary demo-next" onClick={()=>setStep(3)}>{c.cardNext}</button></>}</>:
+  step===3?<><h2>🎴 {c.cardTitle}</h2><div className={`demo-knowledge ${answer!==null?'is-flipped':''}`}>{answer===null?<>{c.answers.map((label,i)=><button type="button" key={label} onClick={()=>setAnswer(i)}><span>{String.fromCharCode(65+i)}</span>{label}</button>)}<button type="button" className="demo-unknown" onClick={()=>setAnswer(-1)}>{c.unknown}</button></>:<div role="status"><strong>{answer===1?c.correct:c.learn}</strong><p>{c.explanation}</p><button type="button" className="primary demo-next" onClick={()=>setStep(4)}>{c.finish}</button></div>}</div></>:
+  <div className="demo-complete"><span aria-hidden="true">✦</span><h2>{c.done}</h2><p>{c.doneHint}</p><button type="button" className="primary demo-next" onClick={()=>dispatchEvent(new Event('quest-start-playing'))}>{c.start}</button><button type="button" className="demo-restart" onClick={restart}>{c.replay} ↻</button></div>}
   </div>
-  <div className="duo-proof" aria-label={c.example}>
-   <InViewReveal index={0} className="duo-orbit duo-orbit-score"><a className="duo-circle duo-score" href="#first-prediction"><span className="duo-circle-inner"><strong>60<small>%</small></strong><span>{c.accuracy}</span><small>{c.sample}</small></span></a></InViewReveal>
-   <InViewReveal index={1} className="duo-orbit duo-orbit-boss"><a className="duo-circle duo-boss" href="#landing-event-demo"><span className="duo-circle-inner"><img src="/homepage/battle-action.png" alt="" width={570} height={340} loading="lazy"/><strong>{c.boss}</strong><small>{c.battle}</small></span></a></InViewReveal>
-   <InViewReveal index={2} className="duo-orbit duo-orbit-streak"><a className="duo-circle duo-streak" href="#landing-knowledge-demo"><span className="duo-circle-inner"><strong>3<small> {c.days}</small></strong><span>{c.streak}</span><small aria-hidden="true">✦ ✦ ✦</small></span></a></InViewReveal>
-  </div>
-  <div className="duo-names" aria-hidden="true"><span>✦ {c.astra}</span><span>✦ {c.charlie}</span></div>
-  <div className="duo-caption"><span>{c.example}</span></div>
+  {step>0&&hero&&<footer className="demo-companion"><img src={hero==='female'?'/heroes/astra-portrait.webp':'/heroes/supercharlie-portrait.webp'} alt=""/><span>{c.partner} · {hero==='female'?c.astra:c.charlie}</span><button type="button" onClick={()=>setStep(0)}>{c.change}</button></footer>}
+  <small className="demo-disclaimer">{c.demo}</small>
  </section>;
 }

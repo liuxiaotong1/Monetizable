@@ -77,17 +77,17 @@ async function refreshReleases(state:QuestState,now:Date){
  const parserVersion=releaseParserVersion;
  const stored=(await database().query("SELECT key,body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
  const byId=new Map(stored.map(row=>[row.key.slice('release-native:'.length),row.body]));
- for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
+ for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind}${e.symbol?' '+e.symbol:''} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
  state.events=state.events.map(e=>{const prior=byId.get(e.id),next=prior?.body.status==='confirmed'?{...e,...prior.body}:e;return next.kind==='CLAIMS'&&next.status==='confirmed'?{...next,description:'每周首次申请失业保险的人数，是就业变化的高频线索；本次官方发布已核对，结合前值修订与四周均值观察。'}:next;});
  const candidates=releaseCandidates(state.events,byId,now);
  // Each source has its own retry clock; one failed document cannot block the other releases.
  const results=await Promise.allSettled(candidates.map(async event=>{
   const due=now.getTime()-Date.parse(event.at)<24*3600_000;const ttl=event.status==='confirmed'?24*3600_000:due?5*60_000:60*60_000;
   const result=await cached(`release-native:${event.id}`,ttl,async()=>{const next=await fetchOfficialRelease(event,now);return {...next,releaseHistory:publicationVersion(event,next)};},event,now,parserVersion(event));
-  setSource(state,status(`官方更新 · ${event.kind} · ${marketDate(new Date(event.at))}`,result,`${event.kind} 已核对官方文档与发布日期`));
+  setSource(state,status(`官方更新 · ${event.kind}${event.symbol?' '+event.symbol:''} · ${marketDate(new Date(event.at))}`,result,`${event.kind} 已核对官方文档与发布日期`));
   return result.body;
  }));
- for(const [index,result] of results.entries()){if(result.status==='fulfilled'){const i=state.events.findIndex(e=>e.id===result.value.id);if(i>=0)state.events[i]=result.value;}else{const e=candidates[index];setSource(state,{name:`官方更新 · ${e.kind} · ${marketDate(new Date(e.at))}`,status:'error',message:'本轮同步未完成，将在下次任务重试。'});}}
+ for(const [index,result] of results.entries()){if(result.status==='fulfilled'){const i=state.events.findIndex(e=>e.id===result.value.id);if(i>=0)state.events[i]=result.value;}else{const e=candidates[index];setSource(state,{name:`官方更新 · ${e.kind}${e.symbol?' '+e.symbol:''} · ${marketDate(new Date(e.at))}`,status:'error',message:'本轮同步未完成，将在下次任务重试。'});}}
 }
 const histories:Record<string,{id:string;change?:'yoy'|'diff'|'mom';scale?:number}>={CPI:{id:'CPIAUCNS',change:'yoy'},NFP:{id:'PAYEMS',change:'diff'},PCE:{id:'PCEPI',change:'yoy'},GDP:{id:'A191RL1Q225SBEA'},FOMC:{id:'DFEDTARU'},CLAIMS:{id:'ICSA'},CONFIDENCE:{id:'UMCSENT'},TRADE:{id:'BOPGSTB',scale:.001},JOLTS:{id:'JTSJOL'},RETAIL:{id:'RSAFS',change:'mom'},PPI:{id:'PPIFIS',change:'yoy'}};
 export function parseHistory(csv:string,spec:{id:string;change?:'yoy'|'diff'|'mom';scale?:number}):HistoryPoint[]{
