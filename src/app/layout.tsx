@@ -6,6 +6,7 @@ import "./globals.css";
 import "./account.css";
 import "./cream-arcade.css";
 import AnalyticsTracker from "@/components/account/analytics";
+import CookieConsent from "@/components/cookie-consent";
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
   alternates: { canonical: "https://getmonetizable.com" },
@@ -65,8 +66,11 @@ export default async function RootLayout({
   return (
     <html lang={locale==='zh'?'zh-CN':locale}>
       <body>
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
-        <AnalyticsTracker />
+        <LocaleProvider locale={locale}>
+          <CookieConsent />
+          {children}
+          <AnalyticsTracker />
+        </LocaleProvider>
       </body>
     </html>
   );
