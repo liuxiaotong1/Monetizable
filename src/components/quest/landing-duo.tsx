@@ -41,7 +41,7 @@ export default function LandingDuo({state}:{state:QuestState}){
   <div className="demo-complete"><span aria-hidden="true">✦</span><h2>{c.done}</h2><p>{c.doneHint}</p><button type="button" className="primary demo-next" onClick={()=>dispatchEvent(new Event('quest-start-playing'))}>{c.start}</button><button type="button" className="demo-restart" onClick={restart}>{c.replay} ↻</button></div>}
   </div>
   {step>0&&hero&&<footer className="demo-companion"><img src={hero==='female'?'/heroes/astra-portrait.webp':'/heroes/supercharlie-portrait.webp'} alt=""/><span>{c.partner} · {hero==='female'?c.astra:c.charlie}</span><button type="button" onClick={()=>setStep(0)}>{c.change}</button></footer>}
-  </div>{visible&&phase<10&&<span aria-hidden="true" className={`demo-cursor ${cursor.click?'is-clicking':''}`} style={{left:cursor.x,top:cursor.y}}><svg viewBox="0 0 28 34" width="28" height="34" fill="none"><path d="M2 2V26L8.5 19.5L14 31L19 28.5L13.5 17H25L2 2Z" fill="#292b22" stroke="#fffdf5" strokeWidth="2" strokeLinejoin="round"/></svg></span>}
+  </div>{visible&&phase<10&&<span aria-hidden="true" className={`demo-cursor ${cursor.click?'is-clicking':''}`} style={{left:cursor.x,top:cursor.y}}><svg viewBox="0 0 36 38" width="28" height="34" fill="none"><path d="M2 2L32 15L19 20L14 34L2 2Z" fill="#28473c" stroke="#fffdf5" strokeWidth="2" strokeLinejoin="round"/></svg></span>}
   <small className="demo-disclaimer">{c.demo}</small>
  </section>;
 }

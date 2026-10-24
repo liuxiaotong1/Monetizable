@@ -1,0 +1,11 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import ts from 'typescript';
+function load(file,deps={}){const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(n=>{if(n in deps)return deps[n];throw Error(n);},m,m.exports);return m.exports;}
+const c=load('src/lib/journal/core.ts'),a=load('src/lib/journal/auto-import.ts',{'./core':c});
+const text='日期\t總資產(USD)\t入金(USD)\t出金(USD)\t收益率(WR)\n2026/10/01 06:00:00\t1000\t1000\t0\t0.00%\n2026/10/02 06:00:00\t1200\t100\t0\t10.00%\n2026/10/03 06:00:00\t900\t0\t-200\t0.00%';
+const bytes=Buffer.concat([Buffer.from([255,254]),Buffer.from(text,'utf16le')]);const r=a.autoImport(a.decodeStatement(bytes));assert.equal(r.kind,'equity');assert.equal(r.rows.length,3);assert.equal(r.rows[2].withdrawal,200);const m=a.accountMetrics(r.rows);assert.equal(m.net,0);assert.equal(m.drawdown,100);assert.equal(m.positive,1);assert.equal(m.negative,1);
+let j=c.mutateJournal(c.emptyJournal(),{type:'statement',revision:0,rows:r.rows});j=c.mutateJournal(j,{type:'statement',revision:j.revision,rows:r.rows});assert.equal(j.equityRows.length,3);assert.equal(j.trades.length,0,'Account days must never become fake closed trades');
+for(const bad of [{...r.rows[0],equity:NaN},{...r.rows[0],date:'__proto__'},{...r.rows[0],withdrawal:-1}])assert.throws(()=>c.mutateJournal(c.emptyJournal(),{type:'statement',revision:0,rows:[bad]}));
+const tradeCSV='Trade ID,Close Date,Symbol,Realized P&L,Currency\n1,2026-10-01,QQQ,100,USD\n2,2026-10-02,TSLA,-50,USD';const trades=a.autoImport(tradeCSV);assert.equal(trades.kind,'trades');assert.equal(c.metrics(trades.trades).winRate,50);
+assert.throws(()=>a.autoImport('date,symbol,netpnl\n03/04/2026,QQQ,5'),e=>e.code==='DATE_ORDER');assert.equal(a.autoImport('date,symbol,netpnl\n03/04/2026,QQQ,5','trades.csv','dmy').trades[0].date,'2026-04-03');
+assert.throws(()=>a.autoImport('date,symbol,quantity,price\n2026-10-01,QQQ,1,100'),e=>e.code==='CLOSED_TRADES');
+console.log('PASS UTF-16/tab statements, zero-field recognition, cashflow normalization, drawdown, no fake trade win rate, private statement mutation, repeat import, closed trades and date ambiguity.');

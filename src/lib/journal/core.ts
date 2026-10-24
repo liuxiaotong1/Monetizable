@@ -1,8 +1,9 @@
+import type {EquityRow} from './auto-import';
 /** A row is one CLOSED trade, never an individual execution/fill. Amounts are in its native currency. */
 export type Trade={id:string;account:string;externalId:string;date:string;symbol:string;net:number;currency:string;strategy:string};
 export type Review={strategy:string;followed:string[];mistakes:string[];note:string;reviewedAt:string};
 export type Day={date:string;system:string;rules:string[];mood:string;direction:string;note:string;image?:string;createdAt:string;finishedAt?:string};
-export type Journal={revision:number;trades:Trade[];reviews:Record<string,Review>;days:Record<string,Day>};
+export type Journal={revision:number;trades:Trade[];reviews:Record<string,Review>;days:Record<string,Day>;equityRows?:EquityRow[]};
 export const emptyJournal=():Journal=>({revision:0,trades:[],reviews:{},days:{}});
 export type Mapping={id:number;date:number;symbol:number;pnl:number;fees:number;currency:number;strategy:number};
 export type ImportOptions={month:string;account:string;currency:string;dateFormat:'ymd'|'dmy'|'mdy';decimal:'.'|',';pnlMode:'net'|'gross';mapping:Mapping};
@@ -58,7 +59,15 @@ const text=(v:unknown,max:number)=>typeof v==='string'&&v.length<=max;
 /** Server validates and derives all IDs; clients cannot overwrite the journal wholesale. */
 export function mutateJournal(j:Journal,action:any,now=new Date().toISOString()):Journal{
  check(action&&action.revision===j.revision,'CONFLICT');const next:Journal=structuredClone(j);
- if(action.type==='import'){
+ if(action.type==='statement'){
+  check(Array.isArray(action.rows)&&action.rows.length>0&&action.rows.length<=5000);
+  const known=new Map((next.equityRows||[]).map(r=>[JSON.stringify([r.account,r.currency,r.date]),r]));
+  for(const r of action.rows){check(r&&validDate(r.date)&&text(r.account,80)&&r.account.trim()&&/^[A-Z]{3}$/.test(r.currency)&&[r.equity,r.deposit,r.withdrawal].every((v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&Math.abs(v)<=1e10)&&r.withdrawal>=0);
+   for(const k of ['reportedProfit','reportedReturn'])check(r[k]===undefined||(typeof r[k]==='number'&&Number.isFinite(r[k])&&Math.abs(r[k])<=1e10));
+   const row:EquityRow={account:r.account,currency:r.currency,date:r.date,equity:r.equity,deposit:r.deposit,withdrawal:r.withdrawal,...(r.reportedProfit!==undefined?{reportedProfit:r.reportedProfit}:{}),...(r.reportedReturn!==undefined?{reportedReturn:r.reportedReturn}:{})};known.set(JSON.stringify([r.account,r.currency,r.date]),row);
+  }
+  check(known.size<=25000,'CAPACITY');next.equityRows=[...known.values()].sort((a,b)=>a.date.localeCompare(b.date));
+ }else if(action.type==='import'){
   check(Array.isArray(action.trades)&&action.trades.length>0&&action.trades.length<=5000);
   const known=new Map(next.trades.map(t=>[t.id,t]));let added=0;
   for(const raw of action.trades){
