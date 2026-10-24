@@ -25,7 +25,7 @@ export default function LandingDuo({state}:{state:QuestState}){
   const target=root.current?.querySelector(selectors[phase]);
   if(target&&root.current){const a=target.getBoundingClientRect(),b=root.current.getBoundingClientRect();setCursor({x:a.left-b.left+a.width*.6,y:a.top-b.top+a.height*.55,click:false})}
   // Keep the existing battle on screen until its own completion message arrives.
-  const delay=phase===6?(battleDone?3500:45000):phase===0?2800:phase===8?5000:phase===9?8000:phase===10?10000:2400;
+  const delay=phase===6?(battleDone?3500:45000):phase===0?2800:phase===8?12000:phase===9?16000:phase===10?10000:2400;
   const pulse=setTimeout(()=>setCursor(v=>({...v,click:phase!==6})),Math.max(700,delay-350));
   const timer=setTimeout(()=>{switch(phase){case 0:pickHero('female');break;case 1:setDirection(0);break;case 2:setReason(1);break;case 3:setSealed(true);break;case 4:setStep(2);break;case 5:setBossPick(0);break;case 6:break;case 7:setStep(3);break;case 8:setAnswer(1);break;case 9:setStep(4);break;case 10:restart();return}setPhase(v=>v+1)},delay);
   return()=>{clearTimeout(pulse);clearTimeout(timer)};
