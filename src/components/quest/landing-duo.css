@@ -23,7 +23,7 @@
  .play-first-hero .landing-challenge{grid-column:1;grid-row:2;align-self:stretch}
  .play-first-hero .landing-hint{grid-column:1/-1;grid-row:3;margin:0}
  .play-first-hero .hero-product-preview{grid-column:2;grid-row:1/span 2;align-self:stretch;display:flex}
- .hero-product-preview>.landing-demo{display:flex;flex-direction:column;min-height:610px}
+ .hero-product-preview>.landing-demo{display:flex;flex-direction:column;flex:1;min-height:610px}
  .landing-demo .demo-scripted{flex:1;display:flex;flex-direction:column}
  .landing-demo .demo-panel{flex:1}
  .landing-demo .demo-companion{margin-top:20px}
