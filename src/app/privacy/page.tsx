@@ -1,5 +1,5 @@
 import {LocalizeTree} from '@/components/i18n/locale-provider';
-export const metadata = { title: 'Privacy · Monetizable' };
+export const metadata = { title: 'Privacy · Monetizable', alternates: {canonical: 'https://getmonetizable.com/privacy'} };
 
 export default function Privacy() {
   return <LocalizeTree>{<main className="auth-screen"><a className="brand" href="/">Monetizable</a><article className="auth-card" style={{maxWidth:760}}>

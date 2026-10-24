@@ -6,6 +6,7 @@ import "./globals.css";
 import "./account.css";
 import "./cream-arcade.css";
 import AnalyticsTracker from "@/components/account/analytics";
+import {positioning} from '@/lib/marketing/positioning';
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
   alternates: { canonical: "https://getmonetizable.com" },
@@ -46,9 +47,8 @@ const frenchMetadata: Metadata = {
 };
 export async function generateMetadata():Promise<Metadata>{
  const locale=await requestLocale(isAdmin(await currentUser()));
- if(locale==='zh')return {...frenchMetadata,title:'Monetizable · 让投资学习成为冒险',description:'建立投资框架：留下判断、理解重大事件、复盘市场，并用知识卡牌积累经验。',openGraph:{...frenchMetadata.openGraph,description:'准备、理解、验证、成长。'}};
- if(locale==='en')return {...frenchMetadata,title:'Monetizable · Make investing an adventure',description:'Prepare your market view, understand major events and build investing knowledge with interactive cards.',openGraph:{...frenchMetadata.openGraph,description:'Make investing an adventure.'}};
- return frenchMetadata;
+ const {title,description}=positioning[locale];
+ return {...frenchMetadata,title,description,applicationName:'Monetizable',openGraph:{...frenchMetadata.openGraph,title,description,siteName:'Monetizable',url:'https://getmonetizable.com',type:'website'},twitter:{...frenchMetadata.twitter,title,description}};
 }
 export const viewport: Viewport = {
   width: "device-width",

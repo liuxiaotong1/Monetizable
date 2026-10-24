@@ -14,6 +14,12 @@ The user authorizes deploying requested website changes to the existing Monetiza
 
 ## Cloud-first work and local disk usage
 
+## Product positioning and public copy
+
+Monetizable is now a gamified trading practice and discipline platform. Use this approved English description verbatim: "Monetizable is a gamified trading practice and discipline platform that helps traders turn their trading plan into daily quests, event challenges, rule checks and post-trade reviews. It helps traders practise judgment and follow their own system".
+
+Describe what the product does in positioning, marketing, social posts and SEO/GEO copy. Avoid defining it through negative comparisons or lists of what it does not do. Keep necessary factual limitations, safety disclosures and legal notices in their appropriate places. Base capability claims on implemented features and distinguish observations, illustrative examples and measured results. The old career/skill-stack positioning is retired.
+
 The user prefers editing through GitHub and running builds/deployments in the cloud. Vercel builds `main` automatically; `npm run build` also bundles both 3D source entries. Cloud reports run through GitHub Actions and data refresh through Supabase scheduling. Do not require this Mac to stay on.
 
 Keep the local checkout lean. Reinstall dependencies or create large caches only when necessary for the requested work, then clean reproducible caches after successful cloud verification. Original asset exports must be backed up and hash-verified remotely before local removal. Recovery instructions and the backup release are documented in `docs/cloud-operations.md`. Never include `.env*`, account screenshots or credentials in a backup/release.
