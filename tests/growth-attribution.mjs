@@ -10,6 +10,8 @@ assert.equal(core.sourceOf('','unknown-ai').source,'direct_unknown');
 assert.equal(core.sourceOf('accounts.google.com').source,'direct_unknown');
 assert.equal(core.publicPath('/auth/confirm?token_hash=secret'),'/other');
 assert.equal(core.publicPath('/blog?email=private@example.com'),'/blog');
+assert.equal(core.publicPath('/blog/trading-habit-discipline-tools-2026?utm_source=chatgpt'),'/blog/trading-habit-discipline-tools-2026');
+assert.equal(core.publicPath('/blog/private-token-example'),'/other');
 const now=new Date().toISOString(),touch={source:'chatgpt',evidence:'referrer',path:'/blog',at:now};
 assert.equal(core.mergeAttribution({first:touch,last:touch},{source:'direct_unknown',evidence:'none',path:'/pricing',at:now}).last.source,'chatgpt');
 assert.equal(core.billingStage('invoice.paid',{status:'paid',amount_paid:0}),undefined);

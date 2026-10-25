@@ -18,7 +18,7 @@ export function sourceOf(host: unknown, utm: unknown): Pick<Touch, 'source' | 'e
 export function publicPath(value: unknown): string {
   if (typeof value !== 'string') return '/';
   const path = value.split(/[?#]/)[0];
-  return /^\/(?:blog|product|about|faq|methodology|pricing|privacy|auth|trading-discipline-app|follow-your-trading-plan|trading-plan-checklist)?$/.test(path) ? path : '/other';
+  return /^\/(?:blog(?:\/(?:trading-habit-discipline-tools-2026|trading-profitability-discipline-routine))?|product|about|faq|methodology|pricing|privacy|auth|trading-discipline-app|follow-your-trading-plan|trading-plan-checklist)?$/.test(path) ? path : '/other';
 }
 export function mergeAttribution(previous: Attribution | undefined, touch: Touch, now = Date.now()): Attribution {
   if (!previous) return {first:touch,last:touch};

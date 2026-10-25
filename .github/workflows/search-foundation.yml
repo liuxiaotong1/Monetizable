@@ -7,6 +7,10 @@ on:
       - 'src/components/marketing/**'
       - 'src/app/[slug]/**'
       - 'src/app/blog/**'
+      - 'src/app/feed.xml/**'
+      - 'src/data/trading-posts.json'
+      - 'content/blog/**'
+      - 'tests/blog-posts.mjs'
       - 'src/components/account/account-shell.tsx'
       - 'src/app/page.tsx'
       - 'src/app/layout.tsx'
@@ -35,6 +39,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node tests/search-foundation.mjs
+      - run: node tests/blog-posts.mjs
       - run: node tests/growth-attribution.mjs
       - run: node tests/pro-plans.mjs
       - run: node tests/learning-card-ux.mjs
