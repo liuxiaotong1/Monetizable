@@ -61,3 +61,10 @@ body { padding-top: env(safe-area-inset-top, 0px); }
   .pwa-guide-actions { grid-template-columns: 1fr; }
   .pwa-guide-actions button { min-height: 40px; }
 }
+
+/* In installed PWAs, the sticky account header must stop below the iOS status bar. */
+@media (display-mode: standalone) {
+  .account-bar {
+    top: env(safe-area-inset-top, 0px);
+  }
+}
