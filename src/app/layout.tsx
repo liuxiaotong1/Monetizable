@@ -5,7 +5,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./account.css";
 import "./cream-arcade.css";
+import "./pwa.css";
 import AnalyticsTracker from "@/components/account/analytics";
+import PwaPushGuide from "@/components/pwa/pwa-push-guide";
 import {positioning} from '@/lib/marketing/positioning';
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
@@ -67,6 +69,7 @@ export default async function RootLayout({
       <body>
         <LocaleProvider locale={locale}>{children}</LocaleProvider>
         <AnalyticsTracker internal={isAdmin(await currentUser())} />
+        <PwaPushGuide />
       </body>
     </html>
   );

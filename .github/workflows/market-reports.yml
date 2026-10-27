@@ -42,3 +42,13 @@ jobs:
           else
             node scripts/cloud-report.mjs
           fi
+
+      - name: Send the one-hour pre-market quest reminder
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $QUEST_REPORT_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            https://getmonetizable.com/api/push/premarket
