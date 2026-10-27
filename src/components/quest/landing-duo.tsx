@@ -25,7 +25,7 @@ export default function LandingDuo({state}:{state:QuestState}){
   const pulse=setTimeout(()=>setCursor(v=>({...v,click:phase!==6})),Math.max(700,delay-350));
   const timer=setTimeout(()=>{switch(phase){case 0:pickHero('female');break;case 1:setDirection(0);break;case 2:setReason(1);break;case 3:setSealed(true);break;case 4:setStep(2);break;case 5:setBossPick(0);break;case 6:setStep(3);break;case 7:setAnswer(1);break;case 8:setStep(4);break;case 9:restart();return}setPhase(v=>v+1)},delay);
   return()=>{clearTimeout(pulse);clearTimeout(timer)};
- },[phase,visible,pageVisible,battleDone,portraitsReady]);
+ },[phase,visible,pageVisible,portraitsReady]);
  return <section ref={root} id="landing-product-demo" className="landing-demo" aria-label={c.role} translate="no" data-demo-step={step}>
   <header className="landing-demo-header"><small>✦ {c.tag}</small><strong>{c.title}</strong></header>
   <div className={`demo-scripted ${step===4?'is-complete':''}`} inert={step<4}><nav className="demo-step-nav" aria-label={c.role}>{c.steps.map((label,i)=><span className="demo-step-label" key={label} aria-current={step===i?'step':undefined}><span>{i+1}</span>{label}</span>)}</nav>
