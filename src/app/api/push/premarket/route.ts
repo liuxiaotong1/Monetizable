@@ -119,7 +119,7 @@ export async function POST(request: Request) {
         [row.id, date]
       );
       if (!claim.rows.length) continue;
-      const locale = row.locale === "fr" || row.locale === "zh" ? row.locale : "en";
+      const locale: keyof typeof messages = row.locale === "fr" ? "fr" : row.locale === "zh" ? "zh" : "en";
       try {
         await webpush.sendNotification(
           { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
