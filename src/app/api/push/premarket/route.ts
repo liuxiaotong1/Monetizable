@@ -89,7 +89,9 @@ export async function POST(request: Request) {
   if (!isMarketDay(date, clock.weekday)) {
     return NextResponse.json({ ok: true, status: "market-closed" });
   }
-  if (!process.env.WEB_PUSH_VAPID_PUBLIC_KEY || !process.env.WEB_PUSH_VAPID_PRIVATE_KEY) {
+  const vapidPublicKey = process.env.WEB_PUSH_VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
+  if (!vapidPublicKey || !vapidPrivateKey) {
     return NextResponse.json({ error: "Push signing is not configured." }, { status: 503 });
   }
 
@@ -107,8 +109,8 @@ export async function POST(request: Request) {
     };
     webpush.setVapidDetails(
       process.env.WEB_PUSH_VAPID_SUBJECT || "https://getmonetizable.com",
-      process.env.WEB_PUSH_VAPID_PUBLIC_KEY,
-      process.env.WEB_PUSH_VAPID_PRIVATE_KEY
+      vapidPublicKey,
+      vapidPrivateKey
     );
     let sent = 0, expired = 0, failed = 0;
     for (const row of rows) {

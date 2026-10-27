@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Send the one-hour pre-market quest reminder
-        if: always()
+        if: always() && github.event_name == 'schedule'
         run: |
           curl --fail --silent --show-error \
             --request POST \

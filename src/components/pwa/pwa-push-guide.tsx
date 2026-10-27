@@ -79,6 +79,7 @@ function decodeVapidKey(value: string) {
 }
 export default function PwaPushGuide() {
   const [visible, setVisible] = useState(false);
+  const [language, setLanguage] = useState<Locale>("en");
   const [installed, setInstalled] = useState(false);
   const [manual, setManual] = useState(false);
   const [pushKey, setPushKey] = useState("");
@@ -86,10 +87,10 @@ export default function PwaPushGuide() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
-  const language = locale();
   const text = words[language];
 
   useEffect(() => {
+    setLanguage(locale());
     const isInstalled = installedApp();
     setInstalled(isInstalled);
     if (!localStorage.getItem("monetizable-pwa-guide-dismissed-v1")) {
