@@ -7,12 +7,11 @@ import InViewReveal from './in-view-reveal';
 import {landingDemoCopy} from './landing-demo-copy';
 import './landing-duo.css';
 export default function LandingDuo({state}:{state:QuestState}){
- const locale=useLocale(),c=landingDemoCopy[locale],frame=useRef<HTMLIFrameElement>(null),root=useRef<HTMLElement>(null);
+ const locale=useLocale(),c=landingDemoCopy[locale],root=useRef<HTMLElement>(null);
  const [portraitsReady,setPortraitsReady]=useState(0),[visible,setVisible]=useState(false),[pageVisible,setPageVisible]=useState(true),[phase,setPhase]=useState(0),[cursor,setCursor]=useState({x:45,y:180,click:false});
  const [step,setStep]=useState(0),[hero,setHero]=useState<HeroId|null>(null),[direction,setDirection]=useState<number|null>(null),[reason,setReason]=useState(0),[sealed,setSealed]=useState(false),[bossPick,setBossPick]=useState<number|null>(null),[answer,setAnswer]=useState<number|null>(null);
  const bars=state.bars.filter(b=>b.symbol==='QQQ').sort((a,b)=>a.date.localeCompare(b.date)).slice(-20),low=Math.min(...bars.map(b=>b.close)),high=Math.max(...bars.map(b=>b.close));
  const points=bars.map((b,i)=>`${8+i/Math.max(1,bars.length-1)*304},${88-(b.close-low)/Math.max(.01,high-low)*65}`).join(' ');
- const outcome=bossPick===0?'win':'loss';
  function pickHero(value:HeroId){setHero(value);setStep(1)}
  function restart(){setPhase(0);setStep(0);setHero(null);setDirection(null);setSealed(false);setBossPick(null);setAnswer(null)}
 
