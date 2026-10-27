@@ -1,0 +1,63 @@
+body { padding-top: env(safe-area-inset-top, 0px); }
+.pwa-guide {
+  position: fixed;
+  z-index: 120;
+  right: max(18px, env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: min(360px, calc(100vw - 32px));
+  padding: 18px 18px 16px;
+  border: 1px solid #c9a95f;
+  border-radius: 20px;
+  color: #342f20;
+  background: rgba(255, 250, 237, .97);
+  box-shadow: 0 16px 44px rgba(64, 48, 19, .2), 0 4px 0 rgba(174, 133, 49, .22);
+  backdrop-filter: blur(14px);
+}
+.pwa-guide-mark {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  color: #a77b2d;
+  font-size: 19px;
+}
+.pwa-guide-copy { display: grid; gap: 4px; padding: 0 26px 12px 28px; }
+.pwa-guide-copy strong { font: 700 15px/1.35 var(--font-sans); }
+.pwa-guide-copy span { color: #766a50; font-size: 12px; line-height: 1.5; }
+.pwa-guide-close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #766a50;
+  background: transparent;
+  font-size: 21px;
+}
+.pwa-guide-close:hover { background: #eadcb8; }
+.pwa-guide-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pwa-guide-actions button {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #c7a657;
+  border-radius: 13px;
+  background: linear-gradient(#ffeeb7, #f3d991);
+  color: #4d3b18;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #c5a04f;
+}
+.pwa-guide-actions .pwa-guide-push { background: #fffdf6; }
+.pwa-guide-actions .pwa-guide-stop { grid-column: 1 / -1; min-height: 34px; padding: 4px 8px; }
+.pwa-guide-actions button:disabled { opacity: .65; cursor: wait; }
+.pwa-guide-tip { margin: 12px 2px 0; color: #655536; font-size: 12px; line-height: 1.55; }
+@media (max-width: 640px) {
+  .pwa-guide {
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+    width: min(350px, calc(100vw - 24px));
+    padding: 15px 14px 13px;
+  }
+  .pwa-guide-actions { grid-template-columns: 1fr; }
+  .pwa-guide-actions button { min-height: 40px; }
+}
