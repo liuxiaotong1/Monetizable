@@ -1,32 +1,30 @@
-export const growthCookie = 'quest-growth-visitor';
-export const internalCookie = 'quest-analytics-internal';
-export const sources = ['chatgpt', 'perplexity', 'claude', 'copilot', 'gemini', 'google_search', 'bing_search', 'other_referral', 'direct_unknown'] as const;
-export type GrowthSource = typeof sources[number];
-export type Touch = {source: GrowthSource; evidence: 'referrer' | 'utm' | 'none'; path: string; at: string};
-export type Attribution = {first: Touch; last: Touch; internal?: boolean; visitor?: string; userId?: string};
-const aiHosts: Record<string, GrowthSource> = {'chatgpt.com':'chatgpt','chat.openai.com':'chatgpt','perplexity.ai':'perplexity','claude.ai':'claude','copilot.microsoft.com':'copilot','gemini.google.com':'gemini'};
-const utmSources: Record<string, GrowthSource> = {...aiHosts, chatgpt:'chatgpt',perplexity:'perplexity',claude:'claude',copilot:'copilot',gemini:'gemini',google:'google_search',bing:'bing_search'};
-export function sourceOf(host: unknown, utm: unknown): Pick<Touch, 'source' | 'evidence'> {
-  const h = typeof host === 'string' ? host.toLowerCase().replace(/^www\./, '') : '';
-  for (const [domain, source] of Object.entries(aiHosts)) if (h === domain || h.endsWith('.' + domain)) return {source, evidence:'referrer'};
-  if (/^google\.(com|fr|co\.uk|de|ca|com\.au)$/.test(h)) return {source:'google_search',evidence:'referrer'};
-  if (h === 'bing.com' || h.endsWith('.bing.com')) return {source:'bing_search',evidence:'referrer'};
-  if (typeof utm === 'string' && utmSources[utm.toLowerCase()]) return {source:utmSources[utm.toLowerCase()],evidence:'utm'};
-  if (h && h !== 'getmonetizable.com' && !h.endsWith('.getmonetizable.com') && h !== 'accounts.google.com' && h !== 'checkout.stripe.com' && h !== 'billing.stripe.com') return {source:'other_referral',evidence:'referrer'};
-  return {source:'direct_unknown',evidence:'none'};
-}
-export function publicPath(value: unknown): string {
-  if (typeof value !== 'string') return '/';
-  const path = value.split(/[?#]/)[0];
-  return /^\/(?:blog(?:\/(?:trading-habit-discipline-tools-2026|trading-profitability-discipline-routine))?|product|about|faq|methodology|pricing|privacy|auth|trading-discipline-app|follow-your-trading-plan|trading-plan-checklist)?$/.test(path) ? path : '/other';
-}
-export function mergeAttribution(previous: Attribution | undefined, touch: Touch, now = Date.now()): Attribution {
-  if (!previous) return {first:touch,last:touch};
-  // Direct returns preserve the last evidenced touch for a 30-day attribution window.
-  const expired = now - Date.parse(previous.last.at) > 30 * 86400_000;
-  return {...previous,last:touch.source !== 'direct_unknown' || expired ? touch : previous.last};
-}
-export function billingStage(type: string, obj: {amount_paid?: number; status?: string; billing_reason?: string}): 'checkout_completed' | 'paid' | undefined {
-  if (type === 'invoice.paid' && obj.status === 'paid' && Number.isSafeInteger(obj.amount_paid) && obj.amount_paid! > 0) return 'paid';
-  if (type === 'checkout.session.completed' || type === 'checkout.session.async_payment_succeeded') return 'checkout_completed';
-}
+І·?–&я™ЄдzШ§ѓц­¶ё›єШЁћЫ^ЬќЫЫњЭЬ›ЭЭЫЫЪЪYHH	Ь]Y\ЭYЬ›ЭЭ]љ\Ъ]Ь‰ОВ™^ЬќЫЫњЭ[ќ\›[ЫЫЪЪYHH	Ь]Y\ЭX[[]XЬЛZ[ќ\›[	ОВ™^ЬќЫЫњЭЫЭ\Щ\ИHЙШЪ]Ь	Л	Ь\њ^]IЛ	ШЫ]YIЛ	ШЫЬ[Э	Л	ЩЩ[Z[љIЛ	ЩЫЫЩЫWЬЩX\Ъ	Л	Шљ[™ЧЬЩX\Ъ	Л	ЫЭ\—Ь™Y™\њ[	Л	Щ\™XЭЭ[љЫ›ЭЫ‰ЧH\ИЫЫњЭВ™^Ьќ\HЬ›ЭЭЫЭ\ЩHH\[Щ€ЫЭ\Щ\ЦЫќ[X™\—NВ™^Ьќ\HЭXЪHЬЫЭ\ЩN€Ь›ЭЭЫЭ\ЩNИ]љY[ЩN€	Ь™Y™\њ™\‰И	Э]IИ	Ы›Ы™IОИ]€Эљ[™ОИ]€Эљ[™ЯNВ™^Ьќ\H]љXќ][Ы€HЩљ\њЭ€ЭXЪИ\Э€ЭXЪИ[ќ\›[О€›ЫЫX[ЋИљ\Ъ]ЬЏО€Эљ[™ОИ\Щ\’YО€Эљ[™ЯNВЫЫњЭZRЬЭО€™XЫЬ™Эљ[™ЛЬ›ЭЭЫЭ\ЩO€HЙШЪ]ЬЫЫIО‰ШЪ]Ь	Л	ШЪ]›Ь[ZKЫЫIО‰ШЪ]Ь	Л	Ь\њ^]KZIО‰Ь\њ^]IЛ	ШЫ]YKZIО‰ШЫ]YIЛ	ШЫЬ[Э›ZXЬ›ЬЫЩќЫЫIО‰ШЫЬ[Э	Л	ЩЩ[Z[љK™ЫЫЩЫKЫЫIО‰ЩЩ[Z[љIЯNВЫЫњЭ]TЫЭ\Щ\О€™XЫЬ™Эљ[™ЛЬ›ЭЭЫЭ\ЩO€HЛ‹‹ZRЬЭЛЪ]Ь‰ШЪ]Ь	Л\њ^]N‰Ь\њ^]IЛЫ]YN‰ШЫ]YIЛЫЬ[Э‰ШЫЬ[Э	ЛЩ[Z[љN‰ЩЩ[Z[љIЛЫЫЩЫN‰ЩЫЫЩЫWЬЩX\Ъ	Лљ[™О‰Шљ[™ЧЬЩX\Ъ	ЯNВ™^Ьќќ[Э[Ы€ЫЭ\ЩSЩЉЬЭ€[љЫ›ЭЫ‹]N€[љЫ›ЭЫЉN€XЪПЭXЪ	ЬЫЭ\ЩIИ	Щ]љY[ЩIП€В€ЫЫњЭH\[Щ€ЬЭOOH	ЬЭљ[™ЙИИЬЭќУЭЩ\ђШ\ЩJ
+Kњ™\XЩJЧќЭЭЧ‹Л	ЙКH€	ЙОВ€›Ь€
+ЫЫњЭЩЫXZ[‹ЫЭ\ЩWHЩ€Шљ™XЭ™[ќљY\КZRЬЭКJHY€
+OOHЫXZ[€™[™ХЪ]
+	Л‰И
+ИЫXZ[ЉJH™]\›€ЬЫЭ\ЩK]љY[ЩN‰Ь™Y™\њ™\‰ЯNВ€Y€
+Ч™ЫЫЩЫWЉЫЫ_њџЫЧќZЯ_Ш_ЫЫW]JIЛќ\Э
+
+JH™]\›€ЬЫЭ\ЩN‰ЩЫЫЩЫWЬЩX\Ъ	Л]љY[ЩN‰Ь™Y™\њ™\‰ЯNВ€Y€
+OOH	Шљ[™ЛЫЫIИ™[™ХЪ]
+	Лљ[™ЛЫЫIКJH™]\›€ЬЫЭ\ЩN‰Шљ[™ЧЬЩX\Ъ	Л]љY[ЩN‰Ь™Y™\њ™\‰ЯNВ€Y€
+\[Щ€]HOOH	ЬЭљ[™ЙИ	‰€]TЫЭ\Щ\ЦЭ]KќУЭЩ\ђШ\ЩJ
+WJH™]\›€ЬЫЭ\ЩNќ]TЫЭ\Щ\ЦЭ]KќУЭЩ\ђШ\ЩJ
+WK]љY[ЩN‰Э]IЯNВ€Y€
+	‰€OOH	ЩЩ][Ы™]^X›KЫЫIИ	‰€Z™[™ХЪ]
+	Л™Щ][Ы™]^X›KЫЫIКH	‰€OOH	ШXШЫЭ[ќЛ™ЫЫЩЫKЫЫIИ	‰€OOH	ШЪXЪЫЭ]њЭљ\KЫЫIИ	‰€OOH	Шљ[[™ЛњЭљ\KЫЫIКH™]\›€ЬЫЭ\ЩN‰ЫЭ\—Ь™Y™\њ[	Л]љY[ЩN‰Ь™Y™\њ™\‰ЯNВ€™]\›€ЬЫЭ\ЩN‰Щ\™XЭЭ[љЫ›ЭЫ‰Л]љY[ЩN‰Ы›Ы™IЯNВџB™^Ьќќ[Э[Ы€X›XФ]
+[YN€[љЫ›ЭЫЉN€Эљ[™ИВ€Y€
+\[Щ€[YHOOH	ЬЭљ[™ЙКH™]\›€	ЛЙОВ€ЫЫњЭ]H[YKњЬ]
+ЦПИЧKКVМNВ€™]\›€Ч—КО›ЩКО—КОќY[™ЛZXљ]Y\ШЪ\[™K]ЫЫЛLЊЌџY[™Л\›Щљ]Xљ[]KY\ШЪ\[™K\›Э][™_ЭЛ]Л\™\\™KY›Ь‹XЬKY^K]Y\ЉJOЯ›ЩXЭX›Э]\_Y]ЩЫЩЮ_љXЪ[™Яљ]XЮ_]]Y[™ЛY\ШЪ\[™KX\›ЫЭЛ^[Э\‹]Y[™Л\[џY[™Л\[‹XЪXЪЫ\Э
+OЙЛќ\Э
+]
+HИ]€	ЛЫЭ\‰ОВџB™^Ьќќ[Э[Ы€Y\™ЩP]љXќ][ЫЉ™]љ[Э\О€]љXќ][Ы€[™Yљ[™YЭXЪ€ЭXЪ›ЭИH]K››ЭК
+JN€]љXќ][Ы€В€Y€
+\™]љ[Э\КH™]\›€Щљ\њЭќЭXЪ\ЭќЭXЪNВ€ЛИ\™XЭ™]\›њИ™\Щ\ќ™HH\Э]љY[ЩYЭXЪ›Ь€HМY^H]љXќ][Ы€Ъ[™ЭЛ‚€ЫЫњЭ^\™YH›ЭИH]Kњ\њЩJ™]љ[Э\Л›\Э]
+H€М
+€ЌМВ€™]\›€Л‹‹њ™]љ[Э\Л\ЭќЭXЪњЫЭ\ЩHOOH	Щ\™XЭЭ[љЫ›ЭЫ‰И^\™YИЭXЪ€™]љ[Э\Л›\ЭNВџB™^Ьќќ[Э[Ы€љ[[™ФЭYЩJ\N€Эљ[™ЛШљЋ€Ш[[Э[ќЬZYО€ќ[X™\ЋИЭ]\ПО€Эљ[™ОИљ[[™ЧЬ™X\ЫЫЏО€Эљ[™ЯJN€	ШЪXЪЫЭ]ШЫЫ\]Y	И	ЬZY	И[™Yљ[™YВ€Y€
+\HOOH	Ъ[ќ›ЪXЩKњZY	И	‰€Шљ‹њЭ]\ИOOH	ЬZY	И	‰€ќ[X™\‹љ\ФШY™R[ќYЩ\ЉШљ‹[[Э[ќЬZY
+H	‰€Шљ‹[[Э[ќЬZYH€
+H™]\›€	ЬZY	ОВ€Y€
+\HOOH	ШЪXЪЫЭ]њЩ\ЬЪ[Ы‹ЫЫ\]Y	И\HOOH	ШЪXЪЫЭ]њЩ\ЬЪ[Ы‹\Ю[ЧЬ^[Y[ќЬЭXШЩYYY	КH™]\›€	ШЪXЪЫЭ]ШЫЫ\]Y	ОВџB
