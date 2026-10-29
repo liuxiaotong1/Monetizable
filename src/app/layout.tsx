@@ -8,7 +8,8 @@ import "./cream-arcade.css";
 import "./pwa.css";
 import AnalyticsTracker from "@/components/account/analytics";
 import PwaPushGuide from "@/components/pwa/pwa-push-guide";
-import {positioning} from '@/lib/marketing/positioning';
+import { rememberAccountLocale } from "@/lib/push/account-locale";
+import { positioning } from '@/lib/marketing/positioning';
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
   alternates: { canonical: "https://getmonetizable.com" },
@@ -63,7 +64,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale=await requestLocale(isAdmin(await currentUser()));
+  const user = await currentUser();
+  const locale = await requestLocale(isAdmin(user));
+  if (user) { try { await rememberAccountLocale(user.id, locale); } catch { /* The page still opens if account storage is briefly unavailable. */ } }
   return (
     <html lang={locale==='zh'?'zh-CN':locale}>
       <body>

@@ -33,6 +33,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  const todayLocked=state.trackingWeeks?.flatMap(w=>w.days).find(d=>d.date===state.session.date)?.judgment;
  const targetSession=predictionSession(state); const judgment=state.judgment; const review=state.reviews[0]; const finishedCards=state.dailyCardIds.filter(id=>state.progress.some(p=>p.cardId===id&&answeredOn(p.lastDispositionAt,state.session.date))).length;
  useEffect(()=>{const draft=readPredictionDraft();if(draft&&draft.date===targetSession.date&&!judgment){setDirection(draft.direction);setConfidence(draft.confidence);setReason(draft.reason);}},[targetSession.date,judgment]);
+ useEffect(()=>{const hash=decodeURIComponent(location.hash);if(hash==='#预测'||hash==='#judgment'||hash==='#prediction'||hash==='#prevision')document.getElementById('judgment')?.scrollIntoView({behavior:'smooth',block:'start'});},[]);
  const pending=pendingJudgment(state);
  const personalReview=!!review&&typeof review.matched==="boolean";
  const adventureStage=useAdventureStage();
@@ -67,7 +68,7 @@ function HeroReview({review,state,onNotes}:{review:Review;state:ViewProps["state
  const labels=locale==="zh"?{review:"查看 AI 复盘",unlocked:"复盘关卡已解锁。和伙伴一起拆解市场线索，装备下一关。"}:locale==="fr"?{review:"Voir le bilan IA",unlocked:"Le bilan est débloqué. Décodez les indices avec votre partenaire et préparez la prochaine quête."}:{review:"View AI debrief",unlocked:"Debrief unlocked. Decode the clues with your partner and equip your next quest."};
  const correct=review.matched===true;
  const [showFacts,setShowFacts]=useState(!correct);
- useEffect(()=>{if(location.hash!=='#hero-review-facts'&&location.hash!=='#review')return;setShowFacts(true);const frame=requestAnimationFrame(()=>document.getElementById('hero-review-facts')?.scrollIntoView({behavior:'smooth',block:'start'}));return()=>cancelAnimationFrame(frame);},[]);
+ useEffect(()=>{const hash=decodeURIComponent(location.hash);if(hash!=='#hero-review-facts'&&hash!=='#review'&&hash!=='#bilan'&&hash!=='#复盘')return;setShowFacts(true);const frame=requestAnimationFrame(()=>document.getElementById('hero-review-facts')?.scrollIntoView({behavior:'smooth',block:'start'}));return()=>cancelAnimationFrame(frame);},[]);
  const reveal=useCallback(()=>setShowFacts(true),[]);
  return <LocalizeTree>{<section className={`hero-report ${correct?"verified":""}`} aria-label="收盘战报">
   <div className="hero hero-yelan">

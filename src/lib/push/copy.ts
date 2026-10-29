@@ -23,17 +23,19 @@ export function eventName(event: { kind: string; symbol?: string }, locale: Push
     NFP: { zh: '美国非农就业报告', en: 'US jobs report', fr: 'rapport sur l’emploi américain' },
     FOMC: { zh: '美联储利率决议', en: 'Federal Reserve decision', fr: 'décision de la Réserve fédérale' },
   };
-  return names[event.kind]?.[locale] || (locale === 'zh' ? '重要数据' : locale === 'fr' ? 'publication majeure' : 'major release');
+  const fallback: Record<PushLocale, string> = { zh: '重要数据', fr: 'publication majeure', en: 'major release' };
+  return names[event.kind]?.[locale] ?? fallback[locale];
 }
 
 export function eventClock(at: string, locale: PushLocale) {
   const date = new Date(at);
   const language = locale === 'zh' ? 'zh-CN' : locale === 'fr' ? 'fr-FR' : 'en-US';
-  const paris = new Intl.DateTimeFormat(language, { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
-  const et = new Intl.DateTimeFormat(language, { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
-  if (locale === 'zh') return `${paris} 巴黎 / ${et} 美东`;
-  if (locale === 'fr') return `${paris} (Paris) / ${et} ET`;
-  return `${paris} Paris / ${et} ET`;
+  const clock = (timeZone: string) => new Intl.DateTimeFormat(language, { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+  const paris = clock('Europe/Paris');
+  const eastern = clock('America/New_York');
+  if (locale === 'zh') return `${paris} 巴黎 / ${eastern} 美东`;
+  if (locale === 'fr') return `${paris} (Paris) / ${eastern} (heure de l’Est)`;
+  return `${paris} Paris / ${eastern} ET`;
 }
 
 const lines: Record<PushCategory, Record<CompanionId, Record<PushLocale, string>>> = {

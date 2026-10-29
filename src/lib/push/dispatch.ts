@@ -4,8 +4,9 @@ import { foundationFeed } from "@/lib/quest/public-source";
 import { refreshEventData } from "@/lib/quest/data-refresh";
 import { ensureWebPushStore } from "./store";
 import { vapidConfig } from "./vapid";
-import { DAILY_CAP, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, normalizeLocale, planNotifications, safeTimeZone, type PushEvent, type PushJudgment, type PushPlan, type PushProgress } from "./schedule";
+import { DAILY_CAP, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, planNotifications, reminderHref, safeTimeZone, type PushEvent, type PushJudgment, type PushPlan, type PushProgress } from "./schedule";
 import { notificationBody, companionName, eventClock, eventName, PUSH_ICON, type PushCategory } from "./copy";
+import { resolveReminderLocale } from "./locale";
 
 export interface DispatchResult {
   ok: true;
@@ -25,7 +26,8 @@ interface SubscriptionRow {
   time_zone: string | null;
   categories: unknown;
   knowledge_time: string | null;
-  user_id: string;
+  user_id: string | null;
+  account_locale: string | null;
   record: unknown;
   updated_at: string | null;
 }
@@ -78,8 +80,15 @@ async function deliver(client: WebPush, row: SubscriptionRow, plan: PushPlan, co
     `INSERT INTO public.web_push_deliveries(subscription_id, user_id, category, slot, sent_on)
      SELECT $1, $2, $3, $4, $5::date
      WHERE $4 LIKE 'test:%'
-        OR EXISTS (SELECT 1 FROM public.web_push_deliveries WHERE user_id = $2 AND slot = $4)
-        OR (SELECT count(DISTINCT slot) FROM public.web_push_deliveries WHERE user_id = $2 AND sent_on = $5::date AND slot NOT LIKE 'test:%') < $6
+        OR EXISTS (
+          SELECT 1 FROM public.web_push_deliveries
+          WHERE slot = $4 AND (($2::uuid IS NOT NULL AND user_id = $2) OR ($2::uuid IS NULL AND subscription_id = $1))
+        )
+        OR (
+          SELECT count(DISTINCT slot) FROM public.web_push_deliveries
+          WHERE sent_on = $5::date AND slot NOT LIKE 'test:%'
+            AND (($2::uuid IS NOT NULL AND user_id = $2) OR ($2::uuid IS NULL AND subscription_id = $1))
+        ) < $6
      ON CONFLICT (subscription_id, slot) DO NOTHING
      RETURNING id`,
     [row.id, row.user_id, plan.category, plan.slot, plan.sentOn, DAILY_CAP],
@@ -110,45 +119,48 @@ export async function dispatchPush(now = new Date()): Promise<DispatchResult | {
   await ensureWebPushStore();
   const db = database();
   const { rows } = await db.query(
-    `SELECT s.id, s.endpoint, s.p256dh, s.auth, s.locale, s.companion, s.time_zone, s.categories, s.knowledge_time, s.user_id, s.updated_at, p.record
+    `SELECT s.id, s.endpoint, s.p256dh, s.auth, s.locale, s.companion, s.time_zone, s.categories, s.knowledge_time, s.user_id, s.updated_at, p.locale AS account_locale, p.record
      FROM public.web_push_subscriptions s
      LEFT JOIN public.quest_profiles p ON p.user_id = s.user_id
-     WHERE s.user_id IS NOT NULL
      ORDER BY s.updated_at DESC NULLS LAST, s.id`,
   );
   const subscriptions = rows as SubscriptionRow[];
   if (!subscriptions.length) return { ok: true, sent: 0, expired: 0, failed: 0, skipped: 0 };
   const context = await loadPushContext(now);
   const usage = await db.query(
-    `SELECT user_id, to_char(sent_on, 'YYYY-MM-DD') AS sent_on, count(DISTINCT slot) FILTER (WHERE slot NOT LIKE 'test:%')::int AS sent
+    `SELECT COALESCE(user_id::text, 'guest:' || subscription_id::text) AS owner, to_char(sent_on, 'YYYY-MM-DD') AS sent_on,
+            count(DISTINCT slot) FILTER (WHERE slot NOT LIKE 'test:%')::int AS sent
      FROM public.web_push_deliveries
      WHERE sent_on BETWEEN (CURRENT_DATE - 2) AND (CURRENT_DATE + 2)
-     GROUP BY user_id, sent_on`,
+     GROUP BY 1, sent_on`,
   );
   const counts = new Map<string, number>();
-  for (const row of usage.rows) counts.set(`${row.user_id}:${row.sent_on}`, Number(row.sent));
+  for (const row of usage.rows) counts.set(`${row.owner}:${row.sent_on}`, Number(row.sent));
   const sentSlots = await db.query(
-    `SELECT user_id, slot FROM public.web_push_deliveries WHERE sent_on BETWEEN (CURRENT_DATE - 2) AND (CURRENT_DATE + 2) AND slot NOT LIKE 'test:%'`,
+    `SELECT COALESCE(user_id::text, 'guest:' || subscription_id::text) AS owner, slot
+     FROM public.web_push_deliveries WHERE sent_on BETWEEN (CURRENT_DATE - 2) AND (CURRENT_DATE + 2) AND slot NOT LIKE 'test:%'`,
   );
   const known = new Map<string, Set<string>>();
   for (const row of sentSlots.rows) {
-    const set = known.get(row.user_id) || new Set<string>();
+    const set = known.get(row.owner) || new Set<string>();
     set.add(row.slot);
-    known.set(row.user_id, set);
+    known.set(row.owner, set);
   }
 
   const byUser = new Map<string, SubscriptionRow[]>();
   for (const row of subscriptions) {
-    const list = byUser.get(row.user_id) || [];
+    const owner = row.user_id || `guest:${row.id}`;
+    const list = byUser.get(owner) || [];
     list.push(row);
-    byUser.set(row.user_id, list);
+    byUser.set(owner, list);
   }
 
   const result: DispatchResult = { ok: true, sent: 0, expired: 0, failed: 0, skipped: 0 };
   for (const [userId, devices] of byUser) {
     const prefs = devices[0];
     const record = recordParts(prefs.record);
-    const locale = normalizeLocale(prefs.locale);
+    const signedIn = Boolean(prefs.user_id);
+    const locale = resolveReminderLocale({ signedIn, accountLocale: prefs.account_locale, subscriptionLocale: prefs.locale });
     const zone = safeTimeZone(prefs.time_zone);
     const localDate = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
     const plans = planNotifications({
@@ -182,14 +194,14 @@ export async function dispatchPush(now = new Date()): Promise<DispatchResult | {
   return result;
 }
 
-export function testPlan(input: { category: PushCategory; phase?: "eve" | "soon"; locale: ReturnType<typeof normalizeLocale>; companion: ReturnType<typeof normalizeCompanion> }): PushPlan {
+export function testPlan(input: { category: PushCategory; phase?: "eve" | "soon"; locale: ReturnType<typeof resolveReminderLocale>; companion: ReturnType<typeof normalizeCompanion> }): PushPlan {
   const event = input.category === "event" ? { id: "test-cpi", kind: "CPI", at: new Date(Date.now() + 26 * 60 * 60 * 1000).toISOString(), status: "scheduled" } : undefined;
   const icon = PUSH_ICON[input.companion];
   const phase = input.category === "event" ? input.phase || "eve" : undefined;
   const href = input.category === "premarket"
-    ? (input.locale === "zh" ? "/?view=today#judgment" : "/?view=today#en-judgment")
+    ? `/?view=today#${input.locale === "zh" ? "预测" : input.locale === "fr" ? "prevision" : "prediction"}`
     : input.category === "review"
-      ? (input.locale === "zh" ? "/?view=today#hero-review-facts" : "/?view=today#fact-trail-review:test")
+      ? `/?view=today#${input.locale === "zh" ? "复盘" : input.locale === "fr" ? "bilan" : "review"}`
       : input.category === "knowledge"
         ? "/?view=learn"
         : "/?view=events&event=test-cpi";
@@ -207,7 +219,7 @@ export function testPlan(input: { category: PushCategory; phase?: "eve" | "soon"
       eventName: event ? eventName(event, input.locale) : undefined,
       eventTime: event ? eventClock(event.at, input.locale) : undefined,
     }),
-    href,
+    href: reminderHref(input.locale, href),
     icon,
     badge: icon,
     image: icon,
@@ -219,14 +231,18 @@ export async function sendTestPush(userId: string, category: PushCategory, phase
   if (!client) return { ok: false as const, error: "Push signing is not configured." };
   await ensureWebPushStore();
   const { rows } = await database().query(
-    `SELECT id, endpoint, p256dh, auth, locale, companion, time_zone, categories, knowledge_time, user_id, updated_at, NULL::jsonb AS record
-     FROM public.web_push_subscriptions WHERE user_id = $1 ORDER BY updated_at DESC NULLS LAST`,
+    `SELECT s.id, s.endpoint, s.p256dh, s.auth, s.locale, s.companion, s.time_zone, s.categories, s.knowledge_time, s.user_id, s.updated_at, p.locale AS account_locale, p.record
+     FROM public.web_push_subscriptions s
+     LEFT JOIN public.quest_profiles p ON p.user_id = s.user_id
+     WHERE s.user_id = $1
+     ORDER BY s.updated_at DESC NULLS LAST`,
     [userId],
   );
   const devices = rows as SubscriptionRow[];
   if (!devices.length) return { ok: false as const, error: "This account has no notification subscription yet." };
   const prefs = devices[0];
-  const plan = testPlan({ category, phase, locale: normalizeLocale(prefs.locale), companion: normalizeCompanion(prefs.companion) });
+  const locale = resolveReminderLocale({ signedIn: true, accountLocale: prefs.account_locale, subscriptionLocale: prefs.locale });
+  const plan = testPlan({ category, phase, locale, companion: normalizeCompanion(prefs.companion) });
   let sent = 0, expired = 0, failed = 0;
   for (const device of devices) {
     const outcome = await deliver(client, device, plan, new Map());
