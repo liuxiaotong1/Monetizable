@@ -42,6 +42,37 @@ interface Dashboard {
     }[];
   };
 }
+function PushTest() {
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function send(category: string, phase?: string) {
+    setBusy(true);
+    setNote("");
+    try {
+      const response = await fetch("/api/push/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ category, phase }) });
+      const data = await response.json();
+      setNote(response.ok ? `已发到你自己的设备：${data.sent || 0} 条。` : (data.error || "发送失败"));
+    } catch {
+      setNote("发送失败");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section>
+      <h2>给自己发一条测试提醒</h2>
+      <p className="muted">先用这个管理员账户在手机或电脑上开启提醒，再点下面的按钮。提醒只发给你自己。</p>
+      <div className="admin-actions">
+        <button type="button" disabled={busy} onClick={() => void send("premarket")}>盘前预测</button>
+        <button type="button" disabled={busy} onClick={() => void send("review")}>每日复盘</button>
+        <button type="button" disabled={busy} onClick={() => void send("knowledge")}>知识卡牌</button>
+        <button type="button" disabled={busy} onClick={() => void send("event", "eve")}>事件前一晚</button>
+        <button type="button" disabled={busy} onClick={() => void send("event", "soon")}>公布前 1 小时</button>
+      </div>
+      {note && <p role="status">{note}</p>}
+    </section>
+  );
+}
 export default function AdminDashboard() {
   const [data, setData] = useState<Dashboard>(),
     [error, setError] = useState(""),
@@ -267,6 +298,7 @@ export default function AdminDashboard() {
           打开 Stripe 完整记录 ↗
         </a>
       </section>
+      <PushTest />
       <footer className="muted small-text">
         只读管理后台 · 仅已验证的 liuxiaotong268@gmail.com 可访问 ·{" "}
         {metric

@@ -1081,6 +1081,8 @@
   margin-top:12px;
   color:#436E5A;
 }
+.admin-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.admin-actions button { min-height:40px; padding:8px 12px; border-radius:12px; border:1px solid #c7a657; background:#fffdf6; color:#4d3b18; font-weight:700; }
 .admin-shell footer {
   margin-top:30px;
 }

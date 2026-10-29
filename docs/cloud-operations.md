@@ -34,8 +34,15 @@ the existing website and the already configured Telegram recipient.
   failures and a paused Supabase project can still affect availability.
 - The Codex local automation was paused after the 15 October cloud report and
   Telegram delivery were verified. Historical reports remain available.
-- Web Push is not an active subscription service. Browser service-worker support
-  alone does not constitute push delivery. Existing website notices remain in-app.
+- Web Push reminders are opt-in for signed-in accounts. GitHub Actions
+  `web-push.yml` calls `/api/push/dispatch` every 15 minutes with
+  `QUEST_REPORT_TOKEN`. The market-report workflow also calls that endpoint.
+  A 15-minute Vercel Cron is not set, because that frequency can reject the
+  whole deployment on plans limited to daily crons. Set `VAPID_PUBLIC_KEY`,
+  `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in Vercel. Generate a key pair with
+  `npx web-push generate-vapid-keys` and do not commit it. Older
+  `WEB_PUSH_VAPID_*` names still work. `CRON_SECRET` is also accepted.
+  In-app notices stay separate.
 
 Run `node --test tests/cloud-report.test.mjs` for Paris DST, holiday/open-window
 guards and missing/stale-quote handling. `workflow_dispatch` with `check_only`
