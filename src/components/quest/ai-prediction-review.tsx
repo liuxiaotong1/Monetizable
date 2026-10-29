@@ -1,10 +1,11 @@
 "use client";
 import {useCallback,useEffect,useState,type ReactNode} from 'react';
-import {Sparkles,RefreshCw,Target,Lightbulb,Swords,Globe2,Map,Flag,BookOpen,ChevronDown} from 'lucide-react';
+import {Sparkles,RefreshCw,Target,Lightbulb,Swords,Globe2,Map,Flag,BookOpen,ChevronDown,Thermometer} from 'lucide-react';
 import {useLocale} from '@/components/i18n/locale-provider';
 import type {Forecast,Review} from '@/lib/quest/types';
 import type {ReviewMarketContext,CurrentReviewContext} from '@/lib/quest/prediction-review-context';
 import type {ReviewMarketSignals} from '@/lib/quest/review-market-signals';
+import {reviewBossTitle,reviewBossUnit,reviewTemperature} from '@/lib/quest/review-presentation';
 import styles from './ai-prediction-review.module.css';
 type Insight={headline:string;detail:string};
 type BiasFields={tilt:'bullish'|'bearish'|'mixed';conviction:'low'|'medium'|'high';counterpoint:string;invalidation:string};
@@ -30,6 +31,15 @@ function Focus({icon,title,insight,children}:{icon:ReactNode;title:string;insigh
   {insight.invalidation&&<div className={styles.biasNote}><b>{labels.change}</b><p>{insight.invalidation}</p></div>}
  </article>;
 }
+function MarketTemperature({context}:{context:CurrentReviewContext}){
+ const locale=useLocale(),temperature=reviewTemperature(context);
+ const c=locale==='zh'?{title:'市场情绪温度计',basis:'价格趋势温度',date:'收盘截至',cold:'偏防守',hot:'偏进取',pending:'等待新的收盘线索',defensive:'防守气氛更浓',cautious:'市场偏谨慎',balanced:'多空正在拉锯',warming:'风险偏好回暖',riskOn:'市场偏进取',method:'结合短中期涨跌与均线位置，观察资金风险偏好的价格线索。'}
+ :locale==='fr'?{title:'Thermomètre du marché',basis:'Température de tendance des prix',date:'Clôture au',cold:'Défensif',hot:'Dynamique',pending:'En attente de nouveaux cours de clôture',defensive:'Climat plus défensif',cautious:'Marché prudent',balanced:'Acheteurs et vendeurs à égalité',warming:'Appétit pour le risque en reprise',riskOn:'Marché plus offensif',method:'Un repère fondé sur les variations à court et moyen terme et la position face aux moyennes mobiles.'}
+ :{title:'Market sentiment thermometer',basis:'Price-trend temperature',date:'Close as of',cold:'Defensive',hot:'Risk-on',pending:'Awaiting fresh closing clues',defensive:'A more defensive mood',cautious:'A cautious market',balanced:'Buyers and sellers in balance',warming:'Risk appetite is warming',riskOn:'A more risk-on market',method:'A price-based proxy combining short- and medium-term changes with moving-average positions.'};
+ return <aside className={styles.temperature} aria-label={c.title}><h4><Thermometer size={16}/>{c.title}</h4><strong>{c[temperature.level]}</strong>
+ <div className={styles.temperatureTrack} role="img" aria-label={c.basis+': '+c[temperature.level]}>{temperature.level!=='pending'&&<span style={{left:temperature.position+'%'}}/>}</div>
+ <div className={styles.temperatureEnds}><span>{c.cold}</span><span>{c.hot}</span></div><p>{c.method}</p><small>{c.basis} · {c.date} {context.priceAsOf}</small></aside>;
+}
 export default function AIPredictionReview({review,forecast,id,onNotes}:{review:Review;forecast?:Forecast;id?:string;onNotes?:()=>void}){
  const locale=useLocale(),c=copy[locale],snapshot=review.judgmentSnapshot,eligible=!!snapshot?.eligible;
  const requestBody=JSON.stringify({locale,date:review.date,direction:snapshot?.direction,confidence:snapshot?.confidence,reason:snapshot?.reason,lockedAt:snapshot?.lockedAt,threshold:forecast?.threshold??.3,forecastCreatedAt:forecast?.createdAt});
@@ -50,6 +60,7 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
  const sealed=snapshot&&new Intl.DateTimeFormat(language,{hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'}).format(new Date(snapshot.lockedAt));
  const direction=(d:string)=>d==='bullish'?c.bullish:d==='bearish'?c.bearish:c.neutral;
  const eventDate=(at:string)=>new Intl.DateTimeFormat(language,{month:'short',day:'numeric',timeZone:'America/New_York'}).format(new Date(at));
+ const thermometerIndex=report?.currentContext.bosses.findIndex(b=>!b.releaseReaction&&!b.historical)??-1;
  const chosen=forecast?.scenarios.find(s=>s.direction===snapshot?.direction);
  const verified=report?.verified??{matched:review.matched===true,actualDirection:review.actualDirection,close:review.actual.close,returnPct:review.returnPct,low:review.actual.low,high:review.actual.high};
  return <section id={id} className={styles.panel} aria-busy={loading}>
@@ -70,12 +81,13 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
    <InsightText insight={report.marketImpact}/>
    {report.signals&&(report.signals.headlines.length>0||report.signals.expectations.length>0)&&<details className={styles.details}><summary><Globe2 size={15}/>{c.signals} · {report.signals.headlines.length+report.signals.expectations.length}<ChevronDown size={15}/></summary><ul className={styles.signalList}>{report.signals.headlines.map(h=><li key={h.url}><a href={h.url} target="_blank" rel="noopener noreferrer">{h.title} ↗</a><small>{h.source} · {eventDate(h.publishedAt)}</small></li>)}{report.signals.expectations.map(e=><li key={e.url}><a href={e.url} target="_blank" rel="noopener noreferrer">{e.title} ↗</a><small>{e.source} · {e.outcomes.map(o=>o.label+' '+(o.probability*100).toFixed(1)+'%').join(' · ')}</small></li>)}</ul></details>}
 
-   {report.currentContext.bosses.length?<ul className={styles.bossList}>{report.currentContext.bosses.map(boss=><li key={boss.id}><div><span className={styles.bossTag}>{boss.symbol||boss.kind}</span><strong>{boss.title}</strong><small className={styles.scopeTag}>{boss.scope==='new-release'?c.newRelease:c.carryover}</small></div><p>{new Intl.DateTimeFormat(language,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'}).format(new Date(boss.at))} ET{boss.actual!==undefined&&<> · {c.actual} <b>{boss.actual} {boss.unit}</b></>}{boss.consensus!==undefined&&<> · {c.consensus} {boss.consensus}</>}</p>{boss.releaseReaction&&<p>{c.reaction} · {boss.releaseReaction.date} · QQQ <b>{boss.releaseReaction.returnPct>0?'+':''}{boss.releaseReaction.returnPct.toFixed(2)}%</b></p>}{boss.historical&&<p className={styles.history}>{c.sample} · <b>{boss.historical.samples} {c.times}</b><br/>{c.eventMove} {boss.historical.eventDayMeanAbsPct.toFixed(2)}% · {c.nextMove} <b>{boss.historical.nextDayMeanAbsPct.toFixed(2)}%</b></p>}</li>)}</ul>:<p className={styles.emptyBoss}>{c.none}</p>}
+   {report.currentContext.bosses.length?<ul className={styles.bossList}>{report.currentContext.bosses.map((boss,index)=><li key={boss.id}><div><span className={styles.bossTag}>{boss.symbol||boss.kind}</span><strong>{reviewBossTitle(boss,locale)}</strong><small className={styles.scopeTag}>{boss.scope==='new-release'?c.newRelease:c.carryover}</small></div><p>{new Intl.DateTimeFormat(language,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'}).format(new Date(boss.at))} ET{boss.actual!==undefined&&<> · {c.actual} <b>{new Intl.NumberFormat(language,{maximumFractionDigits:3}).format(boss.actual)} {reviewBossUnit(boss.unit,locale)}</b></>}{boss.consensus!==undefined&&<> · {c.consensus} {new Intl.NumberFormat(language,{maximumFractionDigits:3}).format(boss.consensus)}</>}</p>{boss.releaseReaction&&<p>{c.reaction} · {boss.releaseReaction.date} · QQQ <b>{boss.releaseReaction.returnPct>0?'+':''}{boss.releaseReaction.returnPct.toFixed(2)}%</b></p>}{boss.historical&&<p className={styles.history}>{c.sample} · <b>{boss.historical.samples} {c.times}</b><br/>{c.eventMove} {boss.historical.eventDayMeanAbsPct.toFixed(2)}% · {c.nextMove} <b>{boss.historical.nextDayMeanAbsPct.toFixed(2)}%</b></p>}{index===thermometerIndex&&<MarketTemperature context={report.currentContext}/>}</li>)}</ul>:<p className={styles.emptyBoss}>{c.none}</p>}
+   {thermometerIndex<0&&<MarketTemperature context={report.currentContext}/>}
   </section>}
   {report&&<><div className={styles.focusGrid}>
-   <Focus icon={<Globe2 size={17}/>} title={c.macro} insight={report.macro}><div className={styles.factAnchors}>{report.currentContext.bosses.filter(e=>e.kind!=='EARNINGS').slice(0,3).map(e=><span key={e.id}>{e.kind} · {eventDate(e.at)}</span>)}</div></Focus>
-   <Focus icon={<Map size={17}/>} title={c.medium} insight={report.mediumTerm}><div className={styles.factAnchors}>{report.currentContext.priceMap.ma20!==undefined&&<span>MA20 · {money(report.currentContext.priceMap.ma20)}</span>}{report.currentContext.priceMap.ma60!==undefined&&<span>MA60 · {money(report.currentContext.priceMap.ma60)}</span>}</div></Focus>
-   <Focus icon={<Flag size={17}/>} title={c.short} insight={report.shortTerm}><div className={styles.factAnchors}>{report.currentContext.nextBosses.slice(0,2).map(e=><span key={e.kind+e.at+(e.symbol||'')}>{e.symbol||e.kind} · {eventDate(e.at)}</span>)}</div></Focus>
+   <Focus icon={<Globe2 size={17}/>} title={c.macro} insight={report.macro}/>
+   <Focus icon={<Map size={17}/>} title={c.medium} insight={report.mediumTerm}/>
+   <Focus icon={<Flag size={17}/>} title={c.short} insight={report.shortTerm}/>
   </div><article className={styles.mentor}><h3><Lightbulb size={19}/>{c.practice}</h3><InsightText insight={report.practice}/></article></>}
   {forecast&&<details className={styles.details}><summary><BookOpen size={16}/>{c.scenario}<ChevronDown size={15}/></summary><p>{forecast.summary}</p>{chosen&&<><p><strong>{c.forecastRange}：</strong>{money(chosen.low)} — {money(chosen.high)} · {verified.low>=chosen.low&&verified.high<=chosen.high?c.covered:c.uncovered}</p><p><strong>{c.condition}：</strong>{chosen.condition}</p><p><strong>{c.invalidation}：</strong>{chosen.invalidation}</p></>}{report?.currentContext.bosses.map(b=><a key={b.id} href={b.sourceUrl} target="_blank" rel="noopener noreferrer">{b.symbol||b.kind} · {c.source} ↗</a>)}</details>}
   <footer className={styles.footer}><small>{c.footer}</small>{onNotes&&<button type="button" className={styles.retry} onClick={onNotes}><BookOpen size={15}/>{review.completedAt?c.edit:c.notes}</button>}</footer>
