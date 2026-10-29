@@ -13,7 +13,14 @@ export default function Login() {
   const [email, setEmail] = useState(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [newsletter, setNewsletter] = useState(false);
+  const consent = {
+    en: "Send me the Monetizable practice newsletter in the language I choose. I can unsubscribe at any time.",
+    fr: "Envoyez-moi la lettre d’information pratique de Monetizable dans la langue que je choisis. Je peux me désabonner à tout moment.",
+    zh: "请用我选择的语言向我发送 Monetizable 练习通讯。我可以随时退订。",
+  }[locale];
+  const googleHref = "/api/auth/google?next=" + encodeURIComponent(next) + (newsletter ? "&newsletter=1&locale=" + locale : "");
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     let destination=loginDestination(params.get('next'));
@@ -37,7 +44,11 @@ export default function Login() {
         <p>
           {onboarding?c.text:'You need an account to save your learning progress. Sign in or create one to keep your discoveries and predictions across devices.'}
         </p>
-        <a className="google-sign-in" href={'/api/auth/google?next=' + encodeURIComponent(next)}>
+        <label className="newsletter-choice" translate="no">
+          <input type="checkbox" checked={newsletter} onChange={(event) => setNewsletter(event.target.checked)} />
+          <span>{consent}</span>
+        </label>
+        <a className="google-sign-in" href={googleHref}>
           <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 2.9-4.4 2.9-7.6Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.6c-.9.6-2 .9-3.4.9-2.6 0-4.9-1.8-5.7-4.2H2.9v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.3 13.7a6 6 0 0 1 0-3.4V7.7H2.9a10 10 0 0 0 0 8.6l3.4-2.6Z"/><path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.9-2.8A9.6 9.6 0 0 0 12 2a10 10 0 0 0-9.1 5.7l3.4 2.6C7.1 7.9 9.4 6.1 12 6.1Z"/></svg>
           Continue with Google
         </a>
@@ -58,6 +69,14 @@ export default function Login() {
                 data = await res.json();
               if (!res.ok) throw Error(data.error);
               setMessage(data.message);
+              if (newsletter) {
+                const opt = await fetch("/api/newsletter/request", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ optIn: true, email, locale }),
+                });
+                if (!opt.ok) setError(locale === "fr" ? "Le lien de connexion est envoyé. La confirmation de la lettre n’a pas pu partir." : locale === "zh" ? "登录链接已发送。通讯确认邮件暂时无法发出。" : "Your sign-in link is sent. The newsletter confirmation could not be sent.");
+              }
             } catch (e) {
               setError(e instanceof Error ? e.message : "Please try again.");
             } finally {

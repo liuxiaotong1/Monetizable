@@ -34,6 +34,7 @@ export const config = {
     "/auth/:path*",
     "/api/profile",
     "/api/push/:path*",
+    "/api/newsletter/subscription",
     "/api/admin/:path*",
     "/api/auth/:path*",
   ],
