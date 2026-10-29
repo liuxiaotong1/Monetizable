@@ -1,5 +1,6 @@
 "use client";
 import TradingDNA from "./trading-dna";
+import AIPredictionReview from "./ai-prediction-review";
 import PredictionFocus from "./prediction-focus";
 import MonthlyAccuracy from "./monthly-accuracy";
 import {readPredictionDraft} from "@/lib/quest/guest-access";
@@ -39,6 +40,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  <PredictionFocus state={state} id="judgment" direction={direction} onDirection={setDirection} confidence={confidence} onConfidence={setConfidence} reason={reason} onReason={setReason} busy={busy} onSeal={async()=>{if(f&&direction)return run({type:"judgment",forecastId:f.id,direction,confidence,reason});}}/>
  <MonthlyAccuracy state={state}/>
  {pending?<section className="hero hero-yelan"><div className="hero-copy"><span className="eyebrow"><LockKeyhole size={16}/> {pending.date} · 已封存的盘前判断</span><h1>你的判断<span>{directionNames[pending.direction]} · 待核对</span></h1><p>{pending.reason}</p><p className="hero-yelan-line">封存于 {dualTime(pending.lockedAt)} · 有效盘前判断。等待该交易日收盘及完整日线确认后评分。</p><button className="primary" onClick={()=>document.getElementById("judgment-journal")?.scrollIntoView({behavior:"smooth",block:"start"})}>查看封存记录 <ChevronRight size={16}/></button>{review&&<button className="text-button historical-report-link" onClick={()=>setReviewing(review)}>回看 {review.date} 历史战报 <ChevronRight size={14}/></button>}</div><YelanViewer state={state}/></section>:personalReview&&review?<HeroReview key={`${state.mode}:${review.id}:${review.matched}`} review={review} state={state} onNotes={()=>setReviewing(review)}/>:(<section className="hero hero-yelan"><div className="hero-copy"><NextQuestPrompt/></div><YelanViewer state={state}/></section>)}
+ {personalReview&&review&&<AIPredictionReview key={"ai-review:"+review.id} review={review} threshold={state.forecasts.find(f=>f.id===review.forecastId)?.threshold??.3} forecastCreatedAt={state.forecasts.find(f=>f.id===review.forecastId)?.createdAt}/>}
  <div className="daily-progress"><div className="progress-title"><Flag size={17}/><strong>今日任务</strong><span>{tasks.filter(t=>t.done).length} / 3 完成</span></div><div className="task-checks">{tasks.map((t,i)=><button key={t.label} onClick={()=>i===2?navigate("learn"):i===1&&review?setReviewing(review):document.getElementById("judgment")?.scrollIntoView({behavior:"smooth"})}><span className={t.done?"task-dot done":"task-dot"}>{t.done?<Check size={10}/>:i+1}</span>{t.label}<span className="task-xp">{i===2?"答对 +5 XP":`+${i===0?10:20} XP`}</span></button>)}</div></div>
  <TradingDNA state={state}/>
  <div id="daily-market-chart" style={{scrollMarginTop:80}}><WatchlistChart locale="zh" settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/></div>
