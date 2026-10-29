@@ -110,6 +110,13 @@ export type ProviderHealth = {
 };
 
 export function interpretDomains(status: number, body: unknown, from: string | null): ProviderHealth {
+  // Sending-only keys are valid but cannot list domains. Resend reports this
+  // permission boundary as 401 (not an invalid/revoked credential).
+  const errorName = body && typeof body === "object" && "name" in body
+    ? (body as { name?: unknown }).name : null;
+  if ((status === 401 || status === 403) && errorName === "restricted_api_key") {
+    return { key_valid: true, from_domain: from, domain_status: "forbidden" };
+  }
   if (status === 400 || status === 401) {
     return { key_valid: false, from_domain: from, domain_status: "unknown" };
   }

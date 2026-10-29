@@ -55,6 +55,11 @@ const invalid = policy.interpretDomains(400, { message: "API key is invalid", ke
 assert.equal(invalid.key_valid, false);
 assert.equal(invalid.from_domain, "getmonetizable.com");
 assert.equal(JSON.stringify(invalid).includes("re_secret"), false);
+const restricted = policy.interpretDomains(401, { name: "restricted_api_key", message: "This API key is restricted to only send emails", statusCode: 401 }, "getmonetizable.com");
+assert.deepEqual(restricted, { key_valid: true, from_domain: "getmonetizable.com", domain_status: "forbidden" });
+assert.equal(policy.interpretDomains(401, { name: "validation_error", message: "API key is invalid" }, "getmonetizable.com").key_valid, false);
+assert.equal(policy.interpretDomains(401, null, "getmonetizable.com").key_valid, false);
+assert.equal(policy.interpretDomains(403, { name: "restricted_api_key" }, "getmonetizable.com").key_valid, true);
 const verified = policy.interpretDomains(200, { data: [{ name: "GetMonetizable.com", status: "verified" }] }, "getmonetizable.com");
 assert.deepEqual(verified, { key_valid: true, from_domain: "getmonetizable.com", domain_status: "verified" });
 const missing = policy.interpretDomains(200, { data: [{ name: "other.example", status: "verified" }] }, "getmonetizable.com");
