@@ -39,7 +39,6 @@ import {
   Layers3,
   ArrowRight,
   Check,
-  RefreshCw,
   Sparkles,
   Bookmark,
   ArrowLeft,
@@ -308,18 +307,6 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
             <span>
               {day(state.session.date)} · {clocks(state.now)}
             </span>
-          </div>
-          <div className={`data-banner ${!market.fresh ? "warning" : ""}`}>
-            <span>
-              {market.latest
-                ? `Latest verified close: ${day(market.latest.date)}. ${state.sources.some((s) => s.name === "公开数据连接") ? "Showing a retained public snapshot; the live connection is delayed." : market.fresh ? "Daily data is up to date." : "Retaining the last verified data; scoring waits for a fresh complete session."}`
-                : "Waiting for verified market data."}{" "}
-              Daily bars are not real-time quotes.
-            </span>
-            <button onClick={() => void load()} disabled={busy}>
-              <RefreshCw size={15} />
-              Refresh
-            </button>
           </div>
           {error && (
             <p className="account-error" role="alert">
