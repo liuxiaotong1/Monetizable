@@ -4,7 +4,7 @@ export interface CacheClock {version?:number;attemptedAt:string;error?:string}
 export function cacheDue(prior:CacheClock|undefined,ttl:number,now:Date,version=1){
  return !prior||prior.version!==version||!Number.isFinite(Date.parse(prior.attemptedAt))||now.getTime()-Date.parse(prior.attemptedAt)>=(prior.error?Math.min(ttl,5*60_000):ttl);
 }
-export const releaseParserVersion=(event:MarketEvent)=>event.kind==='EARNINGS'?1:event.kind==='FOMC'||event.kind==='GDP'?6:event.kind==='CLAIMS'||event.kind==='PCE'||event.kind==='TRADE'?5:4;
+export const releaseParserVersion=(event:MarketEvent)=>event.kind==='EARNINGS'?1:event.kind==='FOMC'?7:event.kind==='GDP'?6:event.kind==='CLAIMS'||event.kind==='PCE'||event.kind==='TRADE'?5:4;
 export function releaseCandidates(events:MarketEvent[],cached:Map<string,CacheClock>,now:Date){
  const latest=new Map<string,string>(),kind=(e:MarketEvent)=>e.kind+(e.kind==='EARNINGS'?e.symbol||e.id:'')+(e.kind==='ISM'?String(/服务/.test(e.title)):'');
  for(const e of [...events].sort((a,b)=>a.at.localeCompare(b.at)))if(Date.parse(e.at)<=+now)latest.set(kind(e),e.id);
@@ -21,7 +21,9 @@ export function releaseCandidates(events:MarketEvent[],cached:Map<string,CacheCl
  const repairs=older.filter(e=>{const prior=cached.get(e.id);return prior&&(prior.error||prior.version!==releaseParserVersion(e));});
  const archive=older.filter(e=>!repairs.includes(e));
  const ordered=[...recent.slice(0,4),...repairs.slice(0,1),...archive.slice(0,1),...older.filter(e=>e!==repairs[0]&&e!==archive[0]),...recent.slice(4)];
- return [...ordered.filter(e=>e.kind==='EARNINGS').slice(0,4),...ordered.filter(e=>e.kind!=='EARNINGS').slice(0,6)];
+ const policyAnchor=recent.find(e=>e.kind==='FOMC');
+ const prioritized=[...new Map([...(policyAnchor?[policyAnchor]:[]),...ordered].map(e=>[e.id,e])).values()];
+ return [...prioritized.filter(e=>e.kind==='EARNINGS').slice(0,4),...prioritized.filter(e=>e.kind!=='EARNINGS').slice(0,6)];
 }
 export function refreshIssues(sources:SourceStatus[],events:MarketEvent[],now:Date){
  const managed=/^(QQQ 公开参考日线|纳斯达克100 ETF 公开参考日线|官方更新 ·|FRED .* 历史|纽约联储经济日历|BEA 日历|Fed 日历|经济日历 ·|新闻与市场情绪|官方事件自动同步|大盘权重股财报日历|后台更新异常)/;

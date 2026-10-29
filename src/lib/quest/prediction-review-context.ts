@@ -1,4 +1,4 @@
-import {marketDate,sessionFor} from './domain';
+import {marketDate,sessionFor,latestCompletedDate,previousTradingDate} from './domain';
 import type {Bar,MarketEvent} from './types';
 
 export interface ReviewBoss {
@@ -30,7 +30,7 @@ export function predictionReviewContext(date:string,bars:Bar[],events:MarketEven
  const published=events.filter(e=>hasRelease(e)&&Number.isFinite(Date.parse(e.at))&&Date.parse(e.at)<=cutoff);
  const unique=[...new Map(published.map(e=>[e.kind+':'+(e.symbol||'')+':'+e.at+':'+e.title,e])).values()];
  function boss(event:MarketEvent):ReviewBoss {
-  const dates=new Set([...event.releaseHistory?.map(r=>r.date)||[],...event.qqqReactions?.map(r=>r.date)||[],...unique.filter(e=>e.kind===event.kind&&e.symbol===event.symbol).map(e=>marketDate(new Date(e.at)))]);
+  const dates=new Set([...event.releaseHistory?.map(r=>r.date.slice(0,10))||[],...event.qqqReactions?.map(r=>r.date)||[],...unique.filter(e=>e.kind===event.kind&&e.symbol===event.symbol).map(e=>marketDate(new Date(e.at)))]);
   const samples=[...dates].filter(d=>d<date).sort().map(d=>{
    const i=prices.findIndex(b=>b.date===d),at=prices[i],before=prices[i-1],after=prices[i+1];
    if(i<1||!at||!before||!after||after.date>=date||after.date!==sessionFor(new Date(d+'T12:00:00Z')).nextDate)return null;
@@ -60,4 +60,48 @@ export function predictionReviewContext(date:string,bars:Bar[],events:MarketEven
   nextBosses:events.filter(e=>e.status!=='unconfirmed'&&Date.parse(e.at)>cutoff&&Date.parse(e.at)<=cutoff+7*86400000).sort((a,b)=>a.at.localeCompare(b.at)).slice(0,8).map(e=>({kind:e.kind,symbol:e.symbol,title:e.title,at:e.at})),
   priceMap:{sessions:prices.length,close:latest.close,ma20,ma60,return5Pct:change(5),return20Pct:change(20),support5,resistance5,comparisons}
  };
+}
+
+
+export interface CurrentReviewBoss extends ReviewBoss {
+ scope:'new-release'|'carryover';
+ releaseReaction?:{date:string;returnPct:number};
+}
+export interface CurrentReviewContext {
+ asOf:string;marketDate:string;priceAsOf:string;
+ priceMap:ReviewMarketContext['priceMap'];priceReturnPct:number;
+ bosses:CurrentReviewBoss[];
+ nextBosses:ReviewMarketContext['nextBosses'];
+}
+/** Current expectations refresh independently of the historical judgment score. */
+export function currentReviewContext(now:Date,bars:Bar[],events:MarketEvent[]):CurrentReviewContext {
+ const today=marketDate(now),complete=latestCompletedDate(now);
+ const priceAsOf=bars.filter(b=>b.symbol==='QQQ'&&b.date<=complete&&finite(b.close)&&b.close>0).map(b=>b.date).sort().at(-1);
+ if(!priceAsOf)throw Error('PENDING');
+ const snapshot=predictionReviewContext(priceAsOf,bars,events);
+ const published=events.filter(e=>hasRelease(e)&&Date.parse(e.at)<=+now).sort((a,b)=>b.at.localeCompare(a.at));
+ const unique=[...new Map([...published].reverse().map(e=>[e.kind+':'+(e.symbol||'')+':'+marketDate(new Date(e.at))+':'+(e.kind==='ISM'?e.title:''),e])).values()].sort((a,b)=>b.at.localeCompare(a.at));
+ const latestMacro=new Map<string,MarketEvent>();
+ for(const e of unique)if(['FOMC','CPI','PCE','NFP','GDP'].includes(e.kind)&&(e.kind!=='FOMC'||finite(e.actual))&&!latestMacro.has(e.kind))latestMacro.set(e.kind,e);
+ let earningsFrom=today;for(let n=0;n<5;n++)earningsFrom=previousTradingDate(earningsFrom);
+ const selected=unique.filter(e=>{
+  const released=marketDate(new Date(e.at));
+  if(released===today)return true;
+  if(e.kind==='EARNINGS')return released>=earningsFrom;
+  const anchor=latestMacro.get(e.kind);
+  return anchor?.id===e.id&&+now-Date.parse(e.at)<(e.kind==='FOMC'?180:60)*86400000;
+ }).sort((a,b)=>Number(b.kind==='FOMC')-Number(a.kind==='FOMC')||b.at.localeCompare(a.at));
+ const snapshots=new Map([...snapshot.bosses,...snapshot.macroReleases].map(b=>[b.id,b]));
+ const barMap=new Map<string,Bar>();for(const b of [...bars].filter(b=>b.symbol==='QQQ'&&b.date<=priceAsOf).sort((a,b)=>a.fetchedAt.localeCompare(b.fetchedAt)))barMap.set(b.date,b);
+ const bosses=selected.map(e=>{
+  const known=snapshots.get(e.id),date=marketDate(new Date(e.at)),releaseSession=sessionFor(new Date(date+'T12:00:00Z'));
+  const reactionDate=Date.parse(e.at)>Date.parse(releaseSession.closeAt)?releaseSession.nextDate:date;
+  const reactionBar=barMap.get(reactionDate),prior=barMap.get(previousTradingDate(reactionDate));
+  const fallback:ReviewBoss={id:e.id,kind:e.kind,symbol:e.symbol,title:e.title,at:e.at,unit:e.unit,actual:e.actual,previous:e.previous,consensus:e.consensus,consensusKnownBeforeRelease:finite(e.consensus)&&!!e.calendarValues?.fetchedAt&&Date.parse(e.calendarValues.fetchedAt)<=Date.parse(e.at),summary:(e.report?.summary||[]).slice(0,3),sourceUrl:e.sourceUrl};
+  return {...(known||fallback),scope:date===today?'new-release' as const:'carryover' as const,
+   releaseReaction:reactionBar&&prior&&prior.close>0?{date:reactionDate,returnPct:round((reactionBar.close/prior.close-1)*100)}:undefined};
+ });
+ const close=barMap.get(priceAsOf)!,prior=barMap.get(previousTradingDate(priceAsOf));
+ return {asOf:now.toISOString(),marketDate:today,priceAsOf,priceMap:snapshot.priceMap,priceReturnPct:prior?round((close.close/prior.close-1)*100):0,bosses,
+  nextBosses:events.filter(e=>e.status!=='unconfirmed'&&Date.parse(e.at)>+now&&Date.parse(e.at)<=+now+7*86400000).sort((a,b)=>a.at.localeCompare(b.at)).slice(0,8).map(e=>({kind:e.kind,symbol:e.symbol,title:e.title,at:e.at}))};
 }
