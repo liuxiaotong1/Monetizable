@@ -1,0 +1,27 @@
+name: Monetizable web push
+on:
+  schedule:
+    # Every 15 minutes so local noon, the Paris evening, and both US DST
+    # offsets for the open and the close each fall inside a send window.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: monetizable-web-push
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Send due companion reminders
+        env:
+          QUEST_REPORT_TOKEN: ${{ secrets.QUEST_REPORT_TOKEN }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer $QUEST_REPORT_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            https://getmonetizable.com/api/push/dispatch
