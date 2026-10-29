@@ -34,10 +34,11 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
  const sealed=snapshot&&new Intl.DateTimeFormat(language,{hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'}).format(new Date(snapshot.lockedAt));
  const direction=(d:string)=>d==='bullish'?c.bullish:d==='bearish'?c.bearish:c.neutral;
  const chosen=forecast?.scenarios.find(s=>s.direction===snapshot?.direction);
+ const verified=report?.verified??{matched:review.matched===true,actualDirection:review.actualDirection,close:review.actual.close,returnPct:review.returnPct,low:review.actual.low,high:review.actual.high};
  return <section id={id} className={styles.panel} aria-busy={loading}>
   <header className={styles.header}><span className={styles.icon}><Sparkles size={21}/></span><div><span className={styles.eyebrow}>{c.journey}</span><h2><time dateTime={review.date}>{dateLabel}</time> · {c.title}</h2><p>{c.sub}</p></div></header>
-  <div className={styles.verdict}><strong className={review.matched?styles.matched:styles.missed}><Target size={16}/>{review.matched?c.matched:c.missed}</strong><span>QQQ · {direction(review.actualDirection)}</span></div>
-  <dl className={styles.stats}><div><dt>{c.close}</dt><dd>{money(review.actual.close)}</dd></div><div><dt>{c.change}</dt><dd className={review.returnPct>=0?styles.positive:styles.negative}>{review.returnPct>0?'+':''}{review.returnPct.toFixed(2)}%</dd></div><div><dt>{c.range}</dt><dd>{money(review.actual.low)} — {money(review.actual.high)}</dd></div></dl>
+  <div className={styles.verdict}><strong className={verified.matched?styles.matched:styles.missed}><Target size={16}/>{verified.matched?c.matched:c.missed}</strong><span>QQQ · {direction(verified.actualDirection)}</span></div>
+  <dl className={styles.stats}><div><dt>{c.close}</dt><dd>{money(verified.close)}</dd></div><div><dt>{c.change}</dt><dd className={verified.returnPct>=0?styles.positive:styles.negative}>{verified.returnPct>0?'+':''}{verified.returnPct.toFixed(2)}%</dd></div><div><dt>{c.range}</dt><dd>{money(verified.low)} — {money(verified.high)}</dd></div></dl>
   <div className={styles.mainGrid}>
    <article className={styles.reflection}><h3><Sparkles size={17}/>{c.reflection}</h3>
     {snapshot&&<div className={styles.original}><div><strong>{direction(snapshot.direction)}</strong><span>{c.confidence} · {snapshot.confidence==='high'?c.high:snapshot.confidence==='low'?c.low:c.mediumConfidence}</span></div><blockquote>{snapshot.reason}</blockquote><small><Flag size={12}/>{c.sealed} · {sealed} ET</small></div>}
@@ -50,7 +51,7 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
    </article>}
   </div>
   {report&&<><div className={styles.focusGrid}><Focus icon={<Globe2 size={17}/>} title={c.macro} insight={report.macro}/><Focus icon={<Map size={17}/>} title={c.medium} insight={report.mediumTerm}/><Focus icon={<Flag size={17}/>} title={c.short} insight={report.shortTerm}/></div><article className={styles.mentor}><h3><Lightbulb size={19}/>{c.practice}</h3><InsightText insight={report.practice}/></article></>}
-  {forecast&&<details className={styles.details}><summary><BookOpen size={16}/>{c.scenario}<ChevronDown size={15}/></summary><p>{forecast.summary}</p>{chosen&&<><p><strong>{c.forecastRange}：</strong>{money(chosen.low)} — {money(chosen.high)} · {review.rangeCovered?c.covered:c.uncovered}</p><p><strong>{c.condition}：</strong>{chosen.condition}</p><p><strong>{c.invalidation}：</strong>{chosen.invalidation}</p></>}{report?.context.bosses.map(b=><a key={b.id} href={b.sourceUrl} target="_blank" rel="noopener noreferrer">{b.symbol||b.kind} · {c.source} ↗</a>)}</details>}
+  {forecast&&<details className={styles.details}><summary><BookOpen size={16}/>{c.scenario}<ChevronDown size={15}/></summary><p>{forecast.summary}</p>{chosen&&<><p><strong>{c.forecastRange}：</strong>{money(chosen.low)} — {money(chosen.high)} · {verified.low>=chosen.low&&verified.high<=chosen.high?c.covered:c.uncovered}</p><p><strong>{c.condition}：</strong>{chosen.condition}</p><p><strong>{c.invalidation}：</strong>{chosen.invalidation}</p></>}{report?.context.bosses.map(b=><a key={b.id} href={b.sourceUrl} target="_blank" rel="noopener noreferrer">{b.symbol||b.kind} · {c.source} ↗</a>)}</details>}
   <footer className={styles.footer}><small>{c.footer}</small>{onNotes&&<button type="button" className={styles.retry} onClick={onNotes}><BookOpen size={15}/>{review.completedAt?c.edit:c.notes}</button>}</footer>
  </section>;
 }
