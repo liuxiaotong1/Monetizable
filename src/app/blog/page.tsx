@@ -1,4 +1,4 @@
-²·?jšnZ þ– zÛ1import type {Metadata} from 'next';
+import type {Metadata} from 'next';
 import {answerPages} from '@/lib/marketing/pages';
 import {SITE_URL} from '@/lib/marketing/positioning';
 import {blogPosts} from '@/lib/marketing/blog';
@@ -23,7 +23,7 @@ export default function BlogPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replace(/</g, '\\u003c')}}/>
     <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog" aria-current="page">Blog</a><a href="/pricing">Pricing</a><a href="/">Start practising â†’</a></nav>
     <header><small>LEARN Â· PRACTISE Â· UNDERSTAND</small><h1>Blog</h1><p>Trading practice, discipline and the thinking behind Monetizable. Find our guides and product resources in one place.</p></header>
-    <section className="blog-group"><h2>Latest articles</h2><div className="blog-card-grid">{blogPosts.map(post=><article className="blog-article-card blog-resource-card" key={post.slug}><a href={`/blog/${post.slug}`}><img src={post.hero} alt={post.alt} width={1672} height={941}/></a><p className="blog-reading">{new Date(`${post.date}T12:00:00Z`).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})} Â· {post.readingMinutes} min read</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.description}</p><a className="blog-read" href={`/blog/${post.slug}`}>Read article â†’</a></article>)}</div></section>
+    <section className="blog-group"><h2>Latest articles</h2><div className="blog-card-grid">{blogPosts.map(post=><article className="blog-article-card blog-resource-card" key={post.slug}><a href={`/blog/${post.slug}`}><img src={post.hero} alt={post.alt} width={1672} height={941}/></a><p className="blog-reading">October 25, 2026 Â· {post.readingMinutes} min read</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.description}</p><a className="blog-read" href={`/blog/${post.slug}`}>Read article â†’</a></article>)}</div></section>
     {groups.map(group => <section className="blog-group" key={group.title}><h2>{group.title}</h2><p>{group.description}</p><div className="blog-card-grid">{group.slugs.map(slug => {
       const page = answerPages.find(item => item.slug === slug)!;
       return <article className="blog-resource-card" key={slug}><h3><a href={`/${slug}`}>{page.title}</a></h3><p>{page.description}</p><a className="blog-read" href={`/${slug}`}>Read more â†’</a></article>;
