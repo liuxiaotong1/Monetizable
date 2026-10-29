@@ -250,7 +250,7 @@ export default function AccountShell({
           {user?.admin && (
             <a href="/admin">
               <ShieldCheck size={16} />
-              管理中心
+              {zh?'管理中心':locale==='fr'?'Administration':'Admin center'}
             </a>
           )}
           {user ? (
