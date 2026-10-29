@@ -4,7 +4,7 @@ import type {Bar,MarketEvent} from './types';
 export interface ReviewBoss {
  id:string;kind:string;symbol?:string;title:string;at:string;unit:string;
  actual?:number;previous?:number;consensus?:number;consensusKnownBeforeRelease:boolean;
- summary:string[];sourceUrl:string;
+ summary:string[];sourceUrl:string;comparisons:{vsPrevious?:'above'|'below'|'equal';vsConsensus?:'above'|'below'|'equal'};
  historical?:{samples:number;eventDayMeanAbsPct:number;nextDayMeanAbsPct:number};
 }
 export interface ReviewMarketContext {
@@ -15,6 +15,11 @@ export interface ReviewMarketContext {
 }
 const finite=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value);
 const round=(value:number)=>Number(value.toFixed(3));
+function releaseComparisons(event:MarketEvent){
+ const compare=(reference:unknown):'above'|'below'|'equal'|undefined=>!finite(event.actual)||!finite(reference)?undefined:Math.abs(event.actual-reference)<1e-9?'equal':event.actual>reference?'above':'below';
+ return {vsPrevious:compare(event.previous),vsConsensus:compare(event.consensus)};
+}
+
 function hasRelease(event:MarketEvent){
  return event.status==='confirmed'&&(finite(event.actual)||!!event.earningsReport||!!event.report?.summary?.length);
 }
@@ -40,7 +45,7 @@ export function predictionReviewContext(date:string,bars:Bar[],events:MarketEven
   const consensusKnownBeforeRelease=finite(event.consensus)&&!!values?.fetchedAt&&Date.parse(values.fetchedAt)<=Date.parse(event.at);
   return {id:event.id,kind:event.kind,symbol:event.symbol,title:event.title,at:event.at,unit:event.unit,actual:event.actual,previous:event.previous,consensus:event.consensus,consensusKnownBeforeRelease,
    summary:[...(event.report?.summary||[]).slice(0,3).map(s=>s.slice(0,500)),...(event.earningsReport?[JSON.stringify({period:event.earningsReport.period,revenueUsd:event.earningsReport.revenueUsd,gaapDilutedEps:event.earningsReport.gaapDilutedEps,netIncomeUsd:event.earningsReport.netIncomeUsd})]:[])],
-   sourceUrl:event.sourceUrl,historical:samples.length>=3?{samples:samples.length,eventDayMeanAbsPct:round(samples.reduce((n,s)=>n+s.event,0)/samples.length),nextDayMeanAbsPct:round(samples.reduce((n,s)=>n+s.next,0)/samples.length)}:undefined};
+   sourceUrl:event.sourceUrl,comparisons:releaseComparisons(event),historical:samples.length>=3?{samples:samples.length,eventDayMeanAbsPct:round(samples.reduce((n,s)=>n+s.event,0)/samples.length),nextDayMeanAbsPct:round(samples.reduce((n,s)=>n+s.next,0)/samples.length)}:undefined};
  }
  const tail5=prices.slice(-5),mean=(n:number)=>prices.length>=n?round(prices.slice(-n).reduce((sum,b)=>sum+b.close,0)/n):undefined;
  const change=(n:number)=>prices.length>n?round((latest.close/prices[prices.length-n-1].close-1)*100):undefined;
@@ -97,7 +102,7 @@ export function currentReviewContext(now:Date,bars:Bar[],events:MarketEvent[]):C
   const known=snapshots.get(e.id),date=marketDate(new Date(e.at)),releaseSession=sessionFor(new Date(date+'T12:00:00Z'));
   const reactionDate=Date.parse(e.at)>Date.parse(releaseSession.closeAt)?releaseSession.nextDate:date;
   const reactionBar=barMap.get(reactionDate),prior=barMap.get(previousTradingDate(reactionDate));
-  const fallback:ReviewBoss={id:e.id,kind:e.kind,symbol:e.symbol,title:e.title,at:e.at,unit:e.unit,actual:e.actual,previous:e.previous,consensus:e.consensus,consensusKnownBeforeRelease:finite(e.consensus)&&!!e.calendarValues?.fetchedAt&&Date.parse(e.calendarValues.fetchedAt)<=Date.parse(e.at),summary:(e.report?.summary||[]).slice(0,3),sourceUrl:e.sourceUrl};
+  const fallback:ReviewBoss={id:e.id,kind:e.kind,symbol:e.symbol,title:e.title,at:e.at,unit:e.unit,actual:e.actual,previous:e.previous,consensus:e.consensus,consensusKnownBeforeRelease:finite(e.consensus)&&!!e.calendarValues?.fetchedAt&&Date.parse(e.calendarValues.fetchedAt)<=Date.parse(e.at),summary:(e.report?.summary||[]).slice(0,3),sourceUrl:e.sourceUrl,comparisons:releaseComparisons(e)};
   return {...(known||fallback),scope:date===today?'new-release' as const:'carryover' as const,
    releaseReaction:reactionBar&&prior&&prior.close>0?{date:reactionDate,returnPct:round((reactionBar.close/prior.close-1)*100)}:undefined};
  });
