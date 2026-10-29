@@ -42,7 +42,10 @@ the existing website and the already configured Telegram recipient.
   `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in Vercel. Generate a key pair with
   `npx web-push generate-vapid-keys` and do not commit it. Older
   `WEB_PUSH_VAPID_*` names still work. `CRON_SECRET` is also accepted.
-  In-app notices stay separate.
+  In-app notices stay separate. Each reminder uses one language: the account
+  language saved on `quest_profiles.locale` (filled from the language chosen
+  at sign-in, then replaced when the language switcher changes). Guest
+  subscriptions keep the language stored on the subscription.
 
 Run `node --test tests/cloud-report.test.mjs` for Paris DST, holiday/open-window
 guards and missing/stale-quote handling. `workflow_dispatch` with `check_only`
