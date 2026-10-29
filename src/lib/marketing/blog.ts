@@ -1,4 +1,4 @@
-²·?–&ÿ™ªäzØ§ƒöå¢limport data from '@/data/trading-posts.json';
+import data from '@/data/trading-posts.json';
 import {SITE_URL} from './positioning';
 export const blogPosts=data;
 export function findBlogPost(slug:string){return blogPosts.find(post=>post.slug===slug);}
