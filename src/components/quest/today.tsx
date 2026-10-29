@@ -37,7 +37,6 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  const personalReview=!!review&&typeof review.matched==="boolean";
  const adventureStage=useAdventureStage();
  const tasks=[{label:"锁定今日判断",done:!!todayLocked||!!judgment},{label:"完成收盘复盘",done:!!review?.completedAt},{label:"学完今日卡牌",done:finishedCards>=state.dailyCardIds.length&&finishedCards>0}];
- const closed=!state.session.isTradingDay||new Date(state.now)>=new Date(state.session.openAt);
  if(adventureStage==='landing')return <FirstQuestHero state={state}/>;
  return <LocalizeTree>{<>
  <PredictionFocus state={state} id="judgment" direction={direction} onDirection={setDirection} confidence={confidence} onConfidence={setConfidence} reason={reason} onReason={setReason} busy={busy} onSeal={async()=>{if(f&&direction)return run({type:"judgment",forecastId:f.id,direction,confidence,reason});}}/>
