@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUser, sameOrigin } from "@/lib/account/auth";
 import { database } from "@/lib/account/db";
 import { ensureWebPushStore } from "@/lib/push/store";
+import { setAccountLocale } from "@/lib/push/account-locale";
 import { defaultCategories, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, normalizeLocale, safeTimeZone } from "@/lib/push/schedule";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     const locale = body.locale === undefined ? null : normalizeLocale(body.locale);
     const timeZone = body.timeZone === undefined ? null : safeTimeZone(body.timeZone);
     await ensureWebPushStore();
+    if (locale) await setAccountLocale(user.id, locale);
     const { rowCount } = await database().query(
       `UPDATE public.web_push_subscriptions
        SET categories = $2::jsonb, knowledge_time = $3,

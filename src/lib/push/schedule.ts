@@ -82,6 +82,21 @@ function hasJudgment(judgments: PushJudgment[] | undefined, day: string, eligibl
   return (judgments || []).some((item) => item.date === day && (!eligibleOnly || item.eligible !== false));
 }
 
+const anchor = {
+  premarket: { zh: '预测', fr: 'prevision', en: 'prediction' },
+  review: { zh: '复盘', fr: 'bilan', en: 'review' },
+} as const;
+
+/** Shared app routes, with the reminder language and a hash in that language. */
+export function reminderHref(locale: PushLocale, path: string) {
+  const hashAt = path.indexOf('#');
+  const before = hashAt >= 0 ? path.slice(0, hashAt) : path;
+  const hash = hashAt >= 0 ? path.slice(hashAt) : '';
+  const url = new URL(before || '/', 'https://getmonetizable.com');
+  url.searchParams.set('lang', locale);
+  return `${url.pathname}${url.search}${hash}`;
+}
+
 function planFor(input: {
   locale: PushLocale;
   companion: CompanionId;
@@ -101,7 +116,7 @@ function planFor(input: {
     sentOn: input.sentOn,
     title: companionName(input.companion, input.locale),
     body: notificationBody({ locale: input.locale, companion: input.companion, category: input.category, phase: input.phase, ...named }),
-    href: input.href,
+    href: reminderHref(input.locale, input.href),
     icon,
     badge: icon,
     image: icon,
@@ -162,7 +177,7 @@ export function planNotifications(input: {
       category: 'premarket',
       slot: `premarket:${session.date}`,
       sentOn: local.date,
-      href: input.locale === 'zh' ? '/?view=today#judgment' : '/?view=today#en-judgment',
+      href: `/?view=today#${anchor.premarket[input.locale]}`,
     }));
   }
 
@@ -176,7 +191,7 @@ export function planNotifications(input: {
         category: 'review',
         slot: `review:${session.date}`,
         sentOn: local.date,
-        href: input.locale === 'zh' ? '/?view=today#hero-review-facts' : `/?view=today#fact-trail-review:${session.date}`,
+        href: `/?view=today#${anchor.review[input.locale]}`,
       }));
     }
   }

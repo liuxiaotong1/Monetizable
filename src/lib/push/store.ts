@@ -45,6 +45,7 @@ const schema = `
       REVOKE ALL ON public.web_push_deliveries FROM anon, authenticated;
       REVOKE ALL ON SEQUENCE public.web_push_deliveries_id_seq FROM anon, authenticated;
       CREATE INDEX IF NOT EXISTS web_push_deliveries_user_day_idx ON public.web_push_deliveries(user_id, sent_on);
+      ALTER TABLE public.quest_profiles ADD COLUMN IF NOT EXISTS locale text;
 `;
 
 export function ensureWebPushStore() {

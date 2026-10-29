@@ -48,6 +48,12 @@ export default function PwaPushGuide() {
     const dismissedInstall = localStorage.getItem("monetizable-pwa-guide-dismissed-v1");
     if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
     const showPush = params.get("push") === "1" || (standalone && !dismissedPush);
+    const linkLanguage = params.get("lang");
+    if ((linkLanguage === "en" || linkLanguage === "fr" || linkLanguage === "zh") && !document.cookie.split("; ").some((row) => row === `monetizable-locale=${linkLanguage}`)) {
+      document.cookie = `monetizable-locale=${linkLanguage};path=/;max-age=31536000;SameSite=Lax${location.protocol === "https:" ? ";Secure" : ""}`;
+      void fetch("/api/push/locale", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ locale: linkLanguage }) }).finally(() => location.reload());
+      return;
+    }
     let installTimer = 0;
     if (showPush) setPushOpen(true);
     else if (!standalone && !dismissedInstall) installTimer = window.setTimeout(() => setInstallOpen(true), 6500);

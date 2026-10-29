@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { database, rateLimit } from "@/lib/account/db";
 import { currentUser, sameOrigin } from "@/lib/account/auth";
 import { ensureWebPushStore } from "@/lib/push/store";
+import { setAccountLocale } from "@/lib/push/account-locale";
 import { normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, normalizeLocale, safeTimeZone } from "@/lib/push/schedule";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
            categories = EXCLUDED.categories, knowledge_time = EXCLUDED.knowledge_time, updated_at = now()`,
       [endpoint, p256dh, auth, prefs.locale, user.id, prefs.companion, prefs.timeZone, JSON.stringify(prefs.categories), prefs.knowledgeTime],
     );
+    await setAccountLocale(user.id, prefs.locale);
     return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Reminder setup is temporarily unavailable." }, { status: 503 });
