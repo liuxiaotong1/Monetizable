@@ -20,7 +20,9 @@ body { padding-top: env(safe-area-inset-top, 0px); }
   color: #a77b2d;
   font-size: 19px;
 }
-.pwa-guide-copy { display: grid; gap: 4px; padding: 0 26px 12px 28px; }
+.companion-push-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; }
+.pwa-guide-copy { display: grid; gap: 4px; padding: 0 26px 12px 0; }
+.companion-push-card .pwa-guide-copy { padding-left: 0; }
 .pwa-guide-copy strong { font: 700 15px/1.35 var(--font-sans); }
 .pwa-guide-copy span { color: #766a50; font-size: 12px; line-height: 1.5; }
 .pwa-guide-close {

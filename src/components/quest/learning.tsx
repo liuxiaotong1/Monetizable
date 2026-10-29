@@ -22,6 +22,7 @@ export default function Learning({state,run,busy}:ViewProps){
  const deck=useDeckCompletion(state);
  const visit=useRef<string>(undefined), starting=useRef(false);
  const [ready,setReady]=useState(false),[visitFailed,setVisitFailed]=useState(false);
+ useEffect(()=>{const id=new URLSearchParams(location.search).get('card');if(!id)return;setActiveId(id);if(!state.dailyCardIds.includes(id))setTab('library');},[state.dailyCardIds]);
  useEffect(()=>{
   if(ready||visitFailed||starting.current||busy)return;
   visit.current??=crypto.randomUUID();starting.current=true;

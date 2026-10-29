@@ -38,7 +38,7 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
  const verified=report?.verified??{matched:review.matched===true,actualDirection:review.actualDirection,close:review.actual.close,returnPct:review.returnPct,low:review.actual.low,high:review.actual.high};
  return <section id={id} className={styles.panel} aria-busy={loading}>
   <header className={styles.header}><span className={styles.icon}><Sparkles size={21}/></span><div><span className={styles.eyebrow}>{c.journey}</span><h2><time dateTime={review.date}>{dateLabel}</time> · {c.title}</h2><p>{c.sub}</p></div></header>
-  <div className={styles.verdict}><strong className={verified.matched?styles.matched:styles.missed}><Target size={16}/>{verified.matched?c.matched:c.missed}</strong><span>QQQ · {direction(verified.actualDirection)}</span></div>
+  <div className={styles.verdict}><strong className={verified.matched?styles.matched:styles.missed}><Target size={16}/>{verified.matched?c.matched:c.missed}</strong><span>{locale==='zh'?'纳斯达克100 ETF':locale==='fr'?'ETF Nasdaq-100':'Nasdaq-100 ETF'} · {direction(verified.actualDirection)}</span></div>
   <dl className={styles.stats}><div><dt>{c.close}</dt><dd>{money(verified.close)}</dd></div><div><dt>{c.change}</dt><dd className={verified.returnPct>=0?styles.positive:styles.negative}>{verified.returnPct>0?'+':''}{verified.returnPct.toFixed(2)}%</dd></div><div><dt>{c.range}</dt><dd>{money(verified.low)} — {money(verified.high)}</dd></div></dl>
   <div className={styles.mainGrid}>
    <article className={styles.reflection}><h3><Sparkles size={17}/>{c.reflection}</h3>

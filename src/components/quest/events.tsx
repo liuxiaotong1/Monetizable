@@ -8,7 +8,7 @@ import { compactEventUnit } from "@/lib/quest/event-presentation";
 import BossAvatar from './boss-avatar';
 import AgentReports from "./agent-reports";
 import EventIntelligencePanel from "./event-intelligence";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDialogFocus } from "./use-dialog-focus";
 import { Swords, CalendarDays, ArrowRight, Bell, ChevronRight, Flame, Clock3, Sparkles, ExternalLink, RefreshCw } from "lucide-react";
 import type { MarketEvent } from "@/lib/quest/types";
@@ -37,6 +37,7 @@ export default function Events({ state, navigate, busy, refreshData }: ViewProps
   const [filter, setFilter] = useState<EventCategory>("all");
   const [scope, setScope] = useState<EventScope>("week");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(()=>{const id=new URLSearchParams(location.search).get('event');if(id){setScope('all');setSelectedId(id);}},[]);
   const selected = state.events.find(event=>event.id===selectedId);
   const historySources=state.sources.filter(source=>source.name.startsWith("FRED ")&&source.name.endsWith("历史"));
   const connected=historySources.filter(source=>source.status==="ready");

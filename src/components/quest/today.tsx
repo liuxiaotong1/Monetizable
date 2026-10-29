@@ -65,6 +65,7 @@ function HeroReview({review,state,onNotes}:{review:Review;state:ViewProps["state
  const labels=locale==="zh"?{review:"查看 AI 复盘",unlocked:"复盘关卡已解锁。和伙伴一起拆解市场线索，装备下一关。"}:locale==="fr"?{review:"Voir le bilan IA",unlocked:"Le bilan est débloqué. Décodez les indices avec votre partenaire et préparez la prochaine quête."}:{review:"View AI debrief",unlocked:"Debrief unlocked. Decode the clues with your partner and equip your next quest."};
  const correct=review.matched===true;
  const [showFacts,setShowFacts]=useState(!correct);
+ useEffect(()=>{if(location.hash!=='#hero-review-facts'&&location.hash!=='#review')return;setShowFacts(true);const frame=requestAnimationFrame(()=>document.getElementById('hero-review-facts')?.scrollIntoView({behavior:'smooth',block:'start'}));return()=>cancelAnimationFrame(frame);},[]);
  const reveal=useCallback(()=>setShowFacts(true),[]);
  return <LocalizeTree>{<section className={`hero-report ${correct?"verified":""}`} aria-label="收盘战报">
   <div className="hero hero-yelan">

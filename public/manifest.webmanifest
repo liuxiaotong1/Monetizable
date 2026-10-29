@@ -1,24 +1,38 @@
 {
-  "name": "Monetizable · Investir en s’amusant",
+  "name": "Monetizable",
   "short_name": "Monetizable",
-  "description": "Préparation des marchés, événements, bilans et cartes pédagogiques",
+  "description": "Monetizable is a gamified trading practice and discipline platform that helps traders turn their trading plan into daily quests, event challenges, rule checks and post-trade reviews. It helps traders practise judgment and follow their own system",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fff6e5",
   "theme_color": "#fff6e5",
-  "lang": "fr",
+  "lang": "en",
   "icons": [
     {
       "src": "/brand/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/brand/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

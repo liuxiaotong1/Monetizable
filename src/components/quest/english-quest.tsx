@@ -34,6 +34,7 @@ import {
   type CSSProperties,
 } from "react";
 import {
+  Bell,
   Compass,
   Swords,
   Layers3,
@@ -71,6 +72,8 @@ import {
 import { useCardSwipe } from "./use-card-swipe";
 import { draftKey, transferKey, trialKey, readTrialCards, readPredictionDraft, type PredictionDraft } from "@/lib/quest/guest-access";
 import { useDialogFocus } from "./use-dialog-focus";
+import AIPredictionReview from "./ai-prediction-review";
+import PushSettings from "@/components/pwa/push-settings";
 import { X, LockKeyhole } from "lucide-react";
 import { learningQueue, masteredConcepts } from "@/lib/quest/learning-engine";
 import { marketContext } from "@/lib/quest/market-context";
@@ -116,7 +119,8 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(""),
     [trialCards, setTrialCards] = useState<string[]>([]),
-    [gate, setGate] = useState<"prediction" | "cards" | null>(null);
+    [gate, setGate] = useState<"prediction" | "cards" | null>(null),
+    [pushOpen, setPushOpen] = useState(false);
   const locale = useLocale(), day = (iso: string) => formatMarketDate(iso, locale);
   const gateDialog = useRef<HTMLElement>(null);
   useDialogFocus(gateDialog, !!gate, () => setGate(null));
@@ -295,6 +299,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
             <Compass size={16} /> Adventure map <ChevronRight size={14} />{" "}
             {navigation.find((n) => n.id === view)?.title}
           </span>
+          <button type="button" className="icon-button" aria-label={locale === "fr" ? "Rappels" : locale === "zh" ? "提醒" : "Reminders"} onClick={() => setPushOpen(true)}><Bell size={18} /></button>
           <span className="public-tag">A daily investing adventure</span>
         </header>
         <main className="main-content">
@@ -385,6 +390,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
           </footer>
         </main>
       </div>
+      {pushOpen && <div className="modal-backdrop" onClick={() => setPushOpen(false)}><section className="modal settings-modal" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Rappels" : "Reminders"} onClick={(event) => event.stopPropagation()}><button className="modal-close" type="button" aria-label={locale === "fr" ? "Fermer" : "Close"} onClick={() => setPushOpen(false)}>×</button><PushSettings /></section></div>}
       {gate && <div className="auth-gate-backdrop"><section ref={gateDialog} className="auth-gate" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title"><button className="auth-gate-close" onClick={() => setGate(null)} aria-label="Close account prompt"><X size={20}/></button><LockKeyhole size={30}/><span className="eyebrow">KEEP YOUR NEXT LEVEL</span><h2 id="auth-gate-title">{gate === "prediction" ? "Save your call with an account." : "Save your learning progress."}</h2><p>{gate === "prediction" ? "Your draft is kept in this browser. Sign in or create an account to save predictions and track your results. We’ll bring back your draft for you to confirm; it won’t be submitted automatically." : "You need an account to save your learning progress. Sign in or create one to pick up where you left off across devices."}</p><a className="primary" href="/auth" onClick={() => localStorage.setItem(transferKey, "yes")}>Sign in / Create an account <ArrowRight size={17}/></a><button className="auth-gate-back" onClick={() => setGate(null)}>Keep exploring the site</button><small>Continue with Google / Gmail or use a secure email link.</small></section></div>}
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation.map((n) => (
@@ -445,7 +451,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
   }, [review?.id, review?.matched]);
   const factRequest=useRef(false),[factJump,setFactJump]=useState(0);
   const openFactTrail=()=>{if(!review)return;factRequest.current=true;setCelebrate(false);setFacts(true);setFactJump(n=>n+1);const url=new URL(location.href);url.hash=`fact-trail-${review.id}`;history.replaceState(null,'',url);};
-  useEffect(()=>{if(!review)return;const id=`fact-trail-${review.id}`;if(location.hash===`#${id}`&&!facts){factRequest.current=true;setFacts(true);return;}if(!facts||!factRequest.current)return;const frame=requestAnimationFrame(()=>{const target=document.getElementById(id);if(target){target.scrollIntoView({behavior:'smooth',block:'start'});target.focus({preventScroll:true});factRequest.current=false;}});return()=>cancelAnimationFrame(frame);},[facts,review?.id,factJump]);
+  useEffect(()=>{if(!review)return;const id=`fact-trail-${review.id}`;const openReview=location.hash===`#${id}`||location.hash==='#ai-daily-review'||location.hash==='#hero-review-facts';if(openReview&&!facts){factRequest.current=true;setFacts(true);return;}if(!facts||!factRequest.current)return;const frame=requestAnimationFrame(()=>{const target=document.getElementById(location.hash==='#ai-daily-review'?'ai-daily-review':id);if(target){target.scrollIntoView({behavior:'smooth',block:'start'});target.focus({preventScroll:true});factRequest.current=false;}});return()=>cancelAnimationFrame(frame);},[facts,review?.id,factJump]);
   const pending=pendingJudgment(state);
   const productIntro = !pending && review?.matched !== true && review?.matched !== false;
   const targetSession=predictionSession(state);
@@ -509,6 +515,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       </section>
       {review && facts && (
         <section id={`fact-trail-${review.id}`} tabIndex={-1} className="en-card review-facts" style={{scrollMarginTop:80}}>
+          {review.judgmentSnapshot?.eligible && <AIPredictionReview id="ai-daily-review" review={review} forecast={state.forecasts.find((item) => item.id === review.forecastId)} />}
           <span className="eyebrow">THE FACT TRAIL · {day(review.date)}</span>
           <h2>01 / Your original call</h2>
           <p>
@@ -703,6 +710,7 @@ function EventMap({ state }: { state: QuestState }) {
   const locale = useLocale(), dayLabel = (iso: string) => formatMarketDate(iso, locale);
   const [filter, setFilter] = useState<"week" | "upcoming" | "all">("week");
   const [focusedEvent,setFocusedEvent]=useState<string>();
+  useEffect(()=>{const id=new URLSearchParams(location.search).get('event');if(!id)return;setFilter('all');setFocusedEvent(id);},[]);
   useEffect(()=>{if(!focusedEvent)return;const element=document.getElementById(`event-${focusedEvent}`);if(element instanceof HTMLDetailsElement){element.open=true;element.scrollIntoView({behavior:'smooth',block:'start'});element.querySelector('summary')?.focus();setFocusedEvent(undefined);}},[filter,focusedEvent]);
   const date = new Date(`${state.session.date}T12:00:00Z`),
     day = (date.getUTCDay() + 6) % 7;
@@ -960,6 +968,7 @@ function Deck({
 }) {
   const [theme, setTheme] = useState<Category>(),
     [tab, setTab] = useState<"daily" | "all" | "mastered" | "saved">("daily"),
+    [pinnedCard, setPinnedCard] = useState<string>(),
     [celebrate, setCelebrate] = useState(false),[front,setFront]=useState(false);
   const deck=useDeckCompletion(state);
   const visit = useRef<string | null>(null);
@@ -967,6 +976,12 @@ function Deck({
     if (!visit.current) visit.current = crypto.randomUUID();
     void run({ type: "learningVisit", visitId: visit.current });
   }, [run]);
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("card");
+    if (!id) return;
+    setPinnedCard(id);
+    if (!state.dailyCardIds.includes(id)) setTab("all");
+  }, [state.dailyCardIds]);
   useEffect(() => {
     if (!celebrate) return;
     const id = setTimeout(() => setCelebrate(false), 1300);
@@ -984,7 +999,8 @@ function Deck({
       theme,
       state.learningVisitId,
     ),
-    card = queue[0] ? displayLearningCard(queue[0]) : undefined;
+    selectedCard = (pinnedCard && queue.find((item) => item.id === pinnedCard)) || queue[0],
+    card = selectedCard ? displayLearningCard(selectedCard) : undefined;
   const progress = card
       ? state.progress.find((p) => p.cardId === card.id)
       : undefined,
