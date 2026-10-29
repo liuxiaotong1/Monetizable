@@ -37,7 +37,19 @@ export function parseStatisticalRelease(event:MarketEvent,content:string,url:str
   if(annual){actual=Number(annual[2])*(annual[1].toLowerCase()==='decreased'?-1:1);const combined=annual[3].match(/in (\w+), followed by an (increase|decrease) of ([\d.]+) percent in (\w+)/i);if(combined){const previous=actual;actual=Number(combined[3])*(combined[2].toLowerCase()==='decrease'?-1:1);return {...base,actual,previous,report:{title:'PCE · 官方合并发布',summary:['官方本次同时发布两个月数据；展示后一个月，前值取同一报告中前一个月的同比值。'],bodyUrl:url}};}}
  }
  if(event.kind==='GDP'&&/gross domestic product/i.test(text)){const m=text.match(/Real gross domestic product.{0,85}?(increased|decreased) at an annual rate of ([\d.]+) percent/i);if(m)actual=Number(m[2])*(m[1].toLowerCase()==='decreased'?-1:1);}
- if(event.kind==='FOMC'){const m=text.match(/(?:target range for the federal funds rate).{0,120}?(\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? to (\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? percent/i);if(m)actual=Number(m[4])+(m[5]?Number(m[5])/Number(m[6]):0);}
+ if(event.kind==='FOMC'){
+  const m=text.match(/(?:target range for the federal funds rate).{0,120}?(\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? to (\d+(?:\.\d+)?)(?:-(\d+)\/(\d+))? percent/i);
+  if(m){
+   const lower=Number(m[1])+(m[2]?Number(m[2])/Number(m[3]):0),upper=Number(m[4])+(m[5]?Number(m[5])/Number(m[6]):0);
+   if(lower>upper||upper>25)throw Error('官方利率区间无效');
+   const hold=/(?:Committee|FOMC) (?:decided|voted) to maintain (?:the )?target range/i.test(text);
+   const vote=text.match(/by (?:a |an )?(\d+)\s*-\s*(\d+) vote/i);
+   const summary=['Federal funds target range: '+lower.toFixed(2)+'%-'+upper.toFixed(2)+'%. '+(hold?'The Committee maintained the range.':'The official statement set this range.'),
+    ...(/Inflation remains elevated/i.test(text)?['The statement describes inflation as elevated.']:[]),
+    ...(vote?['Policy vote: '+vote[1]+' in favour, '+vote[2]+' against.']:[])];
+   return {...base,actual:upper,previous:hold?upper:event.previous,report:{title:'FOMC · 官方政策决议',summary,bodyUrl:url}};
+  }
+ }
  if(event.kind==='FOMC'&&actual===undefined&&/Statement on Longer-Run Goals and Monetary Policy Strategy/i.test(text)&&text.length>1500)return {...base,title:'FOMC · 长期目标与货币政策战略',description:'这是长期政策框架的定性声明，不是一次利率区间决议，没有单一利率公布值。',actual:undefined,previous:undefined,revised:undefined,report:{title:'FOMC · 长期政策框架声明',summary:['已核对官方声明正文及发布日期。这是长期目标与货币政策战略的表决，不是利率区间决议；阅读通胀目标、就业目标与政策反应框架。'],bodyUrl:url}};
  if(event.kind==='BEIGE_BOOK'&&/Beige Book/i.test(text)&&text.length>3000)return {...base,report:{title:'Beige Book · 官方报告已公布',summary:['已核对官方发布日期及正文。阅读各地区经济活动、就业与价格章节；这份定性报告没有单一公布值。'],bodyUrl:url}};
  if(actual===undefined||!Number.isFinite(actual))throw Error('本次指标口径或数值未通过核对');
