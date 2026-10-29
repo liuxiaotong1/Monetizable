@@ -82,7 +82,7 @@ export function currentReviewContext(now:Date,bars:Bar[],events:MarketEvent[]):C
  const published=events.filter(e=>hasRelease(e)&&Date.parse(e.at)<=+now).sort((a,b)=>b.at.localeCompare(a.at));
  const unique=[...new Map([...published].reverse().map(e=>[e.kind+':'+(e.symbol||'')+':'+marketDate(new Date(e.at))+':'+(e.kind==='ISM'?e.title:''),e])).values()].sort((a,b)=>b.at.localeCompare(a.at));
  const latestMacro=new Map<string,MarketEvent>();
- for(const e of unique)if(['FOMC','CPI','PCE','NFP','GDP'].includes(e.kind)&&!latestMacro.has(e.kind))latestMacro.set(e.kind,e);
+ for(const e of unique)if(['FOMC','CPI','PCE','NFP','GDP'].includes(e.kind)&&(e.kind!=='FOMC'||finite(e.actual))&&!latestMacro.has(e.kind))latestMacro.set(e.kind,e);
  let earningsFrom=today;for(let n=0;n<5;n++)earningsFrom=previousTradingDate(earningsFrom);
  const selected=unique.filter(e=>{
   const released=marketDate(new Date(e.at));
