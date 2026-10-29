@@ -19,7 +19,7 @@ export async function POST(request:Request){
   const raw=await request.text();if(raw.length>5000)return Response.json({error:'SIZE'},{status:413,headers});
   const input=JSON.parse(raw||'{}') as Record<string,unknown>,locale:Locale=input.locale==='zh'||input.locale==='fr'?input.locale:'en';
   const date=text(input.date,10),direction=input.direction,confidence=input.confidence,reason=text(input.reason,1200),lockedAt=text(input.lockedAt,40),threshold=Number(input.threshold),forecastCreatedAt=text(input.forecastCreatedAt,40);
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!['bullish','neutral','bearish'].includes(String(direction))||!['low','medium','high'].includes(String(confidence))||!reason||!Number.isFinite(Date.parse(lockedAt))||!Number.isFinite(Date.parse(forecastCreatedAt))||!Number.isFinite(threshold)||threshold<0.05||threshold>5)return Response.json({error:'INVALID'},{status:400,headers});
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!['bullish','neutral','bearish'].includes(String(direction))||!['low','medium','high'].includes(String(confidence))||!reason||!Number.isFinite(Date.parse(lockedAt))||!Number.isFinite(Date.parse(forecastCreatedAt))||!Number.isFinite(threshold)||threshold<0.05||threshold>5)return Response.json({error:'INVALID'},{status:400,headers});
   const feed=await getPublicFeed(),session=sessionFor(new Date(date+'T12:00:00.000Z')),now=new Date();
   if(!session.isTradingDay||Date.parse(lockedAt)>=Date.parse(session.openAt)||Date.parse(forecastCreatedAt)>=Date.parse(session.openAt)||!sessionReady(date,now))return Response.json({error:'PENDING'},{status:409,headers});
   const actual=feed.state.bars.filter(bar=>bar.symbol==='QQQ'&&bar.date===date).sort((a,b)=>Date.parse(b.fetchedAt)-Date.parse(a.fetchedAt))[0];
