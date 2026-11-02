@@ -1,5 +1,4 @@
 "use client";
-import {LocalizeTree} from '@/components/i18n/locale-provider';
 import { Analytics } from "@vercel/analytics/next";
 import {useEffect,useState} from 'react';
 import {internalBrowser,sendGrowth} from '@/lib/marketing/growth-client';
@@ -29,7 +28,7 @@ export default function AnalyticsTracker({internal=false}:{internal?:boolean}) {
     document.addEventListener('click',click,true);return()=>document.removeEventListener('click',click,true);
   },[internal]);
   const excluded=internal||internalBrowser();
-  return <LocalizeTree>{(<>
+  return <>
     {!excluded&&consent==='granted'&&
     <Analytics
       beforeSend={(event) => {
@@ -43,5 +42,5 @@ export default function AnalyticsTracker({internal=false}:{internal?:boolean}) {
       }}
     />}
     {!excluded&&consent&&(consent==='pending'||settings)?<aside className="analytics-consent" aria-label={copy.settings}><p>{copy.text} <a href="/privacy">{locale==='zh'?'隐私说明':'Privacy'}</a></p><div><button onClick={()=>void choose('denied')}>{copy.deny}</button><button onClick={()=>void choose('granted')}>{copy.allow}</button></div></aside>:!excluded&&consent?<button className="analytics-settings" onClick={()=>setSettings(true)}>{copy.settings}</button>:null}
-  </>)}</LocalizeTree>;
+  </>;
 }
