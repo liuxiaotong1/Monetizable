@@ -72,3 +72,13 @@ Verification on 2026-10-18: Vercel reported SUCCESS for the deployed commit; clo
 - Daily reports use the actual session open minus 60 minutes (normally 08:30 America/New_York), including the weeks when European and US DST changes differ. GitHub checks both 12/13 UTC windows; the runtime session guard prevents holiday/post-open publication. Sunday outlook stays at 19:00 Europe/Paris.
 - Answer validation reads a private server-owned multilingual learning catalog from Supabase; it does not wait for market/calendar/news refresh. Existing allowance and authentication checks remain enforced.
 - Home characters use versioned gzip + meshopt assets. Original GLBs remain available for recovery. Geometry positions, skin weights, animation arrays, triangle winding and original node transforms were checked against the source; textures use smaller display-appropriate versions. A 2D placeholder displays until 3D is ready.
+
+## Immediate closing review (2026-11-02)
+
+- Eligibility starts at the exchange close from `sessionFor`, including DST and early closes. The former fixed twenty-minute hold has been removed from the parser, scoring gate and cache boundary.
+- A same-day Yahoo daily candle is held back when its last regular-session tick still precedes the close. Missing completed candles retry after fifteen seconds; the first successful closing candle unlocks scoring.
+- Visible workspaces wake at the actual close and refresh every fifteen seconds for the first half hour. Pending AI jobs poll automatically; concurrent requests share a database lease and per-user evidence cache.
+- `/api/refresh` idempotently installs `monetizable-after-close` in Supabase pg_cron. It checks `/api/after-close` each minute during UTC 17–22 on weekdays. The worker applies the actual New York trading calendar and generates saved-account debriefs during the first two hours after close. The scheduler references an encrypted Supabase Vault secret; cron SQL contains the Vault reference only.
+- `closing-review-health` records aggregate ready/pending counts and safe error codes. Private debriefs stay in service-role-only `quest_shared_data` keys. `/api/after-close` requires the existing cron bearer authorization.
+- Quote provider publication latency and AI request time still apply. Verify a completed scheduler HTTP response and saved debrief, rather than treating an enqueued wake-up as generation success.
+- `Closing review regression checks` runs exchange-close, delayed quote, DST, holiday and early-close tests in an isolated cloud harness.
