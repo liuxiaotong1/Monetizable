@@ -20,7 +20,7 @@ type View="today"|"events"|"learn";
 const nav=[{id:"today" as View,title:"今日冒险",sub:"DAILY QUEST",icon:Compass},{id:"events" as View,title:"事件 Boss",sub:"BOSS RADAR",icon:Swords},{id:"learn" as View,title:"知识卡牌",sub:"KNOWLEDGE DECK",icon:Layers3}];
 export default function QuestApp(){
  const {access}=useBilling();const [needsSubscription,setNeedsSubscription]=useState(false);
- const [view,setView]=useState<View>("today"),[mode,setMode]=useState<Mode>("live"),[state,setState]=useState<QuestState|null>(null),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[toast,setToast]=useState(""),[settings,setSettings]=useState(false),[notices,setNotices]=useState(false),[help,setHelp]=useState(false),[needsLogin,setNeedsLogin]=useState(false);const sharedState=useRef<QuestState|null>(null);const actionInFlight=useRef(false);const sequence=useRef(0);const autoRefreshAt=useRef(0);
+ const [view,setView]=useState<View>("today"),[mode,setMode]=useState<Mode>("live"),[state,setState]=useState<QuestState|null>(null),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[toast,setToast]=useState(""),[settings,setSettings]=useState(false),[notices,setNotices]=useState(false),[help,setHelp]=useState(false),[needsLogin,setNeedsLogin]=useState(false);const sharedState=useRef<QuestState|null>(null);const actionInFlight=useRef(false);const sequence=useRef(0);
  const loginRef=useRef<HTMLElement>(null),subscriptionRef=useRef<HTMLElement>(null);useDialogFocus(loginRef,needsLogin,()=>setNeedsLogin(false));useDialogFocus(subscriptionRef,needsSubscription,()=>setNeedsSubscription(false));
  const helpRef=useRef<HTMLElement>(null);useDialogFocus(helpRef,help,()=>setHelp(false));
  const navigate=useCallback((v:View)=>{setView(v);history.replaceState(null,"",`/?view=${v}`);window.scrollTo({top:0,behavior:"smooth"});},[]);
@@ -30,12 +30,6 @@ export default function QuestApp(){
  const reloadAtClose=useCallback(()=>load(mode),[load,mode]);useCloseRefresh(state?.session,reloadAtClose);
  useEffect(()=>{let active=true;const m:Mode="live";const v=new URLSearchParams(location.search).get("view");queueMicrotask(()=>{if(active)void load(m,v==="events"||v==="learn"?v:"today");});if("serviceWorker" in navigator)void navigator.serviceWorker.register("/sw.js").catch(()=>{});return()=>{active=false;sequence.current++;};},[load]);
  useEffect(()=>{const onReturn=()=>{if(!document.hidden&&!busy&&!actionInFlight.current)void load(mode);};const id=setInterval(onReturn,60000);document.addEventListener("visibilitychange",onReturn);window.addEventListener("focus",onReturn);return()=>{clearInterval(id);document.removeEventListener("visibilitychange",onReturn);window.removeEventListener("focus",onReturn);};},[mode,busy,load]);
- useEffect(()=>{
-   if(!state||mode!=="live"||busy||document.hidden||Date.now()<autoRefreshAt.current)return;
-   if((!state.session.isTradingDay||Date.parse(state.now)<Date.parse(state.session.closeAt))||state.bars.some(b=>b.symbol==="QQQ"&&b.date===state.session.date&&b.source.includes("常规时段")))return;
-   autoRefreshAt.current=Date.now()+15_000;
-   void fetch("/api/refresh",{signal:AbortSignal.timeout(240000)}).then(response=>{if(response.ok)return load("live");}).catch(()=>{});
- },[state,mode,busy,load]);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(""),3500);return()=>clearTimeout(id);},[toast]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==="Escape"){setSettings(false);setNotices(false);setHelp(false);}};document.addEventListener("keydown",key);return()=>document.removeEventListener("keydown",key);},[]);
  async function run(command:QuestCommand):Promise<QuestState|false>{
