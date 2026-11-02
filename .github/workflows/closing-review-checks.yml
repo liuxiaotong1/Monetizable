@@ -1,0 +1,33 @@
+name: Closing review regression checks
+on:
+  push:
+    branches: [main, codex/immediate-closing-review]
+    paths:
+      - 'src/lib/quest/**'
+      - 'src/app/api/prediction-review/**'
+      - 'src/app/api/after-close/**'
+      - 'tests/prediction-window.mjs'
+      - '.github/workflows/closing-review-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  closing-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify close boundary and delayed-candle guards
+        run: |
+          check_dir="$RUNNER_TEMP/closing-review-checks"
+          mkdir -p "$check_dir/src/lib/quest" "$check_dir/tests"
+          cp src/lib/quest/domain.ts src/lib/quest/free-market.ts src/lib/quest/prediction-window.ts "$check_dir/src/lib/quest/"
+          cp tests/prediction-window.mjs "$check_dir/tests/"
+          npm install --prefix "$check_dir" --no-save --ignore-scripts --package-lock=false typescript@5.9.3
+          cd "$check_dir"
+          node tests/prediction-window.mjs
