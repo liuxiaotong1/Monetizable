@@ -55,18 +55,28 @@ export default function PwaPushGuide() {
       return;
     }
     let installTimer = 0;
+    const publicLanding = Boolean(document.querySelector(".public-landing"));
+    function afterExploring() {
+      if (window.scrollY < window.innerHeight * 1.5) return;
+      window.removeEventListener("scroll", afterExploring);
+      installTimer = window.setTimeout(() => setInstallOpen(true), 12000);
+    }
     if (showPush) setPushOpen(true);
-    else if (!standalone && !dismissedInstall) installTimer = window.setTimeout(() => setInstallOpen(true), 6500);
+    else if (!standalone && !dismissedInstall) {
+      if (publicLanding) window.addEventListener("scroll", afterExploring, { passive: true });
+      else installTimer = window.setTimeout(() => setInstallOpen(true), 6500);
+    }
     function onOpen() { setPushOpen(true); setInstallOpen(false); }
     function onInstall(event: Event) {
       event.preventDefault();
       setPrompt(event as InstallPromptEvent);
-      if (!installedApp()) setInstallOpen(true);
+      if (!installedApp() && !publicLanding) setInstallOpen(true);
     }
     window.addEventListener("monetizable-open-push", onOpen);
     window.addEventListener("beforeinstallprompt", onInstall);
     return () => {
       window.clearTimeout(installTimer);
+      window.removeEventListener("scroll", afterExploring);
       window.removeEventListener("monetizable-open-push", onOpen);
       window.removeEventListener("beforeinstallprompt", onInstall);
     };

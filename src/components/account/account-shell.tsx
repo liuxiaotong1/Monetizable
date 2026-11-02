@@ -12,9 +12,10 @@ import {
 import { transferKey } from "@/lib/quest/guest-access";
 import {sendGrowth} from '@/lib/marketing/growth-client';
 import {LocalizeTree,useLocale,LanguageSwitcher} from '@/components/i18n/locale-provider';
-import ProductTour from "./product-tour";
+import dynamic from 'next/dynamic';
+const ProductTour=dynamic(()=>import('./product-tour'),{ssr:false});
 import {chooseHero,savedHero,setAdventureStage,setTourActive} from "@/components/quest/hero-preference";
-import HeroPicker from "./hero-picker";
+const HeroPicker=dynamic(()=>import('./hero-picker'),{ssr:false});
 import {companion,onboardingDestination,onboardingStage,pendingOnboardingKey,tutorialKey} from "@/lib/account/onboarding";
 import { mergeRecords } from "@/lib/quest/merge-records";
 import {
