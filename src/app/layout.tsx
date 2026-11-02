@@ -70,9 +70,10 @@ export default async function RootLayout({
   return (
     <html lang={locale==='zh'?'zh-CN':locale}>
       <body>
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        <LocaleProvider locale={locale}>{children}
         <AnalyticsTracker internal={isAdmin(await currentUser())} />
         <PwaPushGuide />
+        </LocaleProvider>
       </body>
     </html>
   );
