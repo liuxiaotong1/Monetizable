@@ -1,4 +1,5 @@
 "use client";
+import {useCloseRefresh} from "./use-close-refresh";
 import EarningsReport from './earnings-report';
 import TradingDNA from "./trading-dna";
 import PredictionFocus from "./prediction-focus";
@@ -149,6 +150,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
       );
     }
   }, []);
+  useCloseRefresh(state?.session,load);
   useEffect(() => {
     const v = new URLSearchParams(location.search).get("view");
     if (v === "events" || v === "learn") setView(v);
