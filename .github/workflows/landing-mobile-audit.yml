@@ -6,6 +6,9 @@ on:
       - '.github/workflows/landing-mobile-audit.yml'
       - 'src/components/marketing/public-landing*'
       - 'src/app/page.tsx'
+      - 'src/app/layout.tsx'
+      - 'src/components/i18n/**'
+      - 'src/components/account/analytics.tsx'
   workflow_dispatch:
 permissions:
   contents: read
