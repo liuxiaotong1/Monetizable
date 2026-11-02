@@ -1,5 +1,5 @@
 "use client";
-import {useCallback,useEffect,useState,type ReactNode} from 'react';
+import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {Sparkles,RefreshCw,Target,Lightbulb,Swords,Globe2,Map,Flag,BookOpen,ChevronDown,Thermometer} from 'lucide-react';
 import {useLocale} from '@/components/i18n/locale-provider';
 import type {Forecast,Review} from '@/lib/quest/types';
@@ -44,15 +44,17 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
  const locale=useLocale(),c=copy[locale],snapshot=review.judgmentSnapshot,eligible=!!snapshot?.eligible;
  const requestBody=JSON.stringify({locale,date:review.date,direction:snapshot?.direction,confidence:snapshot?.confidence,reason:snapshot?.reason,lockedAt:snapshot?.lockedAt,threshold:forecast?.threshold??.3,forecastCreatedAt:forecast?.createdAt});
  const [report,setReport]=useState<Report|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
- const generate=useCallback(async(signal?:AbortSignal)=>{
-  if(!eligible)return;setLoading(true);setError('');
+ const retryTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
+ const generate=useCallback(async(signal?:AbortSignal):Promise<void>=>{
+  if(!eligible)return;let waiting=false;setLoading(true);setError('');
   try{const response=await fetch('/api/prediction-review',{method:'POST',headers:{'Content-Type':'application/json'},body:requestBody,signal});
    const data=await response.json();if(signal?.aborted)return;
-   if(!response.ok){if(data.error==='PENDING'){setError(c.pending);return;}if(data.error==='AUTH'){setError(c.login);return;}throw Error(data.error||'AI_UNAVAILABLE');}
+   if(response.status===202){waiting=true;retryTimer.current=setTimeout(()=>void generate(signal),5000);return;}
+   if(!response.ok){if(data.error==='PENDING'){waiting=true;setError(c.pending);retryTimer.current=setTimeout(()=>void generate(signal),15000);return;}if(data.error==='AUTH'){setError(c.login);return;}throw Error(data.error||'AI_UNAVAILABLE');}
    setReport(data as Report);
-  }catch{if(!signal?.aborted)setError(c.error);}finally{if(!signal?.aborted)setLoading(false);}
+  }catch{if(!signal?.aborted){setError(c.error);retryTimer.current=setTimeout(()=>void generate(signal),30000);}}finally{if(!signal?.aborted&&!waiting)setLoading(false);}
  },[eligible,requestBody,c]);
- useEffect(()=>{const controller=new AbortController();setReport(null);if(eligible)void generate(controller.signal);return()=>controller.abort();},[eligible,generate]);
+ useEffect(()=>{const controller=new AbortController();setReport(null);if(eligible)void generate(controller.signal);return()=>{controller.abort();clearTimeout(retryTimer.current);};},[eligible,generate]);
  if(!eligible)return null;
  const language=locale==='zh'?'zh-CN':locale==='fr'?'fr-FR':'en-US';
  const dateLabel=new Intl.DateTimeFormat(language,{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(review.date+'T12:00:00Z'));

@@ -10,9 +10,20 @@ assert.equal(forecast.date,'2026-10-14');assert.equal(forecast.provisional,true)
 console.log('Passed opening cutoff, next session, Friday/weekend, holiday and provisional forecast checks.');
 
 const freeURL=url((await compile('src/lib/quest/free-market.ts')).replace('"./domain"',JSON.stringify(domainURL))),free=await import(freeURL);
-const saved={fetchedAt:'2026-10-14T20:13:09Z',bars:[{symbol:'QQQ',date:'2026-10-13'}]};
-assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T20:19:59Z')),false);
-assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T20:20:00Z')),true);
-assert.equal(free.freeBarsNeedRefresh({...saved,fetchedAt:'2026-10-14T20:21:00Z'},new Date('2026-10-14T20:22:00Z')),false,'An after-close attempt should respect the retry interval');
-assert.equal(free.freeBarsNeedRefresh({...saved,bars:[{symbol:'QQQ',date:'2026-10-14'}]},new Date('2026-10-14T20:22:00Z')),false);
-console.log('Passed close-confirmation cache boundary and retry checks.');
+const saved={fetchedAt:'2026-10-14T19:59:50Z',bars:[{symbol:'QQQ',date:'2026-10-13'}]};
+assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T19:59:59Z')),false);
+assert.equal(free.freeBarsNeedRefresh(saved,new Date('2026-10-14T20:00:00Z')),true);
+assert.equal(free.freeBarsNeedRefresh({...saved,fetchedAt:'2026-10-14T20:00:01Z'},new Date('2026-10-14T20:00:10Z')),false);
+assert.equal(free.freeBarsNeedRefresh({...saved,fetchedAt:'2026-10-14T20:00:01Z'},new Date('2026-10-14T20:00:16Z')),true,'Missing closing candles retry after fifteen seconds, not fifteen minutes');
+assert.equal(free.freeBarsNeedRefresh({...saved,fetchedAt:'2026-10-14T20:00:01Z',bars:[{symbol:'QQQ',date:'2026-10-14'}]},new Date('2026-10-14T20:01:00Z')),false);
+for(const [date,close] of [['2026-10-30','2026-10-30T20:00:00Z'],['2026-11-02','2026-11-02T21:00:00Z'],['2026-11-27','2026-11-27T18:00:00Z']]){
+ const at=new Date(close);assert.equal(domain.sessionReady(date,new Date(+at-1)),false);assert.equal(domain.sessionReady(date,at),true);assert.equal(domain.latestCompletedDate(at),date);
+}
+assert.equal(domain.sessionReady('2026-12-25',new Date('2026-12-25T23:00:00Z')),false);
+const close=new Date('2026-11-02T21:00:00Z');
+const candle={chart:{result:[{meta:{symbol:'QQQ',exchangeTimezoneName:'America/New_York',dataGranularity:'1d',regularMarketTime:+close/1000},timestamp:[+new Date('2026-11-02T14:30:00Z')/1000],indicators:{quote:[{open:[100],high:[102],low:[99],close:[101],volume:[10000]}]}}]}};
+assert.throws(()=>free.parseFreeBars(candle,'QQQ',new Date(+close-1)));
+assert.equal(free.parseFreeBars(candle,'QQQ',close)[0].date,'2026-11-02');
+const delayed=structuredClone(candle);delayed.chart.result[0].meta.regularMarketTime-=60;
+assert.throws(()=>free.parseFreeBars(delayed,'QQQ',close),'A delayed pre-close quote cannot become a completed result');
+console.log('Passed immediate closing boundary, fifteen-second retry, daylight/standard time, early close, holiday and delayed-quote checks.');
