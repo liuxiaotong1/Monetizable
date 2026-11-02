@@ -35,7 +35,7 @@ function plans(locale, when, extra = {}) {
 }
 
 const englishPhrases = [
-  'The last card', 'Write down your call', 'The Boss is at the door', 'Today’s review', 'I marked where',
+  'The last card', 'Write down your call', 'The Boss is at the door', 'The market opens soon', 'Today’s review', 'I marked where',
   'The market’s closed', 'hiding a concept', 'just dropped', 'Tomorrow at', 'is released', 'biggest Boss',
   'Send in your prediction', 'Last hour', 'Predictions close', 'Nasdaq-100 ETF', 'Federal Reserve',
   'US jobs', 'US CPI', 'major release',

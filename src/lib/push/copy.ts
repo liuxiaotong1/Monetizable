@@ -46,9 +46,9 @@ const lines: Record<PushCategory, Record<CompanionId, Record<PushLocale, string>
       fr: 'La dernière carte avant l’ouverture. L’ETF Nasdaq-100 va-t-il monter ou baisser aujourd’hui ? Écris ton jugement.',
     },
     supercharlie: {
-      zh: 'Boss 已经站在门口了！45 分钟后开盘，快来押一把，打它！⚔️',
-      en: 'The Boss is at the door! The market opens in 45 minutes — come make your call and fight it! ⚔️',
-      fr: 'Le Boss est déjà à la porte ! Ouverture dans 45 minutes : viens poser ton pari et l’affronter ! ⚔️',
+      zh: 'Boss 已经站在门口了！开盘前快来押一把，打它！⚔️',
+      en: 'The Boss is at the door! The market opens soon — come make your call and fight it! ⚔️',
+      fr: 'Le Boss est déjà à la porte ! Avant l’ouverture, viens poser ton pari et l’affronter ! ⚔️',
     },
   },
   review: {

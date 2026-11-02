@@ -4,7 +4,20 @@ import { PUSH_ICON, companionName, eventClock, eventName, notificationBody, type
 import { normalizeKnowledgeTime, safeTimeZone, type PushCategories } from './prefs';
 
 export const DAILY_CAP = 2;
+/** Earlier on-time width. Slots now stay due until their cutoff so a late run still sends once. */
 export const WINDOW_MS = 30 * 60 * 1000;
+/** Local minute of day when a knowledge reminder stops being due. A later chosen time stays open for 90 minutes. */
+export const KNOWLEDGE_CUTOFF_MINUTES = 21 * 60;
+/** Premarket becomes due this long before the open and stays due until the open, when sealing closes. */
+export const PREMARKET_LEAD_MS = 45 * 60 * 1000;
+export const REVIEW_DELAY_MS = 30 * 60 * 1000;
+/** America/New_York minute of day. A review stays due from 30 minutes after the close until this clock time. */
+export const REVIEW_CUTOFF_MINUTES = 22 * 60 + 30;
+/** Europe/Paris. The evening-before reminder stays due across this range so a late run still sends it once. */
+export const EVENT_EVE_START_MINUTES = 17 * 60;
+export const EVENT_EVE_END_MINUTES = 23 * 60 + 30;
+/** The hour-before reminder stays due from this lead until the release. */
+export const EVENT_SOON_LEAD_MS = 60 * 60 * 1000;
 export type { PushCategory, PushLocale, CompanionId, PushCategories };
 export { defaultCategories, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, normalizeLocale, safeTimeZone } from './prefs';
 export interface PushEvent {
@@ -60,9 +73,13 @@ export function zonedTimeToUtc(date: string, minutes: number, timeZone: string) 
   return result;
 }
 
-function inWindow(now: Date, startMs: number) {
+function dueBetween(now: Date, startMs: number, endMs: number) {
   const time = now.getTime();
-  return time >= startMs && time < startMs + WINDOW_MS;
+  return time >= startMs && time < endMs;
+}
+function knowledgeOpen(localMinutes: number, knowledgeMinutes: number) {
+  const end = Math.min(24 * 60, Math.max(KNOWLEDGE_CUTOFF_MINUTES, knowledgeMinutes + 90));
+  return localMinutes >= knowledgeMinutes && localMinutes < end;
 }
 function clockMinutes(value: string) {
   const [hour, minute] = normalizeKnowledgeTime(value).split(':').map(Number);
@@ -161,17 +178,17 @@ export function planNotifications(input: {
 
   if (trading && input.categories.event) {
     const paris = zonedParts(now, 'Europe/Paris');
-    const evening = zonedTimeToUtc(paris.date, 20 * 60, 'Europe/Paris');
-    if (inWindow(now, evening)) {
+    if (paris.minutes >= EVENT_EVE_START_MINUTES && paris.minutes < EVENT_EVE_END_MINUTES) {
       const tomorrow = addDays(paris.date, 1);
       const event = input.events.filter((item) => isMajorEvent(item) && nyDay(item.at) === tomorrow).sort((a, b) => a.at.localeCompare(b.at))[0];
       if (event) plans.push(planFor({ ...input, category: 'event', phase: 'eve', slot: `event:${event.id}:eve`, sentOn: local.date, href: `/?view=events&event=${encodeURIComponent(event.id)}`, event }));
     }
-    const soon = majorToday.filter((event) => inWindow(now, Date.parse(event.at) - 60 * 60 * 1000)).sort((a, b) => a.at.localeCompare(b.at))[0];
+    const soon = majorToday.filter((event) => dueBetween(now, Date.parse(event.at) - EVENT_SOON_LEAD_MS, Date.parse(event.at))).sort((a, b) => a.at.localeCompare(b.at))[0];
     if (soon) plans.push(planFor({ ...input, category: 'event', phase: 'soon', slot: `event:${soon.id}:soon`, sentOn: local.date, href: `/?view=events&event=${encodeURIComponent(soon.id)}`, event: soon }));
   }
 
-  if (trading && input.categories.premarket && majorToday.length === 0 && inWindow(now, Date.parse(session.openAt) - 45 * 60 * 1000) && !hasJudgment(input.judgments, session.date)) {
+  const openAt = Date.parse(session.openAt);
+  if (trading && input.categories.premarket && majorToday.length === 0 && dueBetween(now, openAt - PREMARKET_LEAD_MS, openAt) && !hasJudgment(input.judgments, session.date)) {
     plans.push(planFor({
       ...input,
       category: 'premarket',
@@ -182,10 +199,12 @@ export function planNotifications(input: {
   }
 
   if (trading && input.categories.review && hasJudgment(input.judgments, session.date, true)) {
-    const start = Date.parse(session.closeAt) + 30 * 60 * 1000;
+    const start = Date.parse(session.closeAt) + REVIEW_DELAY_MS;
+    const ny = zonedParts(now, 'America/New_York');
+    const cutoff = zonedTimeToUtc(ny.date, REVIEW_CUTOFF_MINUTES, 'America/New_York');
     const hasBar = input.bars.some((bar) => bar.symbol === 'QQQ' && bar.date === session.date);
     const hasPrevious = input.bars.some((bar) => bar.symbol === 'QQQ' && bar.date === session.previousDate);
-    if (now.getTime() >= start && now.getTime() < Date.parse(session.closeAt) + 3 * 60 * 60 * 1000 && hasBar && hasPrevious && sessionReady(session.date, now)) {
+    if (dueBetween(now, start, cutoff) && hasBar && hasPrevious && sessionReady(session.date, now)) {
       plans.push(planFor({
         ...input,
         category: 'review',
@@ -196,17 +215,14 @@ export function planNotifications(input: {
     }
   }
 
-  if (input.categories.knowledge) {
-    const delta = local.minutes - clockMinutes(input.knowledgeTime || '12:30');
-    if (delta >= 0 && delta * 60 * 1000 < WINDOW_MS && !answeredToday(input.progress, marketDate(now))) {
-      plans.push(planFor({
-        ...input,
-        category: 'knowledge',
-        slot: `knowledge:${local.date}`,
-        sentOn: local.date,
-        href: knowledgeHref(input.locale, input.events, input.bars, now),
-      }));
-    }
+  if (input.categories.knowledge && knowledgeOpen(local.minutes, clockMinutes(input.knowledgeTime || '12:30')) && !answeredToday(input.progress, marketDate(now))) {
+    plans.push(planFor({
+      ...input,
+      category: 'knowledge',
+      slot: `knowledge:${local.date}`,
+      sentOn: local.date,
+      href: knowledgeHref(input.locale, input.events, input.bars, now),
+    }));
   }
 
   const order: PushCategory[] = ['event', 'premarket', 'review', 'knowledge'];
