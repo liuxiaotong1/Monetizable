@@ -62,10 +62,10 @@ export function sessionFor(now: Date = new Date(), overrides: CalendarOverride[]
   const early = date === addDays(nthWeekday(year, 11, 4, 4), 1) || date === `${year}-12-24` || date === `${year}-07-03`;
   return { date, isTradingDay: isTradingDate(date, overrides), openAt: nyTimeToUtc(date, override?.open ?? "09:30"), closeAt: nyTimeToUtc(date, override?.close ?? (early ? "13:00" : "16:00")), previousDate: previousTradingDate(date, overrides), nextDate: nextTradingDate(date, overrides) };
 }
-// Public daily bars need a short publication buffer after the exchange close.
+// Review eligibility starts at the exchange close; candle validation guards actual data.
 export function sessionReady(date: string, now: Date, overrides: CalendarOverride[] = []) {
   const session = sessionFor(new Date(`${date}T12:00:00Z`), overrides);
-  return session.isTradingDay && now.getTime() >= Date.parse(session.closeAt) + 20 * 60_000;
+  return session.isTradingDay && now.getTime() >= Date.parse(session.closeAt);
 }
 export function latestCompletedDate(now: Date, overrides: CalendarOverride[] = []) {
   const session = sessionFor(now, overrides);
