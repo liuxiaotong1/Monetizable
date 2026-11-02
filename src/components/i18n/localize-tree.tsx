@@ -1,0 +1,21 @@
+'use client';
+import {Children,isValidElement,cloneElement,type ReactNode,type ReactElement} from 'react';
+import {useLocale} from './locale-provider';
+import {translateString} from '@/lib/i18n/translate';
+/** Translate React text and display attributes without touching DOM nodes,
+ * input values, event handlers, identifiers, or persisted user records. */
+export default function LocalizeTree({children}:{children:ReactNode}){
+ const locale=useLocale();if(locale==='en')return <>{children}</>;
+ function walk(node:ReactNode):ReactNode{
+  if(typeof node==='string')return translateString(node,locale);
+  if(Array.isArray(node))return Children.map(node,walk);
+  if(!isValidElement(node))return node;
+  const element=node as ReactElement<Record<string,unknown>>,props=element.props;
+  if(props.translate==='no'||props['data-user-content']||element.type==='script'||element.type==='style')return node;
+  const next:Record<string,unknown>={};for(const key of ['title','aria-label','placeholder','alt'])if(typeof props[key]==='string')next[key]=translateString(props[key] as string,locale);
+  if(element.type==='textarea')return Object.keys(next).length?cloneElement(element,next):node;
+  if('children' in props)next.children=walk(props.children as ReactNode);
+  return cloneElement(element,next);
+ }
+ return <>{walk(children)}</>;
+}
