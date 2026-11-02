@@ -3,7 +3,7 @@ import type { Bar } from "./types";
 
 export const FREE_MARKET_SOURCE = "Yahoo Finance · 常规时段日线（拆股调整，不含分红调整；非实时参考）";
 type ChartRow = {
-  meta?: { symbol?: string; exchangeTimezoneName?: string; dataGranularity?: string };
+  meta?: { symbol?: string; exchangeTimezoneName?: string; dataGranularity?: string; regularMarketTime?: number };
   timestamp?: number[];
   indicators?: { quote?: { open?: unknown[]; high?: unknown[]; low?: unknown[]; close?: unknown[]; volume?: unknown[] }[] };
 };
@@ -19,7 +19,9 @@ export function parseFreeBars(payload: unknown, symbol: string, now: Date, overr
     if (!Number.isFinite(timestamp)) continue;
     const date = marketDate(new Date(timestamp * 1000));
     const session = sessionFor(new Date(`${date}T12:00:00Z`), overrides);
-    if (!session.isTradingDay || now.getTime() < Date.parse(session.closeAt) + 20 * 60_000 || date > marketDate(now)) continue;
+    if (!session.isTradingDay || now.getTime() < Date.parse(session.closeAt) || date > marketDate(now)) continue;
+    // Reject a delayed same-day quote whose last regular-session tick is still before the close.
+    if (date === marketDate(now) && typeof row.meta.regularMarketTime === "number" && row.meta.regularMarketTime * 1000 < Date.parse(session.closeAt) - 1000) continue;
     const values = [quote.open?.[index], quote.high?.[index], quote.low?.[index], quote.close?.[index], quote.volume?.[index]];
     if (!values.every(value => typeof value === "number" && Number.isFinite(value))) continue;
     const [open, high, low, close, volume] = values as number[];
@@ -35,6 +37,7 @@ export function parseFreeBars(payload: unknown, symbol: string, now: Date, overr
 /** Cross the close-confirmation boundary immediately, even if the pre-close cache is young. */
 export function freeBarsNeedRefresh(saved: {fetchedAt: string;bars: Bar[]} | undefined, now: Date): boolean {
  if(!saved || now.getTime()-Date.parse(saved.fetchedAt)>15*60_000)return true;
- const session=sessionFor(now),confirmedAt=Date.parse(session.closeAt)+20*60_000;
+ const session=sessionFor(now),confirmedAt=Date.parse(session.closeAt);
+ if(session.isTradingDay&&now.getTime()>=confirmedAt&&!saved.bars.some(b=>b.symbol==='QQQ'&&b.date===session.date))return now.getTime()-Date.parse(saved.fetchedAt)>=15_000||Date.parse(saved.fetchedAt)<confirmedAt;
  return session.isTradingDay && now.getTime()>=confirmedAt && Date.parse(saved.fetchedAt)<confirmedAt && !saved.bars.some(b=>b.symbol==='QQQ'&&b.date===session.date);
 }
