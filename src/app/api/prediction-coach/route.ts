@@ -21,5 +21,5 @@ export async function POST(request:Request){
   if(!judgment.eligible||!session.isTradingDay||!judgment.reason.trim()||!Number.isFinite(Date.parse(judgment.lockedAt))||Date.parse(judgment.lockedAt)>=Date.parse(session.openAt)||Date.parse(judgment.lockedAt)>Date.now()||!Number.isFinite(Date.parse(forecast.createdAt))||Date.parse(forecast.createdAt)>=Date.parse(session.openAt))return Response.json({error:'INELIGIBLE'},{status:400,headers});
   const [report,access]=await Promise.all([reasonFeedback(user.id,judgment,locale),billingStatus().catch(()=>({premium:false}))]);
   return Response.json(projectReasonFeedback(report,access.premium),{headers});
- }catch(error){const code=error instanceof Error?error.message:'';return Response.json({error:code==='AI_BUSY'?'AI_BUSY':'AI_UNAVAILABLE'},{status:code==='AI_BUSY'?429:503,headers});}
+ }catch(error){const code=error instanceof Error?error.message:'';if(code==='GENERATING')return Response.json({status:'generating'},{status:202,headers:{...headers,'Retry-After':'5'}});return Response.json({error:code==='AI_BUSY'?'AI_BUSY':'AI_UNAVAILABLE'},{status:code==='AI_BUSY'?429:503,headers});}
 }
