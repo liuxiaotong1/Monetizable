@@ -58,6 +58,7 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
   }catch{if(!signal?.aborted){setError(c.error);retryTimer.current=setTimeout(()=>void generate(signal),30000);}}finally{if(!signal?.aborted&&!waiting)setLoading(false);}
  },[eligible,requestBody,c,premium]);
  useEffect(()=>{const controller=new AbortController();setReport(null);if(eligible)void generate(controller.signal);return()=>{controller.abort();clearTimeout(retryTimer.current);};},[eligible,generate]);
+ useEffect(()=>{if(!eligible||!id||id==='dna-companion-review')return;const notify=(visible:boolean)=>dispatchEvent(new CustomEvent('monetizable-companion-review-visible',{detail:{reviewId:review.id,target:id,visible}}));notify(true);return()=>{notify(false);};},[eligible,id,review.id]);
  if(!eligible)return null;
  const language=locale==='zh'?'zh-CN':locale==='fr'?'fr-FR':'en-US';
  const dateLabel=new Intl.DateTimeFormat(language,{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'}).format(new Date(review.date+'T12:00:00Z'));
@@ -69,7 +70,7 @@ export default function AIPredictionReview({review,forecast,id,onNotes}:{review:
  const thermometerIndex=full?.currentContext.bosses.findIndex(b=>!b.releaseReaction&&!b.historical)??-1;
  const chosen=forecast?.scenarios.find(s=>s.direction===snapshot?.direction);
  const verified=report?.verified??{matched:review.matched===true,actualDirection:review.actualDirection,close:review.actual.close,returnPct:review.returnPct,low:review.actual.low,high:review.actual.high};
- return <section id={id} className={styles.panel} aria-busy={loading}>
+ return <section id={id} data-review-id={review.id} className={styles.panel} aria-busy={loading}>
   <CompanionIdentity/>
   <header className={styles.header}><span className={styles.icon}><Sparkles size={21}/></span><div><span className={styles.eyebrow}>{c.journey}</span><h2><time dateTime={review.date}>{dateLabel}</time> · {c.title}</h2><p>{c.sub}</p></div></header>
   <div className={styles.verdict}><strong className={verified.matched?styles.matched:styles.missed}><Target size={16}/>{verified.matched?c.matched:c.missed}</strong><span>{locale==='zh'?'纳斯达克100 ETF':locale==='fr'?'ETF Nasdaq-100':'Nasdaq-100 ETF'} · {direction(verified.actualDirection)}</span></div>
