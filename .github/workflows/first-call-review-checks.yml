@@ -1,0 +1,37 @@
+name: First call companion checks
+on:
+  push:
+    branches: [main, codex/first-call-companion]
+    paths:
+      - 'src/lib/quest/**'
+      - 'src/app/api/prediction-review/**'
+      - 'src/app/api/prediction-coach/**'
+      - 'tests/first-call-review.mjs'
+      - 'tests/trading-dna.mjs'
+      - '.github/workflows/first-call-review-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  access-and-first-call:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify first-call availability and paid response boundaries
+        run: |
+          check_dir="$RUNNER_TEMP/first-call-review-checks"
+          mkdir -p "$check_dir/src/lib/quest" "$check_dir/src/app/api/prediction-review" "$check_dir/src/app/api/prediction-coach" "$check_dir/tests"
+          cp src/lib/quest/domain.ts src/lib/quest/weekly-tracking.ts src/lib/quest/trading-dna.ts src/lib/quest/discipline-plan.ts src/lib/quest/review-access.ts "$check_dir/src/lib/quest/"
+          cp src/app/api/prediction-review/route.ts "$check_dir/src/app/api/prediction-review/"
+          cp src/app/api/prediction-coach/route.ts "$check_dir/src/app/api/prediction-coach/"
+          cp tests/trading-dna.mjs tests/first-call-review.mjs "$check_dir/tests/"
+          npm install --prefix "$check_dir" --no-save --ignore-scripts --package-lock=false typescript@5.9.3
+          cd "$check_dir"
+          node tests/trading-dna.mjs
+          node tests/first-call-review.mjs

@@ -17,3 +17,7 @@ assert.equal(tradingDNA(state,true,{...plan,since:'2026-10-22T00:00:00Z'}).count
 const {validateDiscipline}=load('src/lib/quest/discipline-plan.ts');
 assert.equal(validateDiscipline({...plan,rules:[]}),null);assert.equal(validateDiscipline({...plan,rules:['profit']}),null);assert.deepEqual(validateDiscipline(plan),{system:plan.system,rules:plan.rules,custom:plan.custom});
 console.log('Passed prospective rule assessment, rule selection and validation.');
+
+const single={...state,judgment:calls[0],reviews:[reviews[0]]};
+assert.equal(tradingDNA(single).count,1);assert.equal(tradingDNA(single).ready,true,'The first eligible call unlocks personal feedback');assert.equal(tradingDNA(single).patternsReady,false,'One observation does not establish a stable pattern');assert.equal(tradingDNA(single).score,undefined);assert.equal(tradingDNA({...single,reviews:[]}).ready,true,'Before-close feedback does not wait for a verified outcome');assert.equal(tradingDNA({...single,judgment:{...calls[0],eligible:false},reviews:[]}).ready,false);
+console.log('Passed first-call unlock before and after close, genuine eligibility and small-sample safeguards.');
