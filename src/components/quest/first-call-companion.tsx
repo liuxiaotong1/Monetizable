@@ -1,0 +1,26 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {useLocale} from '@/components/i18n/locale-provider';
+import {useBilling} from '../account/billing-access';
+import {predictionRecords} from '@/lib/quest/trading-dna';
+import type {QuestState} from '@/lib/quest/types';
+import AIPredictionReview from './ai-prediction-review';
+import {CompanionIdentity,ReviewUpgrade} from './companion-review-parts';
+import './companion-review.css';
+type Feedback={access:'basic'|'pro';headline:string;detail:string;nextStep:string;reasoning?:string;countercase?:string;checkpoint?:string};
+export default function FirstCallCompanion({state}:{state:QuestState}){
+ const locale=useLocale(),premium=useBilling().access.premium,call=predictionRecords(state)[0],review=call?state.reviews.find(r=>r.judgmentId===call.id||r.judgmentSnapshot?.id===call.id):undefined,forecast=state.forecasts.find(f=>f.id===call?.forecastId);
+ const c=locale==='zh'?{title:'首份判断，伙伴已接棒',pre:'盘前伙伴建议',loading:'伙伴正在读你的理由…',step:'下一关 · 一个小练习',error:'伙伴正在重新连接，稍后为你补上反馈。',retry:'重新请伙伴看看',observation:'本次观察 · 随着记录增长，逐步解锁跨日分析。',empty:'一次判断，解锁你的伙伴复盘',intro:'选一个方向，写一句理由。伙伴会先给你思路反馈，收盘后再一起核对结果。',start:'做我的第一次预判',reasoning:'为什么这条理由还需验证？',countercase:'相反情景怎么识别？',checkpoint:'下一步观察什么？'}:locale==='fr'?{title:'Votre premier regard, accompagné',pre:'Conseil avant séance',loading:'Votre partenaire lit votre raisonnement…',step:'Prochaine quête · un petit exercice',error:'Votre partenaire se reconnecte. Votre retour arrivera bientôt.',retry:'Relancer le retour',observation:'Une première observation ; les analyses entre séances grandiront avec vos données.',empty:'Une prévision, votre premier retour personnel',intro:'Choisissez une direction et une raison. Votre partenaire commente votre idée, puis revient sur les faits après la clôture.',start:'Faire ma première prévision',reasoning:'Quel lien reste à vérifier ?',countercase:'Comment reconnaître le scénario opposé ?',checkpoint:'Que regarder ensuite ?'}:{title:'Your first call, with a companion',pre:'Premarket companion feedback',loading:'Your companion is reading your reasoning…',step:'Next quest · one small exercise',error:'Your companion is reconnecting. Your feedback will follow shortly.',retry:'Ask my companion again',observation:'A first observation. Cross-session insights grow with your records.',empty:'One call unlocks your personal companion feedback',intro:'Choose a direction and write one reason. Your companion reviews the idea, then checks the result with you after the close.',start:'Make my first prediction',reasoning:'Which link needs checking?',countercase:'How could I recognize the countercase?',checkpoint:'What should I watch next?'};
+ const [feedback,setFeedback]=useState<Feedback|null>(null),[error,setError]=useState(false),[loading,setLoading]=useState(false),[attempt,setAttempt]=useState(0);
+ const callId=call?.id,hasReview=!!review;
+ useEffect(()=>{
+  setFeedback(null);setError(false);if(!callId||hasReview)return;
+  const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
+  async function load(){setLoading(true);try{const response=await fetch('/api/prediction-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({judgmentId:callId,locale}),signal:controller.signal}),data=await response.json();
+   if(controller.signal.aborted)return;if(response.status===409||response.status===202){timer=setTimeout(()=>void load(),5000);return;}if(!response.ok)throw Error('unavailable');setFeedback(data);setLoading(false);
+  }catch{if(!controller.signal.aborted){setError(true);setLoading(false);}}}
+  void load();return()=>{controller.abort();clearTimeout(timer);};
+ },[callId,hasReview,locale,premium,attempt]);
+ if(review)return <AIPredictionReview id="dna-companion-review" review={review} forecast={forecast}/>;
+ return <section id="dna-companion-review" className="first-call-companion" aria-busy={loading}><CompanionIdentity label={call?c.pre:undefined}/><h2>{call?c.title:c.empty}</h2>{!call?<><p>{c.intro}</p><a href="#judgment" className="primary">{c.start} →</a></>:<><small>{call.date} · {c.observation}</small><blockquote translate="no">{call.reason}</blockquote><div className="companion-speech" role="status">{feedback?<><strong>{feedback.headline}</strong><p>{feedback.detail}</p><div className="companion-next"><b>✦ {c.step}</b><p>{feedback.nextStep}</p></div></>:<p>{loading?c.loading:c.error}</p>}{error&&<button type="button" className="secondary" onClick={()=>setAttempt(v=>v+1)}>{c.retry}</button>}</div>{feedback?.access==='pro'?<div className="companion-followups">{(['reasoning','countercase','checkpoint'] as const).map(key=><details key={key}><summary>{c[key]}</summary><p>{feedback[key]}</p></details>)}</div>:feedback&&<ReviewUpgrade premarket/>}</>}</section>;
+}
