@@ -16,8 +16,11 @@ async function jsonCoach(instructions:string,input:unknown,properties:Record<str
 }
 async function cachedCoach(key:string,userId:string,generate:()=>Promise<Record<string,string>>){
  const db=database(),stored=(await db.query('SELECT body FROM quest_shared_data WHERE key=$1',[key])).rows[0]?.body;if(stored)return stored as Record<string,string>;
- if(!await rateLimit('companion-coach:'+userId,12,3600))throw Error('AI_BUSY');
+ const lock='companion-lock:'+key,lease=await db.query("INSERT INTO quest_shared_data(key,body) VALUES($1,'{}') ON CONFLICT(key) DO UPDATE SET updated_at=now() WHERE quest_shared_data.updated_at<now()-interval '90 seconds' RETURNING key",[lock]);
+ if(!lease.rowCount)throw Error('GENERATING');
+ try{if(!await rateLimit('companion-coach:'+userId,12,3600))throw Error('AI_BUSY');
  const report=await generate();await db.query('INSERT INTO quest_shared_data(key,body) VALUES($1,$2::jsonb) ON CONFLICT(key) DO UPDATE SET body=EXCLUDED.body,updated_at=now()',[key,JSON.stringify(report)]);return report;
+ }finally{await db.query('DELETE FROM quest_shared_data WHERE key=$1',[lock]).catch(()=>{});}
 }
 export async function reasonFeedback(userId:string,judgment:Judgment,locale:CoachLocale){
  const key='companion-reason:v1:'+userId+':'+hash({judgment,locale});
