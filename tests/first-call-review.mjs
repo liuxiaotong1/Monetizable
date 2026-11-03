@@ -19,3 +19,14 @@ response=await route.POST(request({question:'reason',premium:true}));assert.equa
 paid=true;response=await route.POST(request({}));assert.equal((await response.json()).access,'pro');response=await route.POST(request({question:'next'}));assert.equal((await response.json()).answer,'Private mentor answer');assert.equal(followed,1);
 auth.currentUser=async()=>null;assert.equal((await route.POST(request({}))).status,401);
 console.log('Passed free/Pro payload allowlists, one useful next step, forged-client entitlement rejection, paid follow-up gate and anonymous access checks.');
+
+// Premarket feedback reads only the current account's saved call; arbitrary client reasons are ignored.
+let savedCall={id:'first-call',forecastId:'forecast',date:'2026-10-21',direction:'bullish',confidence:'medium',reason:'If support holds, I expect a rebound.',lockedAt:'2026-10-21T11:00:00Z',eligible:true};
+const preAuth={sameOrigin:()=>true,currentUser:async()=>({id:'fixture-user'})};let coachCalls=0;
+const preRoute=load('src/app/api/prediction-coach/route.ts',{'@/lib/account/auth':preAuth,'@/lib/account/billing':{billingStatus:async()=>({premium:false})},'@/lib/account/db':{database:()=>({query:async(_sql,params)=>{assert.equal(params[0],'fixture-user');return {rows:[{record:{judgments:[savedCall],forecasts:[{id:'forecast',createdAt:'2026-10-20T12:00:00Z'}]}}]};}})},'@/lib/quest/domain':{sessionFor:()=>({isTradingDay:true,openAt:'2026-10-21T13:30:00Z'})},'@/lib/quest/companion-coach':{reasonFeedback:async(_user,call)=>{coachCalls++;assert.equal(call.reason,savedCall.reason);return feedback;}},'@/lib/quest/review-access':policy});
+const preRequest=input=>new Request('https://getmonetizable.com/api/prediction-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});
+response=await preRoute.POST(preRequest({judgmentId:'first-call',reason:'Injected alternate reason',premium:true}));assert.equal(response.status,200);assert.equal((await response.json()).access,'basic');assert.equal(coachCalls,1);
+assert.equal((await preRoute.POST(preRequest({judgmentId:'other-users-call'}))).status,409);assert.equal(coachCalls,1);
+savedCall={...savedCall,eligible:false};assert.equal((await preRoute.POST(preRequest({judgmentId:'first-call'}))).status,400);assert.equal(coachCalls,1);
+preAuth.sameOrigin=()=>false;assert.equal((await preRoute.POST(preRequest({judgmentId:'first-call'}))).status,403);
+console.log('Passed one-call premarket feedback, owner-only lookup, immutable reason, genuine eligibility and origin guards.');
