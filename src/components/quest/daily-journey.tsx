@@ -63,3 +63,15 @@ export function JourneySection({id,active,completed,busy,onComplete,navigate,chi
  async function finish(){if(!completed){const saved=await onComplete(id);if(!saved)return;}navigate(journeyViews[(index+1)%3]);}
  return <section ref={root} id={'journey-'+id} data-journey={id} className="quest-route-section" tabIndex={-1} aria-labelledby={'journey-title-'+id}><header className="quest-route-section-heading"><span className="quest-route-number">{String(index+1).padStart(2,'0')}</span><div><h2 id={'journey-title-'+id}>{step.title}<small>{completed?'✓ '+c.done:''}</small></h2><p>{step.why}</p><span className="quest-route-output">✦ {step.output}</span></div></header><div className="quest-route-content">{visited||active?children:<button type="button" className="secondary" onClick={()=>setVisited(true)}>{c.open} →</button>}</div><footer className="quest-route-checkpoint"><p>{completed?c.saved:c.mark}</p><button className="primary" type="button" disabled={busy} onClick={()=>void finish()}>{completed?c.again[index]:c.next[index]} →</button></footer></section>;
 }
+
+export function revealJourneyTarget(id:string){
+ const target=document.getElementById(id);
+ let parent=target?.parentElement;
+ while(parent){if(parent instanceof HTMLDetailsElement)parent.open=true;parent=parent.parentElement;}
+ requestAnimationFrame(()=>target?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
+}
+export function JourneyResources({title,children}:{title:string;children:ReactNode}){
+ const root=useRef<HTMLDetailsElement>(null);
+ useEffect(()=>{const reveal=()=>{const id=decodeURIComponent(location.hash.slice(1));if(!id)return;const target=document.getElementById(id);if(target&&root.current?.contains(target)){root.current.open=true;requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}};reveal();addEventListener('hashchange',reveal);return()=>removeEventListener('hashchange',reveal);},[]);
+ return <details ref={root} className="quest-route-tools"><summary>{title}</summary>{children}</details>;
+}
