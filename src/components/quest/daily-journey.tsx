@@ -49,10 +49,10 @@ export function JourneyOverview({view,completed,navigate}:{view:JourneyView;comp
  return <section className="quest-route-overview" aria-labelledby="quest-route-title"><div className="quest-route-intro"><span>{c.progress} · {completed.length}/3</span><h1 id="quest-route-title">{c.title}</h1><p>{c.intro}</p></div><nav aria-label={c.progress} className="quest-route-map">{journeyViews.map((id,i)=><button type="button" key={id} data-tour-nav={id} aria-current={view===id?'location':undefined} onClick={()=>navigate(id)}><span className="quest-route-number">{completed.includes(id)?'✓':String(i+1).padStart(2,'0')}</span><strong>{c.steps[i].title}</strong><small>{c.steps[i].task}</small></button>)}</nav></section>;
 }
 
-export function JourneySection({id,active,completed,busy,onComplete,navigate,children}:{id:JourneyView;active:boolean;completed:boolean;busy:boolean;onComplete:(id:JourneyView)=>Promise<unknown>;navigate:(id:JourneyView)=>void;children:ReactNode}){
+export function JourneySection({id,active,reached,completed,busy,onComplete,navigate,children}:{id:JourneyView;active:boolean;reached:boolean;completed:boolean;busy:boolean;onComplete:(id:JourneyView)=>Promise<unknown>;navigate:(id:JourneyView)=>void;children:ReactNode}){
  const locale=useLocale(),c=copy[locale==='zh'?'zh':locale==='fr'?'fr':'en'],index=journeyViews.indexOf(id),step=c.steps[index];
- const root=useRef<HTMLElement>(null),[visited,setVisited]=useState(id==='today'||active);
- useEffect(()=>{if(active)setVisited(true);},[active]);
+ const root=useRef<HTMLElement>(null),[visited,setVisited]=useState(id==='today'||active||reached);
+ useEffect(()=>{if(active||reached)setVisited(true);},[active,reached]);
  useEffect(()=>{
   if(visited)return;
   if(!('IntersectionObserver' in window)){setVisited(true);return;}
@@ -61,7 +61,7 @@ export function JourneySection({id,active,completed,busy,onComplete,navigate,chi
   return()=>observer.disconnect();
  },[visited]);
  async function finish(){if(!completed){const saved=await onComplete(id);if(!saved)return;}navigate(journeyViews[(index+1)%3]);}
- return <section ref={root} id={'journey-'+id} data-journey={id} className="quest-route-section" tabIndex={-1} aria-labelledby={'journey-title-'+id}><header className="quest-route-section-heading"><span className="quest-route-number">{String(index+1).padStart(2,'0')}</span><div><h2 id={'journey-title-'+id}>{step.title}<small>{completed?'✓ '+c.done:''}</small></h2><p>{step.why}</p><span className="quest-route-output">✦ {step.output}</span></div></header><div className="quest-route-content">{visited||active?children:<button type="button" className="secondary" onClick={()=>setVisited(true)}>{c.open} →</button>}</div><footer className="quest-route-checkpoint"><p>{completed?c.saved:c.mark}</p><button className="primary" type="button" disabled={busy} onClick={()=>void finish()}>{completed?c.again[index]:c.next[index]} →</button></footer></section>;
+ return <section ref={root} id={'journey-'+id} data-journey={id} className="quest-route-section" tabIndex={-1} aria-labelledby={'journey-title-'+id}><header className="quest-route-section-heading"><span className="quest-route-number">{String(index+1).padStart(2,'0')}</span><div><h2 id={'journey-title-'+id}>{step.title}<small>{completed?'✓ '+c.done:''}</small></h2><p>{step.why}</p><span className="quest-route-output">✦ {step.output}</span></div></header><div className="quest-route-content">{visited||active||reached?children:<button type="button" className="secondary" onClick={()=>setVisited(true)}>{c.open} →</button>}</div><footer className="quest-route-checkpoint"><p>{completed?c.saved:c.mark}</p><button className="primary" type="button" disabled={busy} onClick={()=>void finish()}>{completed?c.again[index]:c.next[index]} →</button></footer></section>;
 }
 
 export function revealJourneyTarget(id:string){
