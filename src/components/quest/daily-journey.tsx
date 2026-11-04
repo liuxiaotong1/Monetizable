@@ -21,7 +21,7 @@ const copy={
 };
 
 export function useJourneyNavigation(ready:boolean){
- const [view,setView]=useState<JourneyView>('today');
+ const [view,setView]=useState<JourneyView>(()=>{if(typeof window==='undefined')return 'today';const requested=new URLSearchParams(location.search).get('view');return requested==='events'||requested==='learn'?requested:'today';});
  const navigate=useCallback((next:JourneyView)=>{
   setView(next);
   const url=new URL(location.href);url.searchParams.set('view',next);url.hash='journey-'+next;
