@@ -1,5 +1,7 @@
 "use client";
 import TradingDNA from "./trading-dna";
+import FirstCallCompanion from "./first-call-companion";
+import {JourneyResources,revealJourneyTarget} from "./daily-journey";
 import AIPredictionReview from "./ai-prediction-review";
 import PredictionFocus from "./prediction-focus";
 import MonthlyAccuracy from "./monthly-accuracy";
@@ -42,10 +44,11 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  return <LocalizeTree>{<>
  <PredictionFocus state={state} id="judgment" direction={direction} onDirection={setDirection} confidence={confidence} onConfidence={setConfidence} reason={reason} onReason={setReason} busy={busy} onSeal={async()=>{if(f&&direction)return run({type:"judgment",forecastId:f.id,direction,confidence,reason});}}/>
  <MonthlyAccuracy state={state}/>
- {pending?<section className="hero hero-yelan"><div className="hero-copy"><span className="eyebrow"><LockKeyhole size={16}/> {pending.date} · 已封存的盘前判断</span><h1>你的判断<span>{directionNames[pending.direction]} · 待核对</span></h1><p>{pending.reason}</p><p className="hero-yelan-line">封存于 {dualTime(pending.lockedAt)} · 有效盘前判断。等待该交易日收盘及完整日线确认后评分。</p><button className="primary" onClick={()=>document.getElementById("judgment-journal")?.scrollIntoView({behavior:"smooth",block:"start"})}>查看封存记录 <ChevronRight size={16}/></button>{review&&<button className="text-button historical-report-link" onClick={()=>setReviewing(review)}>回看 {review.date} 历史战报 <ChevronRight size={14}/></button>}</div><YelanViewer state={state}/></section>:personalReview&&review?<HeroReview key={`${state.mode}:${review.id}:${review.matched}`} review={review} state={state} onNotes={()=>setReviewing(review)}/>:(<section className="hero hero-yelan"><div className="hero-copy"><NextQuestPrompt/></div><YelanViewer state={state}/></section>)}
+ {pending?<section className="hero hero-yelan"><div className="hero-copy"><span className="eyebrow"><LockKeyhole size={16}/> {pending.date} · 已封存的盘前判断</span><h1>你的判断<span>{directionNames[pending.direction]} · 待核对</span></h1><p>{pending.reason}</p><p className="hero-yelan-line">封存于 {dualTime(pending.lockedAt)} · 有效盘前判断。等待该交易日收盘及完整日线确认后评分。</p><button className="primary" onClick={()=>revealJourneyTarget("judgment-journal")}>查看封存记录 <ChevronRight size={16}/></button>{review&&<button className="text-button historical-report-link" onClick={()=>setReviewing(review)}>回看 {review.date} 历史战报 <ChevronRight size={14}/></button>}</div><YelanViewer state={state}/></section>:personalReview&&review?<HeroReview key={`${state.mode}:${review.id}:${review.matched}`} review={review} state={state} onNotes={()=>setReviewing(review)}/>:(<section className="hero hero-yelan"><div className="hero-copy"><NextQuestPrompt/></div><YelanViewer state={state}/></section>)}
  {pending&&personalReview&&review&&<AIPredictionReview id="hero-review-facts" review={review} forecast={state.forecasts.find(f=>f.id===review.forecastId)} onNotes={()=>setReviewing(review)}/>}
  <div className="daily-progress"><div className="progress-title"><Flag size={17}/><strong>今日任务</strong><span>{tasks.filter(t=>t.done).length} / 3 完成</span></div><div className="task-checks">{tasks.map((t,i)=><button key={t.label} onClick={()=>i===2?navigate("learn"):i===1&&review?setReviewing(review):document.getElementById("judgment")?.scrollIntoView({behavior:"smooth"})}><span className={t.done?"task-dot done":"task-dot"}>{t.done?<Check size={10}/>:i+1}</span>{t.label}<span className="task-xp">{i===2?"答对 +5 XP":`+${i===0?10:20} XP`}</span></button>)}</div></div>
- <TradingDNA state={state}/>
+ <FirstCallCompanion state={state}/><JourneyResources title="🧬 Trading DNA · 我的策略、习惯与交易记录"><TradingDNA state={state} showCompanion={false}/></JourneyResources>
+ <JourneyResources title="📈 行情图表、判断依据与历史记录">
  <div id="daily-market-chart" style={{scrollMarginTop:80}}><WatchlistChart locale="zh" settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/></div>
  {state.mode==="live"&&state.session.isTradingDay&&state.now>=state.session.closeAt&&review?.date!==state.session.date&&<section className="empty-inline" role="status"><Clock3 size={20}/><div><strong>{state.session.date} 已收盘 · 等待完整日线确认</strong><p>收盘 20 分钟后自动尝试同步，取得有效数据就核对今天封存的判断。下方保留最近一次战报。</p></div></section>}
  <div className="today-columns"><div className="today-main">
@@ -59,7 +62,7 @@ export default function Today({state,run,busy,navigate}:ViewProps) {
  <section className="next-boss"><div className="panel-top"><span className="eyebrow">NEXT CHALLENGE</span><Swords size={17}/></div>{next?<><h3>{next.title}</h3><p>{new Date(next.at).toLocaleDateString("zh-CN",{month:"long",day:"numeric",timeZone:"America/New_York"})} · {dualTime(next.at)}</p></>:<><h3>下一场事件正在确认</h3><p>官方日历同步后展示。</p></>}<button className="text-button" onClick={()=>navigate("events")}>打开事件地图 <ChevronRight size={14}/></button></section>
  </aside></div>
  <div id="judgment-journal" className="journal-wide"><WeeklyTracking state={state} onReview={setReviewing}/></div>
- <EntryScore locale="zh" symbol={activeSymbol}/>
+ <EntryScore locale="zh" symbol={activeSymbol}/></JourneyResources>
  {reviewing&&<ReviewDialog review={reviewing} state={state} onClose={()=>setReviewing(null)} run={run} busy={busy}/>}
  </>}</LocalizeTree>;
 }
