@@ -306,7 +306,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
             </p>
           )}
           <JourneyOverview view={view} completed={complete} navigate={navigate}/>
-          {navigation.map(item=><JourneySection key={item.id} id={item.id} active={view===item.id} completed={complete.includes(item.id)} busy={busy} onComplete={completeStop} navigate={navigate}>
+          {navigation.map(item=><JourneySection key={item.id} id={item.id} active={view===item.id} reached={navigation.findIndex(n=>n.id===view)>=navigation.indexOf(item)} completed={complete.includes(item.id)} busy={busy} onComplete={completeStop} navigate={navigate}>
             {item.id==="today"?<Daily state={historyWindow(state,historyAccess.premium)} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount}/>:item.id==="events"?<EventMap state={state}/>:<Deck state={state} run={run} busy={busy} signedIn={signedIn} trialCards={trialCards} requireAccount={requireAccount}/>}
           </JourneySection>)}<ProEntry/>
           <footer className="app-footer">
