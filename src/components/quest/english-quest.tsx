@@ -1,4 +1,6 @@
 "use client";
+import FirstCallCompanion from './first-call-companion';
+import {JourneyOverview,JourneySection,JourneyResources,useJourneyNavigation} from './daily-journey';
 import {useCloseRefresh} from "./use-close-refresh";
 import EarningsReport from './earnings-report';
 import TradingDNA from "./trading-dna";
@@ -79,9 +81,7 @@ import { learningQueue, masteredConcepts } from "@/lib/quest/learning-engine";
 import { marketContext } from "@/lib/quest/market-context";
 import { LineChart } from "./charts";
 import YelanViewer from "./yelan-viewer";
-import FirstQuestHero from "./first-quest-hero";
 import NextQuestPrompt from "./next-quest-prompt";
-import {useAdventureStage} from "./hero-preference";
 type View = "today" | "events" | "learn";
 const navigation = [
   {
@@ -113,14 +113,14 @@ const numbers = (n: number | undefined) =>
     : new Intl.NumberFormat(clientLocale(), { maximumFractionDigits: 3 }).format(n);
 export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean }) {
   const historyAccess=useBilling().access;
-  const [view, setView] = useState<View>("today"),
-    [state, setState] = useState<QuestState>(),
+  const [state, setState] = useState<QuestState>(),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(""),
     [trialCards, setTrialCards] = useState<string[]>([]),
     [gate, setGate] = useState<"prediction" | "cards" | null>(null),
     [pushOpen, setPushOpen] = useState(false);
+  const {view,navigate}=useJourneyNavigation(!!state);
   const locale = useLocale(), day = (iso: string) => formatMarketDate(iso, locale);
   const gateDialog = useRef<HTMLElement>(null);
   useDialogFocus(gateDialog, !!gate, () => setGate(null));
@@ -152,8 +152,6 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
   }, []);
   useCloseRefresh(state?.session,load);
   useEffect(() => {
-    const v = new URLSearchParams(location.search).get("view");
-    if (v === "events" || v === "learn") setView(v);
     void load();
     const timer = setInterval(() => {
       if (!document.hidden && !inFlight.current) void load();
@@ -176,11 +174,6 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     return () => clearTimeout(id);
   }, [toast]);
   useEffect(()=>{const open=(event:Event)=>{const view=(event as CustomEvent).detail?.view;if(view==='today'||view==='events'||view==='learn')navigate(view)};addEventListener('monetizable-open-quest',open);return()=>removeEventListener('monetizable-open-quest',open)},[]);
-  function navigate(next: View) {
-    setView(next);
-    history.replaceState(null, "", `/?view=${next}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
   const run = useCallback(async (command: QuestCommand) => {
     if (!signedIn && command.type === "judgment") { setGate("prediction"); return false; }
     if (inFlight.current || !shared.current) return false;
@@ -238,15 +231,7 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
     )}</LocalizeTree>;
   const market = marketContext(state),
     complete = state.adventure?.sections || [];
-  async function completeStop() {
-    const result = await run({ type: "walkthrough", section: view });
-    if (result && result.adventure?.sections.length !== 3) {
-      const next = navigation.find(
-        (n) => !result.adventure?.sections.includes(n.id),
-      );
-      if (next) navigate(next.id);
-    }
-  }
+  async function completeStop(section:View){return run({type:"walkthrough",section});}
   return <LocalizeTree>{(
     <div className="app-shell english-app">
       <aside className="sidebar">
@@ -320,57 +305,10 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
               {error}
             </p>
           )}
-          <section
-            className={`daily-journey ${complete.length === 3 ? "complete" : ""}`}
-          >
-            <div>
-              <span className="eyebrow">
-                DAILY JOURNEY · {complete.length} / 3
-              </span>
-              <h2>
-                {complete.length === 3
-                  ? "Quest complete. One step closer to market mastery!"
-                  : "Three stops. One wiser you."}
-              </h2>
-              <p>
-                Explore each stop, then tap “Complete this stop”. No trade
-                required.
-              </p>
-            </div>
-            <div className="journey-stations">
-              {navigation.map((n, i) => (
-                <button
-                  key={n.id} data-tour-nav={n.id}
-                  className={`${view === n.id ? "active" : ""} ${complete.includes(n.id) ? "done" : ""}`}
-                  onClick={() => navigate(n.id)}
-                >
-                  {complete.includes(n.id) ? <Check size={16} /> : i + 1}{" "}
-                  {n.title}
-                </button>
-              ))}
-            </div>
-          </section>
-          {view === "today" ? (
-            <Daily state={historyWindow(state,historyAccess.premium)} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount} />
-          ) : view === "events" ? (
-            <EventMap state={state} />
-          ) : (
-            <Deck state={state} run={run} busy={busy} signedIn={signedIn} trialCards={trialCards} requireAccount={requireAccount} />
-          )}
-          <ProEntry/><div className="journey-footer">
-            <div>
-              <strong>Finished exploring this stop?</strong>
-              <p>Your effort counts. Your trading activity does not.</p>
-            </div>
-            <button
-              className="primary"
-              disabled={busy || complete.includes(view)}
-              onClick={() => void completeStop()}
-            >
-              {complete.includes(view) ? "Stop complete" : "Complete this stop"}
-              <ArrowRight size={17} />
-            </button>
-          </div>
+          <JourneyOverview view={view} completed={complete} navigate={navigate}/>
+          {navigation.map(item=><JourneySection key={item.id} id={item.id} active={view===item.id} reached={navigation.findIndex(n=>n.id===view)>=navigation.indexOf(item)} completed={complete.includes(item.id)} busy={busy} onComplete={completeStop} navigate={navigate}>
+            {item.id==="today"?<Daily state={historyWindow(state,historyAccess.premium)} run={run} busy={busy} navigate={navigate} signedIn={signedIn} requireAccount={requireAccount}/>:item.id==="events"?<EventMap state={state}/>:<Deck state={state} run={run} busy={busy} signedIn={signedIn} trialCards={trialCards} requireAccount={requireAccount}/>}
+          </JourneySection>)}<ProEntry/>
           <footer className="app-footer">
             ✧ Monetizable · Prepare · Understand · Verify · Grow{" "}
             <span>
@@ -410,7 +348,6 @@ interface DailyProps {
   requireAccount: (reason: "prediction" | "cards", draft?: PredictionDraft) => void;
 }
 function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyProps) {
-  const adventureStage=useAdventureStage();
   const [activeSymbol,setActiveSymbol]=useState("QQQ");
   const locale = useLocale(), money = (n: number) => formatUsd(n, locale), day = (iso: string) => formatMarketDate(iso, locale);
   const [direction, setDirection] = useState<Direction | null>(null),
@@ -458,7 +395,6 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
       bars.length >= 5
         ? Math.max(...bars.slice(-5).map((b) => b.high))
         : undefined;
-  if(adventureStage==='landing')return <FirstQuestHero state={state}/>;
   return <LocalizeTree>{(
     <>
       <PredictionFocus state={state} id="en-judgment" direction={direction} onDirection={setDirection} confidence={confidence} onConfidence={setConfidence} reason={reason} onReason={setReason} busy={busy} signedIn={signedIn} onSeal={async()=>{if(!direction)return;if(!signedIn){requireAccount("prediction",{direction,confidence,reason,date:targetSession.date,at:new Date().toISOString()});return;}if(f)return run({type:"judgment",forecastId:f.id,direction,confidence,reason});}}/>
@@ -577,7 +513,9 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           )}
         </section>
       )}
-      <TradingDNA state={state}/>
+      <FirstCallCompanion state={state}/>
+      <JourneyResources title={locale==='fr'?'🧬 Trading DNA · Ma stratégie, mes habitudes et mes transactions':'🧬 Trading DNA · My strategy, habits and trade records'}><TradingDNA state={state} showCompanion={false}/></JourneyResources>
+      <JourneyResources title={locale==='fr'?'📈 Graphiques, éléments de décision et historique':'📈 Market charts, decision evidence and history'}>
       <div id="daily-market-chart" style={{scrollMarginTop:80}}><WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/></div>
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
@@ -692,7 +630,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           Draw a knowledge card <ArrowRight size={17} />
         </button>
       </div>
-      <EntryScore symbol={activeSymbol}/>
+      <EntryScore symbol={activeSymbol}/></JourneyResources>
     </>
   )}</LocalizeTree>;
 }
