@@ -1,5 +1,6 @@
 "use client";
-import {JourneyOverview,JourneySection,useJourneyNavigation} from './daily-journey';
+import FirstCallCompanion from './first-call-companion';
+import {JourneyOverview,JourneySection,JourneyResources,useJourneyNavigation} from './daily-journey';
 import {useCloseRefresh} from "./use-close-refresh";
 import EarningsReport from './earnings-report';
 import TradingDNA from "./trading-dna";
@@ -516,7 +517,9 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           )}
         </section>
       )}
-      <TradingDNA state={state}/>
+      <FirstCallCompanion state={state}/>
+      <JourneyResources title={locale==='fr'?'🧬 Trading DNA · Ma stratégie, mes habitudes et mes transactions':'🧬 Trading DNA · My strategy, habits and trade records'}><TradingDNA state={state} showCompanion={false}/></JourneyResources>
+      <JourneyResources title={locale==='fr'?'📈 Graphiques, éléments de décision et historique':'📈 Market charts, decision evidence and history'}>
       <div id="daily-market-chart" style={{scrollMarginTop:80}}><WatchlistChart settings={state.settings} onSave={settings=>run({type:"settings",settings})} selected={activeSymbol} onSelect={setActiveSymbol} latest={latest} busy={busy}/></div>
       <section className="en-card">
         <span className="eyebrow">THE BIG PICTURE</span>
@@ -631,7 +634,7 @@ function Daily({ state, run, busy, navigate, signedIn, requireAccount }: DailyPr
           Draw a knowledge card <ArrowRight size={17} />
         </button>
       </div>
-      <EntryScore symbol={activeSymbol}/>
+      <EntryScore symbol={activeSymbol}/></JourneyResources>
     </>
   )}</LocalizeTree>;
 }
