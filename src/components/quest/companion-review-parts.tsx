@@ -1,4 +1,5 @@
 'use client';
+import {OPEN_EXPERIENCE} from '@/lib/account/experience';
 import {useEffect,useRef,useState} from 'react';
 import {useLocale} from '@/components/i18n/locale-provider';
 import {useHero} from './hero-preference';
@@ -12,6 +13,7 @@ export function ReviewUpgrade({premarket=false}:{premarket?:boolean}){
  const locale=useLocale();
  const c=locale==='zh'?{title:'让伙伴深入拆解这次判断',intro:'Pro 完整复盘',items:premarket?['拆解你的理由与结论之间的关键一环','探索相反情景与可观察的确认条件','把这次思路变成下一步练习']:['逐条核对原始理由与收盘证据','拆解关键 Boss 与相反情景','继续追问，制定下一次个人练习'],cta:'解锁我的完整复盘',trial:'符合条件的首次订阅可试用 7 天，需绑定支付方式。之后按所选套餐自动续费；试用结束前可取消。',month:'/月',annual:'年付折合',billed:'每年收取'}:locale==='fr'?{title:'Approfondissez cette décision avec votre partenaire',intro:'Bilan complet Pro',items:premarket?['Examinez le lien entre votre raison et votre conclusion','Explorez le scénario opposé et un critère observable','Transformez cette idée en prochain exercice']:['Confrontez chaque raison aux faits de clôture','Décryptez les Boss et le scénario opposé','Posez vos questions et préparez un exercice personnel'],cta:'Débloquer mon bilan complet',trial:'7 jours d’essai pour une première souscription admissible, avec moyen de paiement. Puis renouvellement au tarif choisi ; annulation possible avant la fin de l’essai.',month:'/mois',annual:'en paiement annuel',billed:'facturés par an'}:{title:'Go deeper into this call with your companion',intro:'Complete Pro debrief',items:premarket?['Examine the link between your reason and conclusion','Explore the countercase and an observable checkpoint','Turn this idea into your next practice step']:['Check each original reason against closing evidence','Explore the key Bosses and the countercase','Ask your mentor and plan a personal exercise'],cta:'Unlock my complete debrief',trial:'7-day trial on eligible first subscriptions, with a payment method. Then renews at your selected rate; cancel before the trial ends.',month:'/month',annual:'with annual billing',billed:'billed per year'};
  const money=(n:number)=>new Intl.NumberFormat(locale==='zh'?'zh-CN':locale==='fr'?'fr-FR':'en-US',{style:'currency',currency:'USD'}).format(n/100);
+ if(OPEN_EXPERIENCE)return null;
  return <aside className="companion-upgrade"><small>🔒 {c.intro}</small><h3>{c.title}</h3><ul>{c.items.map(item=><li key={item}>✦ {item}</li>)}</ul><a className="primary" href="/pricing">{c.cta} →</a><p>{money(MONTHLY_CENTS)}{c.month} · {c.annual} {money(ANNUAL_CENTS/12)}{c.month} ({money(ANNUAL_CENTS)} {c.billed})</p><small>{c.trial}</small></aside>;
 }
 
