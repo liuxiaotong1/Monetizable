@@ -1,3 +1,4 @@
+import {OPEN_EXPERIENCE} from '@/lib/account/experience';
 import type {AppLocale} from '@/lib/i18n/locale';
 import {positioning} from '@/lib/marketing/positioning';
 import './public-pages.css';
@@ -39,7 +40,7 @@ export default function PublicOverview({locale}: {locale: AppLocale}) {
     </article>)}</div>
     <nav aria-label={locale === 'zh' ? '产品与交易练习指南' : locale === 'fr' ? 'Produit et guides pratiques' : 'Product and trading practice guides'}>
       <a className="overview-start" href="#first-prediction">{copy.start} →</a>
-      {paths.map((path, i) => <a key={path} href={`/${path}`}>{copy.links[i]} →</a>)}
+      {paths.map((path, i) => OPEN_EXPERIENCE&&path==='pricing'?null:<a key={path} href={`/${path}`}>{copy.links[i]} →</a>)}
     </nav>
   </section>;
 }

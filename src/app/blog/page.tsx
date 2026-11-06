@@ -1,3 +1,4 @@
+import {OPEN_EXPERIENCE} from '@/lib/account/experience';
 import type {Metadata} from 'next';
 import {answerPages} from '@/lib/marketing/pages';
 import {SITE_URL} from '@/lib/marketing/positioning';
@@ -21,7 +22,7 @@ export default function BlogPage() {
   const schema = {'@context': 'https://schema.org', '@type': 'CollectionPage', '@id': `${SITE_URL}/blog#page`, url: `${SITE_URL}/blog`, name: title, description, inLanguage: 'en', mainEntity: {'@type': 'ItemList', itemListElement: items.map((p,i)=>({'@type':'ListItem',position:i+1,...p}))}};
   return <main className="answer-page blog-hub" lang="en">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replace(/</g, '\\u003c')}}/>
-    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog" aria-current="page">Blog</a><a href="/pricing">Pricing</a><a href="/">Start practising →</a></nav>
+    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog" aria-current="page">Blog</a>{!OPEN_EXPERIENCE&&<a href="/pricing">Pricing</a>}<a href="/">Start practising →</a></nav>
     <header><small>LEARN · PRACTISE · UNDERSTAND</small><h1>Blog</h1><p>Trading practice, discipline and the thinking behind Monetizable. Find our guides and product resources in one place.</p></header>
     <section className="blog-group"><h2>Latest articles</h2><div className="blog-card-grid">{blogPosts.map(post=><article className="blog-article-card blog-resource-card" key={post.slug}><a href={`/blog/${post.slug}`}><img src={post.hero} alt={post.alt} width={1672} height={941}/></a><p className="blog-reading">October 25, 2026 · {post.readingMinutes} min read</p><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.description}</p><a className="blog-read" href={`/blog/${post.slug}`}>Read article →</a></article>)}</div></section>
     {groups.map(group => <section className="blog-group" key={group.title}><h2>{group.title}</h2><p>{group.description}</p><div className="blog-card-grid">{group.slugs.map(slug => {

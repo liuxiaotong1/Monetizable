@@ -1,4 +1,5 @@
 import 'server-only';
+import {OPEN_EXPERIENCE,experienceAccess} from './experience';
 import {MONTHLY_CENTS,ANNUAL_CENTS,TRIAL_DAYS,type PaidPlan} from './plans';
 export {TRIAL_DAYS} from './plans';
 import Stripe from 'stripe';
@@ -30,6 +31,7 @@ export async function setupBilling(){
 function acceptedPrices(config:BillingConfig){return new Set([config.price,config.annualPrice,...(config.legacyPrices||[])].filter(Boolean));}
 export async function billingStatus(){
  const user=await currentUser();
+ if(OPEN_EXPERIENCE){const sub=user?(await database().query('SELECT customer_id FROM quest_subscriptions WHERE user_id=$1',[user.id]).catch(()=>({rows:[]}))).rows[0]:undefined;return experienceAccess(user,isAdmin(user),!!sub?.customer_id);}
  if(isAdmin(user))return {premium:true,admin:true,signedIn:true,status:'admin',remaining:1,configured:(await billingConfig())?.version===3,trialUsed:false};
  const config=await billingConfig();if(!user){const claimedCards=await learningUsage();return {premium:false,admin:false,signedIn:false,status:'free',remaining:Math.max(0,2-claimedCards.length),claimedCards,configured:config?.version===3&&!!config.annualPrice,trialUsed:false};}
  const {rows}=await database().query('SELECT * FROM quest_subscriptions WHERE user_id=$1',[user.id]);const sub=rows[0];
@@ -47,6 +49,7 @@ export async function synchronizeSubscription(id:string){
  await database().query('UPDATE quest_subscriptions SET subscription_id=$2,status=$3,trial_used=trial_used OR $4,trial_end=$5,access_until=$6,cancel_at_period_end=$7,updated_at=now() WHERE user_id=$1',[userId,sub.id,sub.status,!!sub.trial_start,sub.trial_end?new Date(sub.trial_end*1000):null,until?new Date(until*1000):null,sub.cancel_at_period_end]);
 }
 export async function checkout(plan:PaidPlan='monthly'){
+ if(OPEN_EXPERIENCE)throw Error('Free practice access is open.');
  const user=await currentUser();if(!user)throw Error('Sign in before starting your trial.');
  const config=await billingConfig();if(!config)throw Error('Checkout is being connected. Please try again shortly.');
  const locale=await requestLocale(isAdmin(user)),fr=locale==='fr';

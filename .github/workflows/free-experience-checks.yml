@@ -1,0 +1,40 @@
+name: Free experience checks
+on:
+  push:
+    branches: [main, codex/free-experience-phase]
+    paths:
+      - 'src/lib/account/experience.ts'
+      - 'src/lib/account/billing.ts'
+      - 'src/app/api/billing/checkout/**'
+      - 'src/app/api/learning/answer/**'
+      - 'src/app/api/prediction-review/**'
+      - 'tests/free-experience.mjs'
+      - '.github/workflows/free-experience-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  free-experience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify free access and closed checkout without live credentials
+        run: |
+          check_dir="$RUNNER_TEMP/free-experience-checks"
+          mkdir -p "$check_dir/src/lib/account" "$check_dir/src/lib/quest" "$check_dir/src/app/api/billing/checkout" "$check_dir/src/app/api/learning/answer" "$check_dir/src/app/api/prediction-review" "$check_dir/src/app/api/agent-reports" "$check_dir/tests"
+          cp src/lib/account/experience.ts src/lib/account/billing.ts "$check_dir/src/lib/account/"
+          cp src/lib/quest/review-access.ts "$check_dir/src/lib/quest/"
+          cp src/app/api/billing/checkout/route.ts "$check_dir/src/app/api/billing/checkout/"
+          cp src/app/api/learning/answer/route.ts "$check_dir/src/app/api/learning/answer/"
+          cp src/app/api/prediction-review/route.ts "$check_dir/src/app/api/prediction-review/"
+          cp src/app/api/agent-reports/route.ts "$check_dir/src/app/api/agent-reports/"
+          cp tests/free-experience.mjs "$check_dir/tests/"
+          npm install --prefix "$check_dir" --no-save --ignore-scripts --package-lock=false typescript@5.9.3
+          cd "$check_dir"
+          node tests/free-experience.mjs

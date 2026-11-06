@@ -1,3 +1,4 @@
+import {OPEN_EXPERIENCE} from '@/lib/account/experience';
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import {answerPages, findAnswerPage, CONTENT_UPDATED} from '@/lib/marketing/pages';
@@ -22,7 +23,7 @@ export default async function AnswerPage({params}: Props) {
   ]};
   return <main className="answer-page" lang="en">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema).replace(/</g, '\\u003c')}}/>
-    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog">Blog</a><a href="/pricing">Pricing</a></nav>
+    <nav className="answer-nav" aria-label="Main navigation"><a href="/">Monetizable</a><a href="/blog">Blog</a>{!OPEN_EXPERIENCE&&<a href="/pricing">Pricing</a>}</nav>
     <article>
       <small>MONETIZABLE · {page.kind === 'guide' ? 'PRACTICE GUIDE' : 'PRODUCT & METHOD'}</small>
       <h1>{page.title}</h1>
