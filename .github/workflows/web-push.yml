@@ -1,19 +1,18 @@
 name: Monetizable web push
 on:
   schedule:
-    # Every 15 minutes so local noon, the Paris evening, and both US DST
-    # offsets for the open and the close each fall inside a send window.
+    # GitHub often delivers only a handful of these ticks per day. Reminder
+    # planning catches up until each slot's cutoff, and these extra clocks sit
+    # inside the Paris afternoon and the US morning windows.
     - cron: '*/15 * * * *'
+    - cron: '7 11,15,16,20 * * *'
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: monetizable-web-push
-  cancel-in-progress: false
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - name: Send due companion reminders
         env:

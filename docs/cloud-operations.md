@@ -34,11 +34,20 @@ the existing website and the already configured Telegram recipient.
   failures and a paused Supabase project can still affect availability.
 - The Codex local automation was paused after the 15 October cloud report and
   Telegram delivery were verified. Historical reports remain available.
-- Web Push reminders are opt-in for signed-in accounts. GitHub Actions
-  `web-push.yml` calls `/api/push/dispatch` every 15 minutes with
-  `QUEST_REPORT_TOKEN`. The market-report workflow also calls that endpoint.
-  A 15-minute Vercel Cron is not set, because that frequency can reject the
-  whole deployment on plans limited to daily crons. Set `VAPID_PUBLIC_KEY`,
+- Web Push reminders are opt-in for signed-in accounts. Each slot stays due
+  from its start until a same-day cutoff (knowledge until 21:00 local, premarket
+  until the US open, review until 22:30 America/New_York, event eve from 17:00
+  to 23:30 Europe/Paris, event soon until the release). A slot still sends at
+  most once, and the daily cap stays at two. GitHub Actions `web-push.yml`
+  calls `/api/push/dispatch` with `QUEST_REPORT_TOKEN`; its 15-minute schedule
+  can arrive only a few times a day, so catch-up covers the gaps. The Supabase
+  market refresh also runs that dispatch at most once every 10 minutes.
+  `vercel.json` adds one Hobby-safe daily cron for 16:00 UTC. On Hobby that
+  invocation can land any time during the 16:00 hour, which is still inside
+  the Europe/Paris catch-up window. It needs the existing `CRON_SECRET`
+  (Vercel sends it as a bearer token). A more frequent
+  Vercel Cron is not set, because that frequency can reject the whole
+  deployment on plans limited to daily crons. Set `VAPID_PUBLIC_KEY`,
   `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in Vercel. Generate a key pair with
   `npx web-push generate-vapid-keys` and do not commit it. Older
   `WEB_PUSH_VAPID_*` names still work. `CRON_SECRET` is also accepted.

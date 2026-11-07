@@ -69,7 +69,7 @@ async function webPush(): Promise<WebPush | null> {
 
 function ttl(plan: PushPlan) {
   if (plan.category === "premarket" || plan.phase === "soon") return 60 * 60;
-  if (plan.category === "knowledge") return 2 * 60 * 60;
+  if (plan.category === "knowledge") return 6 * 60 * 60;
   return 4 * 60 * 60;
 }
 
@@ -110,6 +110,27 @@ async function deliver(client: WebPush, row: SubscriptionRow, plan: PushPlan, co
     }
     await db.query("DELETE FROM public.web_push_deliveries WHERE id = $1", [claim.rows[0].id]);
     return "failed" as const;
+  }
+}
+
+/** At most one reminder pass every 10 minutes from the unattended market refresh. Failures stay inside this function so that refresh can still finish. */
+export async function dispatchFromRefresh() {
+  try {
+    const keys = vapidConfig();
+    if (!keys.publicKey || !keys.privateKey) return;
+    const db = database();
+    const claimed = await db.query(
+      `INSERT INTO quest_shared_data(key, body)
+       VALUES ('push-dispatch-lease', jsonb_build_object('at', to_jsonb(now())))
+       ON CONFLICT (key) DO UPDATE
+         SET body = jsonb_build_object('at', to_jsonb(now())), updated_at = now()
+         WHERE quest_shared_data.updated_at < now() - interval '10 minutes'
+       RETURNING key`,
+    );
+    if (!claimed.rows.length) return;
+    await dispatchPush();
+  } catch {
+    /* The next refresh can try again after the lease expires. */
   }
 }
 
@@ -226,7 +247,7 @@ export function testPlan(input: { category: PushCategory; phase?: "eve" | "soon"
   };
 }
 
-export async function sendTestPush(userId: string, category: PushCategory, phase?: "eve" | "soon") {
+export async function sendTestPush(userId: string, category: PushCategory, phase?: "eve" | "soon", endpoint?: string) {
   const client = await webPush();
   if (!client) return { ok: false as const, error: "Push signing is not configured." };
   await ensureWebPushStore();
@@ -238,8 +259,13 @@ export async function sendTestPush(userId: string, category: PushCategory, phase
      ORDER BY s.updated_at DESC NULLS LAST`,
     [userId],
   );
-  const devices = rows as SubscriptionRow[];
-  if (!devices.length) return { ok: false as const, error: "This account has no notification subscription yet." };
+  const saved = rows as SubscriptionRow[];
+  const devices = endpoint ? saved.filter((row) => row.endpoint === endpoint) : saved;
+  if (!devices.length) {
+    return endpoint
+      ? { ok: false as const, error: "This device is not registered for reminders yet.", code: "device" as const }
+      : { ok: false as const, error: "This account has no notification subscription yet.", code: "account" as const };
+  }
   const prefs = devices[0];
   const locale = resolveReminderLocale({ signedIn: true, accountLocale: prefs.account_locale, subscriptionLocale: prefs.locale });
   const plan = testPlan({ category, phase, locale, companion: normalizeCompanion(prefs.companion) });
