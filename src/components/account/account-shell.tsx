@@ -243,7 +243,7 @@ export default function AccountShell({
             </>
           )}
         </div>
-        <nav><a className="account-blog" href="/blog"><BookOpen size={16}/><span>Blog</span></a><ProEntry compact/>
+        <nav><a className="account-blog" href="/blog"><BookOpen size={16}/><span>Blog</span></a><a href="/academy">{zh ? '金融课程' : locale === 'fr' ? 'Cours' : 'Lessons'}</a><ProEntry compact/>
           <button className="account-guide" disabled={!ready} onClick={openGuide} aria-label={zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}>
             <CircleHelp size={16}/><span>{zh?'新手引导':locale==='fr'?'Guide débutant':'Quick guide'}</span>
           </button>
