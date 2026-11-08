@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { LanguageSwitcher, useLocale } from '@/components/i18n/locale-provider';
 import { courses, indexHistory, lessons } from './lessons';
+import { chooseHero, useHasHero, useHero } from '@/components/quest/hero-preference';
 import styles from './academy.module.css';
 
 const storageKey = 'monetizable:academy:v1';
@@ -68,6 +69,8 @@ function Chart({ compound = false }: { compound?: boolean }) {
 
 export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; legacyHref: string }) {
   const locale = useLocale();
+  const hero = useHero();
+  const hasHero = useHasHero();
   const lang = { en: 0, fr: 1, zh: 2 }[locale];
   const t = (en: string, fr: string, zh: string) => [en, fr, zh][lang];
   const [progress, setProgress] = useState(emptyProgress);
@@ -98,6 +101,12 @@ export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; l
   const course = step ? courses[step.course] : null;
   const id = step?.daily ? step.daily.id : course?.steps[step?.index ?? 0];
   const lesson = id === undefined ? null : lessons[id];
+
+  const companions = [
+    { id: 'female', name: t('Astra', 'Astra', '星澜'), image: '/heroes/astra-portrait.webp' },
+    { id: 'supercharlie', name: t('Charlie', 'Charlie', '查理'), image: '/heroes/supercharlie-portrait.webp' },
+  ] as const;
+  const partner = companions.find(item => item.id === hero);
 
   function start(courseIndex: number, daily = false) {
     const next = courses[courseIndex].steps.findIndex(item => !progress.done.includes(item));
@@ -145,6 +154,10 @@ export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; l
         <p>{t('Every new lesson earns 20 XP. Your progress is saved on this device.', 'Chaque nouvelle leçon rapporte 20 XP. Votre progression est enregistrée sur cet appareil.', '每完成一节新课获得 20 XP。学习进度保存在当前设备。')}</p>
         <button className={styles.primary} onClick={() => setStep(null)}>{t('Back to learning paths', 'Revenir aux parcours', '返回学习路线')} →</button>
       </div> : <>
+        {hasHero && partner && <div className={styles.partnerNote}>
+          <img src={partner.image} width="42" height="42" alt=""/>
+          <span><strong>{partner.name}</strong>{t('Let’s figure this out together.', 'On découvre ça ensemble ?', '我们一起把这个问题弄懂。')}</span>
+        </div>}
         <p>{lesson.story[lang]}</p>
         {(id === 0 || id === 2) && <Chart key={id} compound={id === 2}/>}
         <h2>{lesson.question[lang]}</h2>
@@ -166,8 +179,14 @@ export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; l
         <div>
           <span className={styles.eyebrow}>✦ {t('A little finance every day', 'Un peu de finance chaque jour', '每天学一点金融')}</span>
           <h1>{t('Make sense of money.', 'Comprendre l’argent.', '从零开始，学懂金融。')}</h1>
-          <p>{t('Start with a big question. Unpack it one small quest at a time.', 'Partez d’une grande question. Explorez-la une petite quête à la fois.', '从一个大问题出发，用一个个小任务拆开金融世界。')}</p>
+          <p>{t('Learn how money works, one small quest at a time. Start with a real chart and discover the ideas behind it.', 'Comprenez l’argent, une petite quête à la fois. Partez d’un vrai graphique et découvrez les idées qui l’expliquent.', '用一个个小任务学懂投资、经济和日常理财。先看一张真实图表，再拆解背后的金融知识。')}</p>
           <button className={styles.primary} onClick={() => start(0)}>{progress.done.includes(0) ? t('Open the Nasdaq journey', 'Ouvrir le parcours Nasdaq', '打开纳斯达克路线') : t('Start my first quest', 'Commencer ma première quête', '开始我的第一关')} →</button>
+          <fieldset className={styles.companions}>
+            <legend>{t('Choose your learning companion', 'Choisissez votre partenaire', '选择你的学习伴侣')}</legend>
+            <div>{companions.map(item => <button key={item.id} type="button" aria-pressed={hasHero && hero === item.id} onClick={() => chooseHero(item.id)}>
+              <img src={item.image} width="48" height="48" alt=""/><span>{item.name}</span>
+            </button>)}</div>
+          </fieldset>
           <div className={styles.heroMeta}>{t('Beginner friendly · Free to play', 'Pour débutants · Accès gratuit', '零基础友好 · 免费学习')}</div>
         </div>
         <div><h2>{t('What would $1,000 become in 20 years?', 'Que deviennent 1 000 $ en 20 ans ?', '1,000 美元，20 年后会变成多少？')}</h2><Chart/></div>
