@@ -20,7 +20,7 @@ export async function generateMetadata({searchParams}:{searchParams:Promise<Home
 
 export default async function Page({searchParams}:{searchParams:Promise<HomeQuery>}){
  const user=await currentUser(),admin=isAdmin(user),params=await searchParams,publicHome=!user&&(!params.view||params.view==='today');
- if(learningHome(params)) return <Academy signedIn={!!user} legacyHref={user ? '/?view=today' : '/?market=1#first-prediction'}/>;
+ if(learningHome(params)) return <Academy showFounder signedIn={!!user} legacyHref={user ? '/?view=today' : '/?market=1#first-prediction'}/>;
  const schema=<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({'@context':'https://schema.org','@graph':[organizationSchema(),applicationSchema()]}).replace(/</g,'\\u003c')}}/>;
  if(publicHome){const now=new Date();return <>{schema}<PublicLanding initialState={{now:now.toISOString(),session:sessionFor(now),bars:[]}}/></>}
  return <>{schema}<BillingProvider><AccountShell user={user?{id:user.id,email:user.email,admin}:null}><WorkspaceEntry signedIn={!!user}/></AccountShell></BillingProvider></>;

@@ -119,3 +119,11 @@
 .companions img, .partnerNote img { object-fit: cover; object-position: center 7%; border-radius: 8px; }
 .partnerNote { width: fit-content; margin-bottom: 14px; font-size: .88rem; }
 .partnerNote strong { display: block; }
+.founder { width: min(100%, 1120px); margin: 28px auto 0; }
+.founder :global(.landing-founder) { margin: 0; }
+.founder :global(.founder-social-details) {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.founder summary { cursor: pointer; color: #6b572f; }

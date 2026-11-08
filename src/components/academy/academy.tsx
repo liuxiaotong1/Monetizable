@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { LanguageSwitcher, useLocale } from '@/components/i18n/locale-provider';
 import { courses, indexHistory, lessons } from './lessons';
+import FounderIntro from '@/components/quest/founder-intro';
 import { chooseHero, useHasHero, useHero } from '@/components/quest/hero-preference';
 import styles from './academy.module.css';
 
@@ -67,7 +68,7 @@ function Chart({ compound = false }: { compound?: boolean }) {
   </figure>;
 }
 
-export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; legacyHref: string }) {
+export default function Academy({ signedIn, legacyHref, showFounder = false }: { signedIn: boolean; legacyHref: string; showFounder?: boolean }) {
   const locale = useLocale();
   const hero = useHero();
   const hasHero = useHasHero();
@@ -209,6 +210,7 @@ export default function Academy({ signedIn, legacyHref }: { signedIn: boolean; l
           <button className={styles.primary} disabled={!date || dailyDone} onClick={() => start(dailyId - 4, true)}>{dailyDone ? t('Completed today ✓', 'Terminé aujourd’hui ✓', '今日已完成 ✓') : t('Take the challenge →', 'Relever le défi →', '接受挑战 →')}</button>
         </aside>
       </section>
+      {showFounder && <div className={styles.founder}><FounderIntro/></div>}
     </>}
     <footer className={styles.footer}><span>{t('Financial education · Historical examples and hypothetical scenarios', 'Éducation financière · Exemples historiques et scénarios fictifs', '金融教育 · 历史案例与假设情景')}</span><a href="/privacy">{t('Privacy', 'Confidentialité', '隐私')}</a><a href="/blog">Blog</a></footer>
   </main>;
