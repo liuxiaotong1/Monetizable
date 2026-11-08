@@ -106,3 +106,16 @@
 @media (prefers-reduced-motion: reduce) {
   .shell * { animation: none; transition: none; }
 }
+.companions { min-inline-size: 0; border: 0; padding: 0; margin: 20px 0 0; }
+.companions legend { padding: 0; margin-bottom: 7px; font-size: .85rem; color: var(--muted); }
+.companions > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.companions button, .partnerNote {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); background: var(--paper); border-radius: 12px;
+  padding: 5px 10px 5px 5px; color: var(--ink);
+}
+.companions button { cursor: pointer; font: inherit; font-size: .9rem; }
+.companions button[aria-pressed=true] { border-color: var(--green); background: #eaf0e4; }
+.companions img, .partnerNote img { object-fit: cover; object-position: center 7%; border-radius: 8px; }
+.partnerNote { width: fit-content; margin-bottom: 14px; font-size: .88rem; }
+.partnerNote strong { display: block; }
