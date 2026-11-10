@@ -1,7 +1,6 @@
 import "server-only";
 import { database } from "@/lib/account/db";
-import { foundationFeed } from "@/lib/quest/public-source";
-import { refreshEventData } from "@/lib/quest/data-refresh";
+import { foundationFeed, readCachedFeed } from "@/lib/quest/public-source";
 import { ensureWebPushStore } from "./store";
 import { vapidConfig } from "./vapid";
 import { DAILY_CAP, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, planNotifications, reminderHref, safeTimeZone, type PushEvent, type PushJudgment, type PushPlan, type PushProgress } from "./schedule";
@@ -45,13 +44,15 @@ function recordParts(record: unknown) {
   };
 }
 
-export async function loadPushContext(now = new Date()) {
-  const feed = foundationFeed();
-  try { await refreshEventData(feed.state, now); } catch { /* Bundled event templates remain available. */ }
-  try {
-    const saved = (await database().query("SELECT body FROM quest_shared_data WHERE key = 'market-bars'")).rows[0]?.body as { bars?: { symbol: string; date: string }[] } | undefined;
-    if (saved?.bars?.length) feed.state.bars = saved.bars as typeof feed.state.bars;
-  } catch { /* Review waits until a verified bar is stored. */ }
+export async function loadPushContext(_now = new Date()) {
+  const cached = await readCachedFeed().catch(() => undefined);
+  const feed = cached ?? foundationFeed();
+  if (!cached) {
+    try {
+      const saved = (await database().query("SELECT body->>'fetchedAt' AS fetched_at, body->'bars' AS bars FROM quest_shared_data WHERE key = 'market-bars'")).rows[0] as { bars?: { symbol: string; date: string }[] } | undefined;
+      if (saved?.bars?.length) feed.state.bars = saved.bars as typeof feed.state.bars;
+    } catch { /* Review waits until a verified bar is stored. */ }
+  }
   return {
     events: feed.state.events.map((event): PushEvent => ({ id: event.id, kind: event.kind, symbol: event.symbol, at: event.at, status: event.status })),
     bars: feed.state.bars.map((bar) => ({ symbol: bar.symbol, date: bar.date })),
