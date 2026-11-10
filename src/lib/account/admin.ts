@@ -1,5 +1,6 @@
 import "server-only";
 import { database } from "./db";
+import { supabasePublicUrl } from "./supabase-env";
 import { stripeAmount } from "./money";
 export async function adminMetrics() {
   const [daily, totals, profiles, today] = await Promise.all([
@@ -106,6 +107,6 @@ export async function paymentMetrics() {
 /** Only returned by the administrator-protected endpoint. No secrets or arbitrary metadata. */
 export async function adminUsers(){
  const {rows}=await database().query(`SELECT u.id,u.email,left(COALESCE(u.raw_user_meta_data->>'full_name',u.raw_user_meta_data->>'name',''),100) AS name,u.created_at AS registered_at,u.last_sign_in_at,u.email_confirmed_at IS NOT NULL AS verified,COALESCE(u.raw_app_meta_data->>'provider','email') AS provider,p.last_seen_at,(p.last_seen_at>=((now() AT TIME ZONE 'Europe/Paris')::date::timestamp AT TIME ZONE 'Europe/Paris')) AS active_today,p.user_id IS NOT NULL AS has_profile,COALESCE(s.status,'none') AS subscription FROM auth.users u LEFT JOIN quest_profiles p ON p.user_id=u.id LEFT JOIN quest_subscriptions s ON s.user_id=u.id ORDER BY p.last_seen_at DESC NULLS LAST,u.created_at DESC LIMIT 101`);
- const ref=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split('.')[0];
+ const ref=new URL(supabasePublicUrl()!).hostname.split('.')[0];
  return {items:rows.slice(0,100),hasMore:rows.length>100,supabaseUrl:`https://supabase.com/dashboard/project/${encodeURIComponent(ref)}/auth/users`,storage:'Supabase Auth + Postgres'};
 }

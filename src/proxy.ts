@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { oauthRecoveryPath } from "@/lib/account/redirect";
+import { supabasePublicKey, supabasePublicUrl } from "@/lib/account/supabase-env";
 export async function proxy(request: NextRequest) {
   const recovery = oauthRecoveryPath(request.nextUrl.pathname, request.nextUrl.searchParams, request.cookies.get('quest_login_next')?.value);
   if (recovery) {
@@ -9,10 +10,8 @@ export async function proxy(request: NextRequest) {
     return retry;
   }
   let response = NextResponse.next({ request });
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key =
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = supabasePublicUrl(),
+    key = supabasePublicKey();
   if (!url || !key) return response;
   // Anonymous document and bot traffic has no session to refresh.
   if (!request.cookies.getAll().some((cookie) => cookie.name.includes("auth-token"))) return response;

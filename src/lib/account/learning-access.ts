@@ -2,9 +2,10 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { database } from './db';
+import { supabaseServiceRoleKey } from './supabase-env';
 export function learningDay(now = new Date()) { return new Intl.DateTimeFormat('en-CA', {timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(now); }
 const cookieName = 'quest_learning_guest';
-function signature(id:string) { const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)throw Error('Learning identity unavailable');return createHmac('sha256',key).update('learning-guest:'+id).digest('hex'); }
+function signature(id:string) { const key=supabaseServiceRoleKey();if(!key)throw Error('Learning identity unavailable');return createHmac('sha256',key).update('learning-guest:'+id).digest('hex'); }
 export async function guestLearningId(create=false) {
   const jar=await cookies(), token=jar.get(cookieName)?.value;
   if(token){const [id,sig]=token.split('.');if(/^[0-9a-f-]{36}$/.test(id)&&/^[0-9a-f]{64}$/.test(sig||'')&&timingSafeEqual(Buffer.from(sig,'hex'),Buffer.from(signature(id),'hex')))return id;}
