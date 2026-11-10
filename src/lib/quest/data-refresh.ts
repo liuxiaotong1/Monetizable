@@ -27,6 +27,7 @@ async function cached<T>(key:string,ttl:number,loader:()=>Promise<T>,empty:T,now
  })();inflight.set(key,operation);try{return await operation;}finally{inflight.delete(key);}
 }
 function status(name:string,result:Cached<unknown>,message:string):SourceStatus{return {name,status:result.error?'delayed':'ready',message:result.error?`${result.error}；保留上次成功内容，自动重试。`:message,lastSuccess:result.lastSuccess};}
+function withoutHistory<T extends {history?:unknown;historySource?:unknown}>(event:T):T{const {history,historySource,...rest}=event;return {...rest,history:[]} as T;}
 function setSource(state:QuestState,source:SourceStatus){state.sources=state.sources.filter(s=>s.name!==source.name);state.sources.push(source);}
 export function publicationVersion(previous:MarketEvent|undefined,event:MarketEvent){
  const history=previous?.releaseHistory||event.releaseHistory||[];
@@ -49,7 +50,7 @@ async function text(url:string){const r=await fetch(url,{cache:'no-store',signal
 async function refreshCalendars(state:QuestState,now:Date){
  const months=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];const first=new Date(marketDate(now).slice(0,7)+'-01T12:00:00Z');
  for(const offset of [0,1]){const d=new Date(first);d.setUTCMonth(d.getUTCMonth()+offset);const month=d.toISOString().slice(0,7),url=`https://www.newyorkfed.org/research/calendars/i-${months[d.getUTCMonth()]}${d.getUTCFullYear().toString().slice(-2)}.html`;
-  const result=await cached(`calendar-native:${month}`,6*3600_000,async()=>parseCalendar(await text(url),month,state.events,url,now),[],now);
+  const result=await cached(`calendar-native:${month}`,6*3600_000,async()=>parseCalendar(await text(url),month,state.events,url,now).map(withoutHistory),[],now);
   const map=new Map(state.events.map(e=>[e.id,e]));for(const e of result.body)map.set(e.id,map.has(e.id)?{...map.get(e.id)!,at:e.at}:e);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(`纽约联储经济日历 · ${month}`,result,'已复核当前及下月官方日程；日历不代表公布结果。'));
  }
 }
@@ -71,11 +72,11 @@ async function refreshAgencyCalendars(state:QuestState,now:Date){
    const minutes=row.find('.fomc-meeting__minutes'),released=minutes.text().match(/Released (\w+) (\d{1,2}), (20\d{2})/),href=minutes.find('a[href$=".htm"]').attr('href');if(released&&href){const m=names.indexOf(released[1].toLowerCase()),day=`${released[3]}-${String(m+1).padStart(2,'0')}-${released[2].padStart(2,'0')}`;if(m>=0&&Date.parse(day)>now.getTime()-45*86400_000){const event=calendarEvent(state,'MINUTES',nyTimeToUtc(day,'14:00'),new URL(href,'https://www.federalreserve.gov').href,now);if(event)result.push({...event,sourceUrl:new URL(href,'https://www.federalreserve.gov').href});}}
   });return result;
  }}];
- await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events;},[],now,spec.key==='fed-calendar-native'?2:1);if(spec.key==='fed-calendar-native'&&!result.error)state.events=reconcileFomcCalendar(state.events,result.body);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
+ await Promise.allSettled(specs.map(async spec=>{const result=await cached(spec.key,6*3600_000,async()=>{const events=spec.parse(await text(spec.url));if(!events.length)throw Error('官方日历没有返回可核对的日期');return events.map(withoutHistory);},[],now,spec.key==='fed-calendar-native'?2:1);if(spec.key==='fed-calendar-native'&&!result.error)state.events=reconcileFomcCalendar(state.events,result.body);const map=new Map(state.events.map(e=>[e.id,e]));for(const event of result.body)map.set(event.id,map.has(event.id)?{...map.get(event.id)!,at:event.at,...(event.kind==='MINUTES'?{sourceUrl:event.sourceUrl}:{})}:event);state.events=[...map.values()].sort((a,b)=>a.at.localeCompare(b.at));setSource(state,status(spec.name,result,'官方发布日期已复核。'));}));
 }
 async function refreshReleases(state:QuestState,now:Date){
  const parserVersion=releaseParserVersion;
- const stored=(await database().query("SELECT key,body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
+ const stored=(await database().query("SELECT key, CASE WHEN jsonb_typeof(body->'body')='object' THEN body #- '{body,history}' #- '{body,historySource}' ELSE body END AS body FROM quest_shared_data WHERE key LIKE 'release-native:%'")).rows as {key:string;body:Cached<MarketEvent>}[];
  const byId=new Map(stored.map(row=>[row.key.slice('release-native:'.length),row.body]));
  for(const e of state.events){const prior=byId.get(e.id);if(prior)setSource(state,status(`官方更新 · ${e.kind}${e.symbol?' '+e.symbol:''} · ${marketDate(new Date(e.at))}`,prior,`${e.kind} 已核对官方文档与发布日期`));}
  state.events=state.events.map(e=>{const prior=byId.get(e.id),next=prior?.body.status==='confirmed'?{...e,...prior.body}:e;return next.kind==='CLAIMS'&&next.status==='confirmed'?{...next,description:'每周首次申请失业保险的人数，是就业变化的高频线索；本次官方发布已核对，结合前值修订与四周均值观察。'}:next;});
@@ -83,7 +84,7 @@ async function refreshReleases(state:QuestState,now:Date){
  // Each source has its own retry clock; one failed document cannot block the other releases.
  const results=await Promise.allSettled(candidates.map(async event=>{
   const due=now.getTime()-Date.parse(event.at)<24*3600_000;const ttl=event.status==='confirmed'?24*3600_000:due?5*60_000:60*60_000;
-  const result=await cached(`release-native:${event.id}`,ttl,async()=>{const next=await fetchOfficialRelease(event,now);return {...next,releaseHistory:publicationVersion(event,next)};},event,now,parserVersion(event));
+  const result=await cached(`release-native:${event.id}`,ttl,async()=>{const next=await fetchOfficialRelease(event,now);return {...withoutHistory(next),releaseHistory:publicationVersion(event,next)};},event,now,parserVersion(event));
   setSource(state,status(`官方更新 · ${event.kind}${event.symbol?' '+event.symbol:''} · ${marketDate(new Date(event.at))}`,result,`${event.kind} 已核对官方文档与发布日期`));
   return result.body;
  }));
@@ -116,3 +117,5 @@ export async function refreshEventData(state:QuestState,now=new Date()):Promise<
  }catch(error){setSource(state,{name:'官方事件自动同步',status:'delayed',message:error instanceof Error?error.message:'同步暂不可用'});}
 }
 export async function refreshNews(previous:EventIntelligence,now:Date){const result=await cached('news-native',5*60_000,async()=>{const next=await fetchIntelligence(previous,now);if(next.sources.every(s=>s.status==='error'))throw Error('全部新闻来源获取失败');return next;},previous,now);return result.error?{sources:result.body.sources.map(s=>({...s,status:'error' as const,attemptedAt:result.attemptedAt,message:result.error!,items:s.items.filter(item=>item.endAt?item.endAt>now.toISOString():Boolean(item.publishedAt&&Date.parse(item.publishedAt)>+now-7*86400000))}))}:result.body;}
+export async function refreshNewsIfDue(now:Date){const prior=(await database().query('SELECT body FROM quest_shared_data WHERE key=$1',['news-native'])).rows[0]?.body as Cached<EventIntelligence>|undefined;await refreshNews(prior?.body||{sources:[]},now);}
+export async function refreshEventValuesCache(now:Date){await cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined,now);}

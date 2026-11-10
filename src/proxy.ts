@@ -14,6 +14,8 @@ export async function proxy(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return response;
+  // Anonymous document and bot traffic has no session to refresh.
+  if (!request.cookies.getAll().some((cookie) => cookie.name.includes("auth-token"))) return response;
   const client = createServerClient(url, key, {
     cookies: {
       getAll: () => request.cookies.getAll(),

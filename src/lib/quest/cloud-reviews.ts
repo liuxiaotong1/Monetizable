@@ -8,10 +8,10 @@ export async function archiveCloudReviews(state:QuestState){
  const latest=state.bars.filter(b=>b.symbol==='QQQ').at(-1);
  if(!latest||!sessionReady(latest.date,new Date(state.now)))return 0;
  const db=database();
- const {rows}=await db.query("SELECT user_id,record FROM quest_profiles WHERE record IS NOT NULL AND jsonb_array_length(COALESCE(record->'judgments','[]'::jsonb))>0");
+ const {rows}=await db.query("SELECT user_id, COALESCE(record->'judgments','[]'::jsonb) AS judgments, COALESCE(record->'forecasts','[]'::jsonb) AS forecasts FROM quest_profiles WHERE jsonb_typeof(record->'judgments')='array' AND jsonb_array_length(record->'judgments')>0");
  let saved=0;
  for(const row of rows){
-  const judgments=(row.record.judgments||[]) as Judgment[],forecasts=(row.record.forecasts||[]) as Forecast[];
+  const judgments=(row.judgments||[]) as Judgment[],forecasts=(row.forecasts||[]) as Forecast[];
   for(const judgment of judgments){
    const actual=state.bars.find(b=>b.symbol==='QQQ'&&b.date===judgment.date),forecast=forecasts.find(f=>f.id===judgment.forecastId);
    if(!actual||!forecast||!sessionReady(judgment.date,new Date(state.now))||!sessionReady(judgment.date,new Date(actual.fetchedAt)))continue;

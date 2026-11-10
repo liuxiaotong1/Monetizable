@@ -40,6 +40,8 @@ export function authAdmin() {
     : null;
 }
 export const currentUser = cache(async () => {
+  const jar = await cookies();
+  if (!jar.getAll().some((cookie) => cookie.name.includes("auth-token"))) return null;
   const client = await authClient();
   if (!client) return null;
   const { data, error } = await client.auth.getUser();
