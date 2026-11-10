@@ -1,10 +1,12 @@
 import "server-only";
 import { Pool } from "pg";
 import { supabaseCa } from "./ca";
+import { postgresUrl } from "./supabase-env";
 let pool: Pool | undefined;
 export function database() {
-  if (!process.env.POSTGRES_URL) throw Error("Account storage unavailable");
-  const url = new URL(process.env.POSTGRES_URL);
+  const connection = postgresUrl();
+  if (!connection) throw Error("Account storage unavailable");
+  const url = new URL(connection);
   url.searchParams.delete("sslmode");
   return (pool ||= new Pool({
     connectionString: url.toString(),

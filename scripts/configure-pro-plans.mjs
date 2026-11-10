@@ -5,7 +5,8 @@ import {createRequire} from 'node:module';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),cache=new Map();
 if(process.env.VERCEL_ENV!=='production'){console.log('Pro billing provisioning skipped outside production.');process.exit(0);}
-if(!process.env.STRIPE_SECRET_KEY||!process.env.POSTGRES_URL)throw Error('Existing production billing credentials are unavailable. No new billing configuration activated.');
+const postgresUrl=serverModule('src/lib/account/supabase-env.ts').postgresUrl();
+if(!process.env.STRIPE_SECRET_KEY||!postgresUrl)throw Error('Existing production billing credentials are unavailable. No new billing configuration activated.');
 function serverModule(filename){const absolute=path.resolve(filename);if(cache.has(absolute))return cache.get(absolute).exports;const module={exports:{}};cache.set(absolute,module);const source=ts.transpileModule(fs.readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;new Function('require','module','exports',source)(name=>{
  if(name==='server-only')return{}; // This script runs exclusively in the server build process.
  if(name==='./auth')return {APP_URL:'https://getmonetizable.com',currentUser:()=>{throw Error('Provisioning never creates a user session');},isAdmin:()=>false};
