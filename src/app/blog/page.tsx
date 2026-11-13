@@ -6,6 +6,7 @@ import {blogPosts} from '@/lib/marketing/blog';
 import '@/components/marketing/public-pages.css';
 import '@/components/marketing/blog-post.css';
 
+export const dynamic = "force-static";
 const title = 'Trading Practice Blog & Product Resources | Monetizable';
 const description = 'Explore trading discipline guides, a trading-plan checklist, and Monetizable’s product introduction, About, FAQ and methodology.';
 export const metadata: Metadata = {

@@ -1,11 +1,13 @@
 name: Monetizable web push
 on:
   schedule:
-    # GitHub often delivers only a handful of these ticks per day. Reminder
-    # planning catches up until each slot's cutoff, and these extra clocks sit
-    # inside the Paris afternoon and the US morning windows.
-    - cron: '*/15 * * * *'
-    - cron: '7 11,15,16,20 * * *'
+    # Hourly at minute 7. Slots stay due until their cutoff, so one tick an hour
+    # still sends each reminder once. The shortest window is the 45 minutes
+    # before the 9:30 New York open, and :07 falls inside it in both US
+    # daylight and standard time. Event eve is 17:00–23:30 Paris, review runs
+    # until 22:30 New York, and knowledge follows each subscriber's clock.
+    # The API returns after a cheap read when nobody is inside a window.
+    - cron: '7 * * * *'
   workflow_dispatch:
 permissions:
   contents: read

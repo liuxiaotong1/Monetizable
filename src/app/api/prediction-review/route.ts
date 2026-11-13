@@ -3,7 +3,7 @@ import {billingStatus} from '@/lib/account/billing';
 import {projectPredictionReview,mentorQuestion} from '@/lib/quest/review-access';
 import {reviewFollowup} from '@/lib/quest/companion-coach';
 import {generatePredictionReview} from '@/lib/quest/prediction-review-service';
-export const maxDuration=90;
+export const maxDuration=60;
 export async function POST(request:Request){
  const headers={'Cache-Control':'private,no-store'};
  if(!sameOrigin(request))return Response.json({error:'FORBIDDEN'},{status:403,headers});

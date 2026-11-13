@@ -19,7 +19,7 @@ export default function FounderIntro() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/homepage', { cache: 'no-store', signal: controller.signal })
+    fetch('/api/homepage', { signal: controller.signal })
       .then(response => response.ok ? response.json() : null)
       .then(data => {
         const content = validateFounder(data?.founder);

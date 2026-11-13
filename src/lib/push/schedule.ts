@@ -77,6 +77,41 @@ function dueBetween(now: Date, startMs: number, endMs: number) {
   const time = now.getTime();
   return time >= startMs && time < endMs;
 }
+/**
+ * New York clock ranges that can contain an hour-before reminder.
+ * CPI and NFP print around 08:30, FOMC at 14:00, and major earnings at 08:00, 16:00, or 23:59 when the time is still unconfirmed.
+ * The daytime range starts an hour before the earliest of those clocks and runs through the afternoon.
+ */
+const EVENT_SOON_NY_RANGES: [number, number][] = [
+  [6 * 60, 21 * 60],
+  [22 * 60 + 59, 24 * 60],
+];
+
+/** Market-tied reminder clocks. Knowledge uses the subscriber's own zone and is checked separately. */
+export function marketReminderOpen(now: Date) {
+  const session = sessionFor(now);
+  const trading = isTradingDate(session.date);
+  if (!trading) return { trading: false, event: false, premarket: false, review: false };
+  const paris = zonedParts(now, 'Europe/Paris');
+  const ny = zonedParts(now, 'America/New_York');
+  const eventEve = paris.minutes >= EVENT_EVE_START_MINUTES && paris.minutes < EVENT_EVE_END_MINUTES;
+  const eventSoon = EVENT_SOON_NY_RANGES.some(([start, end]) => ny.minutes >= start && ny.minutes < end);
+  const openAt = Date.parse(session.openAt);
+  const reviewStart = Date.parse(session.closeAt) + REVIEW_DELAY_MS;
+  const reviewEnd = zonedTimeToUtc(ny.date, REVIEW_CUTOFF_MINUTES, 'America/New_York');
+  return {
+    trading: true,
+    event: eventEve || eventSoon,
+    premarket: dueBetween(now, openAt - PREMARKET_LEAD_MS, openAt),
+    review: dueBetween(now, reviewStart, reviewEnd),
+  };
+}
+
+/** Same open interval planNotifications uses for a knowledge reminder. */
+export function knowledgeReminderOpen(now: Date, timeZone: unknown, knowledgeTime: unknown) {
+  const local = zonedParts(now, safeTimeZone(timeZone));
+  return knowledgeOpen(local.minutes, clockMinutes(typeof knowledgeTime === 'string' ? knowledgeTime : '12:30'));
+}
 function knowledgeOpen(localMinutes: number, knowledgeMinutes: number) {
   const end = Math.min(24 * 60, Math.max(KNOWLEDGE_CUTOFF_MINUTES, knowledgeMinutes + 90));
   return localMinutes >= knowledgeMinutes && localMinutes < end;

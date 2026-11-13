@@ -130,6 +130,44 @@ assert.equal(plans('2026-07-15T12:30:00Z', { events: [cpi] }).some((item) => ite
 assert.equal(plans('2026-07-15T11:00:00Z', { events: [cpi] }).some((item) => item.phase === 'soon'), false);
 
 assert.deepEqual(kinds(plans('2026-07-15T12:45:00Z', { knowledgeTime: '14:45', sentToday: 2 })), []);
+
+assert.equal(schedule.marketReminderOpen(new Date('2026-07-15T13:07:00Z')).premarket, true);
+assert.equal(schedule.marketReminderOpen(new Date('2026-01-15T14:07:00Z')).premarket, true);
+assert.equal(schedule.marketReminderOpen(new Date('2026-07-15T13:30:00Z')).premarket, false);
+assert.equal(schedule.marketReminderOpen(new Date('2026-07-18T13:07:00Z')).trading, false);
+
+const releaseClocks = [
+  { id: 'cpi', kind: 'CPI', at: '2026-07-15T12:30:00Z' },
+  { id: 'ten', kind: 'NFP', at: '2026-07-15T14:00:00Z' },
+  { id: 'fomc', kind: 'FOMC', at: '2026-07-15T18:00:00Z' },
+  { id: 'earn-open', kind: 'EARNINGS', symbol: 'AAPL', at: '2026-07-15T12:00:00Z' },
+  { id: 'earn-close', kind: 'EARNINGS', symbol: 'MSFT', at: '2026-07-15T20:00:00Z' },
+  { id: 'earn-late', kind: 'EARNINGS', symbol: 'NVDA', at: '2026-07-16T03:59:00Z' },
+].map((event) => ({ ...event, status: 'scheduled' }));
+for (const [start, end] of [['2026-01-12T00:00:00Z', '2026-01-17T00:00:00Z'], ['2026-07-14T00:00:00Z', '2026-07-17T00:00:00Z']]) {
+ for (let t = Date.parse(start); t < Date.parse(end); t += 15 * 60 * 1000) {
+  const now = new Date(t);
+  const market = schedule.marketReminderOpen(now);
+  for (const zone of ['Europe/Paris', 'America/New_York', 'Asia/Shanghai']) {
+    for (const knowledgeTime of ['06:30', '12:30', '22:00']) {
+      const planned = planNotifications({ ...base, now, timeZone: zone, knowledgeTime, events: releaseClocks });
+      for (const plan of planned) {
+        if (plan.category === 'knowledge') assert.equal(schedule.knowledgeReminderOpen(now, zone, knowledgeTime), true, `${now.toISOString()} ${zone} ${knowledgeTime}`);
+        if (plan.category === 'premarket') assert.equal(market.premarket, true, now.toISOString());
+        if (plan.category === 'review') assert.equal(market.review, true, now.toISOString());
+        if (plan.category === 'event') assert.equal(market.event, true, `${plan.phase} ${now.toISOString()}`);
+      }
+    }
+  }
+ }
+}
+const workflow = await fs.readFile('.github/workflows/web-push.yml', 'utf8');
+assert.match(workflow, /cron: '7 \* \* \* \*'/);
+assert.equal(workflow.includes('*/15'), false);
+const dispatchRoute = await fs.readFile('src/app/api/push/dispatch/route.ts', 'utf8');
+assert.equal(dispatchRoute.includes('from "@/lib/push/dispatch"'), false);
+assert.match(dispatchRoute, /import\("@\/lib\/push\/dispatch"\)/);
+assert.match(dispatchRoute, /maxDuration = 60/);
 assert.equal(plans('2026-07-15T14:10:00Z', { sentSlots: ['knowledge:2026-07-14'] }).some((item) => item.category === 'knowledge'), true);
 
 console.log('Push schedule checks passed: DST windows, holidays, event replacement, review gate, catch-up and daily cap.');

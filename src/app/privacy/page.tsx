@@ -1,4 +1,5 @@
 import {LocalizeTree} from '@/components/i18n/locale-provider';
+export const dynamic = "force-static";
 export const metadata = { title: 'Privacy · Monetizable', alternates: {canonical: 'https://getmonetizable.com/privacy'} };
 
 export default function Privacy() {

@@ -46,6 +46,8 @@ jobs:
           fi
 
       - name: Send due companion reminders
+        # Backup clock during the report window. Dispatch returns after a cheap
+        # read when no subscriber is inside a send window.
         if: always() && github.event_name == 'schedule'
         run: |
           curl --fail --silent --show-error \

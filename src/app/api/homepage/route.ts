@@ -4,7 +4,8 @@ import {database} from '@/lib/account/db';
 import {ADMIN_EMAIL} from '@/lib/account/policy';
 import {defaultFounder,homepageContentKey,validateFounder} from '@/lib/account/homepage-content';
 export const dynamic='force-dynamic';
-const headers={'Cache-Control':'no-store'};
+const headers={'Cache-Control':'private, no-store'};
+const publicHeaders={'Cache-Control':'public, max-age=300, s-maxage=600, stale-while-revalidate=86400'};
 export async function GET(){
  const query=(sql:string,values:unknown[])=>Promise.resolve().then(()=>database().query(sql,values));
  const [founderResult,communityResult]=await Promise.allSettled([
@@ -13,7 +14,7 @@ export async function GET(){
  ]);
  const founder=founderResult.status==='fulfilled'?validateFounder(founderResult.value.rows[0]?.body)||defaultFounder:defaultFounder;
  const count=communityResult.status==='fulfilled'?communityResult.value.rows[0]?.verified_accounts:undefined;
- return NextResponse.json({founder,...(Number.isInteger(count)&&count>=0?{community:{verifiedAccounts:count,asOf:new Date().toISOString()}}:{})},{headers});
+ return NextResponse.json({founder,...(Number.isInteger(count)&&count>=0?{community:{verifiedAccounts:count,asOf:new Date().toISOString()}}:{})},{headers:publicHeaders});
 }
 export async function PUT(request:Request){
  if(!sameOrigin(request)||!await administrator())return NextResponse.json({error:'Forbidden'},{status:403,headers});

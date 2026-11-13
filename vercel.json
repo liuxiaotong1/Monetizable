@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/push/dispatch",
-      "schedule": "0 16 * * *"
+      "schedule": "7 16 * * *"
     }
   ],
   "headers": [

@@ -6,6 +6,7 @@ import { vapidConfig } from "./vapid";
 import { DAILY_CAP, normalizeCategories, normalizeCompanion, normalizeKnowledgeTime, planNotifications, reminderHref, safeTimeZone, type PushEvent, type PushJudgment, type PushPlan, type PushProgress } from "./schedule";
 import { notificationBody, companionName, eventClock, eventName, PUSH_ICON, type PushCategory } from "./copy";
 import { resolveReminderLocale } from "./locale";
+import { subscriptionsNeedDispatch } from "./needed";
 
 export interface DispatchResult {
   ok: true;
@@ -136,6 +137,9 @@ export async function dispatchFromRefresh() {
 }
 
 export async function dispatchPush(now = new Date()): Promise<DispatchResult | { ok: false; error: string }> {
+  const keys = vapidConfig();
+  if (!keys.publicKey || !keys.privateKey) return { ok: false, error: "Push signing is not configured." };
+  if (!(await subscriptionsNeedDispatch(now))) return { ok: true, sent: 0, expired: 0, failed: 0, skipped: 0 };
   const client = await webPush();
   if (!client) return { ok: false, error: "Push signing is not configured." };
   await ensureWebPushStore();

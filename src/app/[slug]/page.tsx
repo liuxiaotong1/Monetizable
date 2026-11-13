@@ -5,6 +5,7 @@ import {answerPages, findAnswerPage, CONTENT_UPDATED} from '@/lib/marketing/page
 import {SITE_URL} from '@/lib/marketing/positioning';
 import '@/components/marketing/public-pages.css';
 
+export const dynamic = "force-static";
 type Props = {params: Promise<{slug: string}>};
 export function generateStaticParams() { return answerPages.map(({slug}) => ({slug})); }
 export async function generateMetadata({params}: Props): Promise<Metadata> {

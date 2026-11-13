@@ -1,4 +1,5 @@
 import { currentUser, isAdmin } from "@/lib/account/auth";
+import { AppFrame } from "@/components/site/app-frame";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Monetizable · Five logo directions",
@@ -65,7 +66,7 @@ const concepts = [
 export default async function Page() {
   const zh = isAdmin(await currentUser());
   return (
-    <main className="brand-proposals" lang={zh ? "zh-CN" : "en"}>
+    <AppFrame><main className="brand-proposals" lang={zh ? "zh-CN" : "en"}>
       <a className="brand" href="/">
         ← Monetizable
       </a>
@@ -120,6 +121,6 @@ export default async function Page() {
           ? "当前正式标识为方案 03 的蓝紫版。其余图形保留为设计过程参考。"
           : "The blue-violet version of concept 03 is the official mark. Other concepts remain as design references."}
       </p>
-    </main>
+    </main></AppFrame>
   );
 }
