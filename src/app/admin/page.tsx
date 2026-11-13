@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { administrator, currentUser } from "@/lib/account/auth";
 import AdminDashboard from "@/components/account/admin-dashboard";
+import { AppFrame } from "@/components/site/app-frame";
 export const metadata = {
   title: "管理中心 · Monetizable",
   robots: { index: false, follow: false },
@@ -11,5 +12,5 @@ export default async function Page() {
     if (!(await currentUser())) redirect("/auth?next=%2Fadmin");
     redirect("/");
   }
-  return <AdminDashboard />;
+  return <AppFrame><AdminDashboard /></AppFrame>;
 }

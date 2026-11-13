@@ -1,14 +1,9 @@
-import {LocaleProvider} from '@/components/i18n/locale-provider';
-import {requestLocale} from '@/lib/i18n/server-locale';
-import {currentUser,isAdmin} from '@/lib/account/auth';
+import { DocumentLocale } from "@/components/site/document-locale";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./account.css";
 import "./cream-arcade.css";
 import "./pwa.css";
-import AnalyticsTracker from "@/components/account/analytics";
-import PwaPushGuide from "@/components/pwa/pwa-push-guide";
-import { rememberAccountLocale } from "@/lib/push/account-locale";
 import { positioning } from '@/lib/marketing/positioning';
 const frenchMetadata: Metadata = {
   metadataBase: new URL("https://getmonetizable.com"),
@@ -48,32 +43,30 @@ const frenchMetadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
 };
-export async function generateMetadata():Promise<Metadata>{
- const locale=await requestLocale(isAdmin(await currentUser()));
- const {title,description}=positioning[locale];
- return {...frenchMetadata,title,description,applicationName:'Monetizable',openGraph:{...frenchMetadata.openGraph,title,description,siteName:'Monetizable',url:'https://getmonetizable.com',type:'website'},twitter:{...frenchMetadata.twitter,title,description}};
-}
+const { title, description } = positioning.en;
+export const metadata: Metadata = {
+  ...frenchMetadata,
+  title,
+  description,
+  applicationName: "Monetizable",
+  openGraph: { ...frenchMetadata.openGraph, title, description, siteName: "Monetizable", url: "https://getmonetizable.com", type: "website" },
+  twitter: { ...frenchMetadata.twitter, title, description },
+};
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#fff6e5",
   viewportFit: "cover",
 };
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await currentUser();
-  const locale = await requestLocale(isAdmin(user));
-  if (user) { try { await rememberAccountLocale(user.id, locale); } catch { /* The page still opens if account storage is briefly unavailable. */ } }
   return (
-    <html lang={locale==='zh'?'zh-CN':locale}>
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <LocaleProvider locale={locale}>{children}
-        <AnalyticsTracker internal={isAdmin(await currentUser())} />
-        <PwaPushGuide />
-        </LocaleProvider>
+        <DocumentLocale>{children}</DocumentLocale>
       </body>
     </html>
   );

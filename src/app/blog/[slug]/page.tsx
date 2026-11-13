@@ -5,6 +5,7 @@ import {blogPosts,findBlogPost,articleSchema} from '@/lib/marketing/blog';
 import {SITE_URL} from '@/lib/marketing/positioning';
 import '@/components/marketing/public-pages.css';
 import '@/components/marketing/blog-post.css';
+export const dynamic = "force-static";
 type Props={params:Promise<{slug:string}>};
 export function generateStaticParams(){return blogPosts.map(({slug})=>({slug}));}
 export async function generateMetadata({params}:Props):Promise<Metadata>{
