@@ -8,6 +8,7 @@ import {useBilling,PremiumGate} from "../account/billing-access";
 import {LocalizeTree} from '@/components/i18n/locale-provider';
 import {hydrateBrowserState,applyBrowserCommand,readBrowserRecord,saveBrowserRecord} from "@/lib/quest/browser-store";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useVisiblePoll } from "./use-visible-poll";
 import { Compass, Swords, Layers3, Bell, Settings as SettingsIcon, ChevronRight, ArrowUpRight, Sparkles, CircleHelp, X, Check, LockKeyhole } from "lucide-react";
 import { useQuestTools } from "./use-quest-tools";
 import { useDialogFocus } from "./use-dialog-focus";
@@ -27,10 +28,10 @@ export default function QuestApp(){
  const {view,navigate}=useJourneyNavigation(!!state);
  useQuestTools(state,navigate);
  useEffect(()=>{const open=(event:Event)=>{const view=(event as CustomEvent).detail?.view;if(view==='today'||view==='events'||view==='learn')navigate(view)};addEventListener('monetizable-open-quest',open);return()=>removeEventListener('monetizable-open-quest',open)},[navigate]);
- const load=useCallback(async(m:Mode,initialView?:View)=>{const seq=++sequence.current;try{const response=await fetch(`/api/state?mode=${m}`,{cache:"no-store"});const data=await response.json() as QuestState & {error?:string};if(!response.ok)throw Error(data.error||"工作区暂时无法读取");if(seq===sequence.current){setMode(m);sharedState.current=data;const record=readBrowserRecord();const personal=hydrateBrowserState(data,record);saveBrowserRecord(record);setState(personal);setError("");setNeedsLogin(false);setLoaded(true);}}catch(e){if(seq===sequence.current){setMode(m);setError(e instanceof Error?e.message:"连接暂时中断");setLoaded(true);}}},[]);
- const reloadAtClose=useCallback(()=>load(mode),[load,mode]);useCloseRefresh(state?.session,reloadAtClose);
+ const load=useCallback(async(m:Mode,_initialView?:View,fresh=false)=>{const seq=++sequence.current;try{const response=await fetch(`/api/state?mode=${m}`,fresh?{cache:"no-store"}:{});const data=await response.json() as QuestState & {error?:string};if(!response.ok)throw Error(data.error||"工作区暂时无法读取");if(seq===sequence.current){setMode(m);sharedState.current=data;const record=readBrowserRecord();const personal=hydrateBrowserState(data,record);saveBrowserRecord(record);setState(personal);setError("");setNeedsLogin(false);setLoaded(true);}}catch(e){if(seq===sequence.current){setMode(m);setError(e instanceof Error?e.message:"连接暂时中断");setLoaded(true);}}},[]);
+ const reloadAtClose=useCallback(()=>load(mode,undefined,true),[load,mode]);useCloseRefresh(state?.session,reloadAtClose);
  useEffect(()=>{let active=true;const m:Mode="live";const v=new URLSearchParams(location.search).get("view");queueMicrotask(()=>{if(active)void load(m,v==="events"||v==="learn"?v:"today");});if("serviceWorker" in navigator)void navigator.serviceWorker.register("/sw.js").catch(()=>{});return()=>{active=false;sequence.current++;};},[load]);
- useEffect(()=>{const onReturn=()=>{if(!document.hidden&&!busy&&!actionInFlight.current)void load(mode);};const id=setInterval(onReturn,60000);document.addEventListener("visibilitychange",onReturn);window.addEventListener("focus",onReturn);return()=>{clearInterval(id);document.removeEventListener("visibilitychange",onReturn);window.removeEventListener("focus",onReturn);};},[mode,busy,load]);
+ useVisiblePoll(()=>{if(!busy&&!actionInFlight.current)void load(mode);},5*60*1000);
  useEffect(()=>{if(!toast)return;const id=setTimeout(()=>setToast(""),3500);return()=>clearTimeout(id);},[toast]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==="Escape"){setSettings(false);setNotices(false);setHelp(false);}};document.addEventListener("keydown",key);return()=>document.removeEventListener("keydown",key);},[]);
  async function run(command:QuestCommand):Promise<QuestState|false>{
@@ -50,7 +51,7 @@ export default function QuestApp(){
   finally{actionInFlight.current=false;setBusy(false);}
  }
  async function changeMode(next:Mode){if(next===mode)return;setSettings(false);setNotices(false);setMode(next);setState(null);setLoaded(false);localStorage.setItem("quest-mode",next);await load(next);}
- async function refreshMarket(){if(busy)return;setBusy(true);++sequence.current;try{const response=await fetch("/api/refresh",{signal:AbortSignal.timeout(240000)});const receipt=await response.json() as {status?:string;error?:string};if(!response.ok)throw Error(receipt.error||"行情同步暂不可用");await load("live");setToast(receipt.status==="running"?"后台正在同步，内容会自动更新。":receipt.status==="partial"?"同步检查完成，部分官方结果尚待核实；已保留各项来源与时间。":"同步完成，已保留来源与取得时间。");}catch(e){setError(e instanceof Error?e.message:"行情同步暂不可用");}finally{setBusy(false);}}
+ async function refreshMarket(){if(busy)return;setBusy(true);++sequence.current;try{const response=await fetch("/api/refresh",{signal:AbortSignal.timeout(240000)});const receipt=await response.json() as {status?:string;error?:string};if(!response.ok)throw Error(receipt.error||"行情同步暂不可用");await load("live",undefined,true);setToast(receipt.status==="running"?"后台正在同步，内容会自动更新。":receipt.status==="partial"?"同步检查完成，部分官方结果尚待核实；已保留各项来源与时间。":"同步完成，已保留来源与取得时间。");}catch(e){setError(e instanceof Error?e.message:"行情同步暂不可用");}finally{setBusy(false);}}
  if(!state)return <LocalizeTree>{<main className="loading-screen"><img src="/brand/monetizable-curious-m.svg" alt="" width="52" height="52"/><h1>Monetizable</h1><p>{error||"正在展开你的冒险地图…"}</p>{loaded&&error?<button className="primary" onClick={()=>load(mode)}>重新连接</button>:<span className="loading-line"/>}</main>}</LocalizeTree>;
  const level=Math.floor(state.xp/100)+1;const unread=state.notices.filter(n=>!n.read).length;const props={state:historyWindow(state,access.premium),run,busy,navigate,refreshData:refreshMarket};
  const completed=state.adventure?.sections||[];

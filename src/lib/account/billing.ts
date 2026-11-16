@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 import {requestLocale} from '@/lib/i18n/server-locale';
 import { randomBytes } from 'node:crypto';
 import { database } from './db';
-import { learningUsage } from './learning-access';
+import { guestLearningId, learningUsage } from './learning-access';
 import { APP_URL, currentUser, isAdmin } from './auth';
 import {recordCheckout} from '@/lib/marketing/growth-server';
 export const PREMIUM_CENTS=MONTHLY_CENTS;
@@ -29,8 +29,10 @@ export async function setupBilling(){
  return {configured:true,livemode:price.livemode};
 }
 function acceptedPrices(config:BillingConfig){return new Set([config.price,config.annualPrice,...(config.legacyPrices||[])].filter(Boolean));}
-export async function billingStatus(){
- const user=await currentUser();
+type BillingUser=Awaited<ReturnType<typeof currentUser>>;
+const BILLING_CACHE_MS=2*60*1000;
+const billingCache=new Map<string,{at:number;value:Awaited<ReturnType<typeof loadBillingStatus>>}>();
+async function loadBillingStatus(user:BillingUser){
  if(OPEN_EXPERIENCE){const sub=user?(await database().query('SELECT customer_id FROM quest_subscriptions WHERE user_id=$1',[user.id]).catch(()=>({rows:[]}))).rows[0]:undefined;return experienceAccess(user,isAdmin(user),!!sub?.customer_id);}
  if(isAdmin(user))return {premium:true,admin:true,signedIn:true,status:'admin',remaining:1,configured:(await billingConfig())?.version===3,trialUsed:false};
  const config=await billingConfig();if(!user){const claimedCards=await learningUsage();return {premium:false,admin:false,signedIn:false,status:'free',remaining:Math.max(0,2-claimedCards.length),claimedCards,configured:config?.version===3&&!!config.annualPrice,trialUsed:false};}
@@ -38,6 +40,20 @@ export async function billingStatus(){
  const premium=!!sub&&['active','trialing'].includes(sub.status)&&!!sub.access_until&&Date.parse(sub.access_until)>Date.now();
  const claimedCards=await learningUsage(user.id);
  return {premium,admin:false,signedIn:true,status:sub?.status||'free',remaining:Math.max(0,5-claimedCards.length),claimedCards,configured:config?.version===3&&!!config.annualPrice,trialUsed:!!sub?.trial_used,trialEnd:sub?.trial_end,accessUntil:sub?.access_until,cancelAtPeriodEnd:!!sub?.cancel_at_period_end};
+}
+/** Per-account memory cache. Anonymous and signed-in keys never share an entry. */
+export async function billingStatus(options?:{fresh?:boolean}){
+ const user=await currentUser();
+ let key:string|undefined;
+ try{const guest=user?undefined:await guestLearningId();key=user?.id||(guest?`guest:${guest}`:'anon');}catch{key=undefined;}
+ const hit=key&&!options?.fresh?billingCache.get(key):undefined;
+ if(hit&&Date.now()-hit.at<BILLING_CACHE_MS)return {...hit.value};
+ const value=await loadBillingStatus(user);
+ if(key){
+  billingCache.set(key,{at:Date.now(),value});
+  if(billingCache.size>400){const cutoff=Date.now()-BILLING_CACHE_MS;for(const [id,entry] of billingCache)if(entry.at<cutoff)billingCache.delete(id);}
+ }
+ return value;
 }
 export async function synchronizeSubscription(id:string){
  const stripe=stripeClient(),sub=await stripe.subscriptions.retrieve(id);
@@ -47,6 +63,7 @@ export async function synchronizeSubscription(id:string){
  const userId=rows[0]?.user_id;if(!userId||sub.metadata.quest_user_id!==userId)return;
  const until=sub.status==='trialing'?sub.trial_end:Math.max(0,...sub.items.data.map(i=>i.current_period_end));
  await database().query('UPDATE quest_subscriptions SET subscription_id=$2,status=$3,trial_used=trial_used OR $4,trial_end=$5,access_until=$6,cancel_at_period_end=$7,updated_at=now() WHERE user_id=$1',[userId,sub.id,sub.status,!!sub.trial_start,sub.trial_end?new Date(sub.trial_end*1000):null,until?new Date(until*1000):null,sub.cancel_at_period_end]);
+ billingCache.delete(userId);
 }
 export async function checkout(plan:PaidPlan='monthly'){
  if(OPEN_EXPERIENCE)throw Error('Free practice access is open.');

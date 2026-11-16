@@ -50,16 +50,24 @@ test('a fresh snapshot skips the heavy rebuild', () => {
   });
   assert.equal(plan.mode, 'light');
   assert.equal(plan.newsDue, false);
-  assert.equal(FULL_ASSEMBLE_MS, 15 * 60 * 1000);
+  assert.equal(FULL_ASSEMBLE_MS, 60 * 60 * 1000);
+  const hourOldNews = quietClocks(now, events).map((item) => item.key === 'news-native' ? {...item, attemptedAt: new Date(+now - 61 * 60 * 1000).toISOString()} : item);
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: now.toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks: hourOldNews, events}).newsDue, true);
+  const recentNews = quietClocks(now, events).map((item) => item.key === 'news-native' ? {...item, attemptedAt: new Date(+now - 30 * 60 * 1000).toISOString()} : item);
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: now.toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks: recentNews, events}).newsDue, false);
 });
 
-test('an old snapshot or a release from the last day rebuilds the feed', () => {
+test('an old snapshot or a due unconfirmed release rebuilds the feed, while stale bars stay on the light path', () => {
   const now = new Date('2026-11-07T15:00:00Z');
   const events = [{id: 'old', kind: 'CPI', at: '2026-10-01T12:30:00Z', status: 'confirmed', title: 'CPI'}];
   const clocks = quietClocks(now, events);
-  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: new Date(+now - 16 * 60 * 1000).toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks, events}).mode, 'full');
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: new Date(+now - 16 * 60 * 1000).toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks, events}).mode, 'light');
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: new Date(+now - 61 * 60 * 1000).toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks, events}).mode, 'full');
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: now.toISOString(), barsFetchedAt: new Date(+now - 16 * 60 * 1000).toISOString(), lastBarDate: '2026-11-06', clocks, events}).mode, 'bars');
   const recent = [{id: 'cpi-now', kind: 'CPI', at: new Date(+now - 60 * 60 * 1000).toISOString(), status: 'pending', title: 'CPI'}];
-  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: now.toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks: quietClocks(now, recent).filter((item) => item.key !== 'release-native:cpi-now'), events: recent}).mode, 'full');
+  const recentClocks = quietClocks(now, recent).filter((item) => item.key !== 'release-native:cpi-now');
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: now.toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks: recentClocks, events: recent}).mode, 'light');
+  assert.equal(scheduledRefreshMode({now, snapshotUpdatedAt: new Date(+now - 16 * 60 * 1000).toISOString(), barsFetchedAt: now.toISOString(), lastBarDate: '2026-11-06', clocks: recentClocks, events: recent}).mode, 'full');
 });
 
 test('an old failed release waits for the regular assemble instead of reloading every cache', () => {

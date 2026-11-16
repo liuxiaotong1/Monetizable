@@ -4,7 +4,14 @@ import {cacheDue,releaseCandidates,type CacheClock} from './refresh-policy';
 import type {Bar,MarketEvent} from './types';
 
 /** Quiet periods reuse the last assembled feed. A fresh release still rebuilds within its usual retry window. */
-export const FULL_ASSEMBLE_MS=15*60*1000;
+export const FULL_ASSEMBLE_MS=60*60*1000;
+/** Unconfirmed releases rebuild on this cadence, not on every five-minute cron tick. */
+export const RELEASE_REBUILD_MS=15*60*1000;
+/** News and prediction-market context are precomputed at most once an hour. */
+export const NEWS_REFRESH_MS=60*60*1000;
+/** Prior/consensus values stay on a shorter clock than the full feed assemble. */
+export const VALUES_REFRESH_MS=15*60*1000;
+const RELEASE_FOLLOW_MS=6*60*60*1000;
 const HISTORY_KINDS=['CPI','NFP','PCE','GDP','FOMC','CLAIMS','CONFIDENCE','TRADE','JOLTS','RETAIL','PPI'] as const;
 export interface RefreshClock {key:string;version?:number;attemptedAt?:string;error?:string}
 function asClock(clock:RefreshClock|undefined):CacheClock|undefined {
@@ -19,11 +26,10 @@ export function calendarMonths(now:Date){
 export function scheduledRefreshMode(input:{now:Date;snapshotUpdatedAt?:string;barsFetchedAt?:string;lastBarDate?:string;clocks:RefreshClock[];events:MarketEvent[]}){
  const byKey=new Map(input.clocks.map(clock=>[clock.key,clock]));
  const due=(key:string,ttl:number,version=1)=>cacheDue(asClock(byKey.get(key)),ttl,input.now,version);
- const newsDue=due('news-native',5*60_000),valuesDue=due('event-values-native',5*60_000);
+ const newsDue=due('news-native',NEWS_REFRESH_MS),valuesDue=due('event-values-native',VALUES_REFRESH_MS);
  const full=()=>({mode:'full' as const,newsDue,valuesDue});
+ const barsOnly=()=>({mode:'bars' as const,newsDue,valuesDue});
  if(!input.snapshotUpdatedAt||input.now.getTime()-Date.parse(input.snapshotUpdatedAt)>=FULL_ASSEMBLE_MS)return full();
- const bars=input.barsFetchedAt?{fetchedAt:input.barsFetchedAt,bars:input.lastBarDate?[{symbol:'QQQ',date:input.lastBarDate,open:0,high:0,low:0,close:0,volume:0,source:'',fetchedAt:input.barsFetchedAt} satisfies Bar]:[]}:undefined;
- if(freeBarsNeedRefresh(bars,input.now))return full();
  for(const month of calendarMonths(input.now))if(due(`calendar-native:${month}`,6*3600_000))return full();
  if(due('bea-calendar-native',6*3600_000)||due('fed-calendar-native',6*3600_000,2))return full();
  if(due(`major-earnings:${marketDate(input.now).slice(0,7)}:${Math.floor(+input.now/604800000)}`,6*3600_000,2))return full();
@@ -33,6 +39,10 @@ export function scheduledRefreshMode(input:{now:Date;snapshotUpdatedAt?:string;b
  }
  const cached=new Map<string,CacheClock>();
  for(const clock of input.clocks){if(!clock.key.startsWith('release-native:'))continue;const parsed=asClock(clock);if(parsed)cached.set(clock.key.slice('release-native:'.length),parsed);}
- const urgent=releaseCandidates(input.events,cached,input.now).some(event=>+input.now-Date.parse(event.at)<24*3600_000);
- return urgent?full():{mode:'light' as const,newsDue,valuesDue};
+ const snapshotAge=input.now.getTime()-Date.parse(input.snapshotUpdatedAt);
+ const urgent=releaseCandidates(input.events,cached,input.now).some(event=>event.status!=='confirmed'&&input.now.getTime()-Date.parse(event.at)<RELEASE_FOLLOW_MS);
+ if(urgent&&snapshotAge>=RELEASE_REBUILD_MS)return full();
+ const bars=input.barsFetchedAt?{fetchedAt:input.barsFetchedAt,bars:input.lastBarDate?[{symbol:'QQQ',date:input.lastBarDate,open:0,high:0,low:0,close:0,volume:0,source:'',fetchedAt:input.barsFetchedAt} satisfies Bar]:[]}:undefined;
+ if(freeBarsNeedRefresh(bars,input.now))return barsOnly();
+ return {mode:'light' as const,newsDue,valuesDue};
 }

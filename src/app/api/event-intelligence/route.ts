@@ -1,4 +1,8 @@
 import {getPublicFeed} from '@/lib/quest/public-source';
-export const maxDuration=60;
+export const maxDuration=15;
 export const dynamic='force-dynamic';
-export async function GET(){return Response.json((await getPublicFeed()).intelligence,{headers:{'Cache-Control':'public, max-age=0, s-maxage=30'}});}
+// Public precomputed news and prediction context. The scheduler refreshes it at most hourly.
+const headers={'Cache-Control':'public, max-age=600, s-maxage=3600, stale-while-revalidate=86400'};
+export async function GET(){
+ return Response.json((await getPublicFeed()).intelligence??{sources:[]},{headers});
+}

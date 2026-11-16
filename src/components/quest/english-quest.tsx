@@ -36,6 +36,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { useVisiblePoll } from "./use-visible-poll";
 import {
   Bell,
   Compass,
@@ -131,9 +132,9 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
   useEffect(() => { setTrialCards(readTrialCards()); }, []);
   const shared = useRef<QuestState | null>(null),
     inFlight = useRef(false);
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     try {
-      const response = await fetch("/api/state", { cache: "no-store" });
+      const response = await fetch("/api/state", fresh ? { cache: "no-store" } : {});
       if (!response.ok) throw Error("Market data is temporarily unavailable.");
       const data = englishState(await response.json()),
         record = readBrowserRecord();
@@ -150,16 +151,10 @@ export default function EnglishQuest({ signedIn = false }: { signedIn?: boolean 
       );
     }
   }, []);
-  useCloseRefresh(state?.session,load);
-  useEffect(() => {
-    void load();
-    const timer = setInterval(() => {
-      if (!document.hidden && !inFlight.current) void load();
-    }, 60000);
-    const onReturn=()=>{if(!document.hidden&&!inFlight.current)void load();};
-    document.addEventListener("visibilitychange",onReturn);window.addEventListener("focus",onReturn);
-    return () => {clearInterval(timer);document.removeEventListener("visibilitychange",onReturn);window.removeEventListener("focus",onReturn);};
-  }, [load]);
+  const reloadAtClose = useCallback(() => load(true), [load]);
+  useCloseRefresh(state?.session, reloadAtClose);
+  useEffect(() => { void load(); }, [load]);
+  useVisiblePoll(() => { if (!inFlight.current) void load(); }, 5 * 60 * 1000);
   useEffect(() => {
     void fetch("/api/visits", {
       method: "POST",

@@ -5,7 +5,8 @@ import WeeklyOutlook from './weekly-outlook';
 import BriefPreview from './brief-preview';
 import type {MarketEvent,Bar} from '@/lib/quest/types';
 import {PremiumGate,useBilling} from "../account/billing-access";
-import {useEffect,useState, type ReactNode} from "react";
+import {useCallback,useEffect,useState, type ReactNode} from "react";
+import {useVisiblePoll} from "./use-visible-poll";
 import {ChevronRight} from "lucide-react";
 import type {AgentReport} from "@/lib/quest/agent-report";
 import {relabelMarketText} from "@/lib/quest/market-label";
@@ -41,14 +42,12 @@ type ReportsResponse={reports:AgentReport[];schedule:{date:string;weekStart:stri
 export default function AgentReports({demo,now,events,bars}:{demo:boolean;now:string;events:MarketEvent[];bars:Bar[]}) {
   const {access}=useBilling();
   const [data,setData]=useState<ReportsResponse>(),[error,setError]=useState(false);
-  useEffect(()=>{
+  const loadReports=useCallback(async(fresh:boolean)=>{
     if(demo)return;
-    let live=true;const abort=new AbortController();
-    const refresh=async()=>{try {const r=await fetch("/api/agent-reports",{cache:"no-store",signal:abort.signal});if(!r.ok)throw new Error();const value=await r.json() as ReportsResponse;if(!Array.isArray(value.reports)||!value.schedule?.date)throw new Error();if(live){setData(value);setError(false);}}catch{if(live)setError(true);}};
-    void refresh();const timer=setInterval(()=>{if(!document.hidden)void refresh();},60000);
-    window.addEventListener("focus",refresh);
-    return()=>{live=false;abort.abort();clearInterval(timer);window.removeEventListener("focus",refresh);};
+    try{const r=await fetch(`/api/agent-reports?v=${access.premium?"pro":"free"}`,fresh?{cache:"no-store"}:{});if(!r.ok)throw new Error();const value=await r.json() as ReportsResponse;if(!Array.isArray(value.reports)||!value.schedule?.date)throw new Error();setData(value);setError(false);}catch{setError(true);}
   },[demo,access.premium]);
+  useEffect(()=>{void loadReports(true);},[loadReports]);
+  useVisiblePoll(()=>{void loadReports(false);},10*60*1000,!demo);
   if(demo)return null;
   const weekly=data?.reports.find(r=>r.kind==="weekly"),daily=data?.reports.find(r=>r.kind==="daily");
   const isSunday=new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Paris",weekday:"short"}).format(new Date(now))==="Sun";

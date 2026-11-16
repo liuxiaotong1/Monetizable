@@ -1,5 +1,6 @@
 import 'server-only';
 import {fetchMajorEarnings,earningsEvents} from './earnings-calendar';
+import {NEWS_REFRESH_MS,VALUES_REFRESH_MS} from './feed-plan';
 import {cacheDue,releaseCandidates,releaseParserVersion,refreshIssues,reconcileFomcCalendar} from './refresh-policy';
 import {enrichReleaseMetrics} from './bls-api';
 import {database} from '@/lib/account/db';
@@ -111,11 +112,11 @@ export async function refreshEventData(state:QuestState,now=new Date()):Promise<
  const merged=new Map(state.events.map(e=>[e.id,e]));for(const e of [...earnings.body,...earningsEvents([],now)]){const prior=merged.get(e.id);merged.set(e.id,prior?.status==='confirmed'?{...e,...prior}:{...prior,...e,consensus:e.consensus??prior?.consensus,consensusSource:e.consensusSource??prior?.consensusSource});}state.events=[...merged.values()].sort((a,b)=>a.at.localeCompare(b.at));
  setSource(state,status('大盘权重股财报日历',earnings,'大盘公司财报已核对；公司公告优先于日历估计，电话会议单独标注。'));
  try{await refreshCalendars(state,now);await refreshAgencyCalendars(state,now);await refreshReleases(state,now);
-  const [values]=await Promise.all([cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined as EventValuesFeed|undefined,now),refreshHistory(state,now)]);
+  const [values]=await Promise.all([cached('event-values-native',VALUES_REFRESH_MS,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined as EventValuesFeed|undefined,now),refreshHistory(state,now)]);
   state.events=applyEventValues(state.events,values.body).map(enrichReleaseMetrics);setSource(state,status('经济日历 · 前值与市场预测',values,'共识单独标注来源；不以媒体或模型预测代替调查值。'));
   const issues=refreshIssues(state.sources,state.events,now);setSource(state,{name:'官方事件自动同步',status:issues.sources.length||issues.overdue.length?'delayed':'ready',message:issues.sources.length||issues.overdue.length?`${issues.overdue.length} 项已到期事件尚待核实，${issues.sources.length} 个来源需重试；保留最后成功内容。`:'官方来源已核对；公布后每 5 分钟检查。',lastSuccess:now.toISOString()});
  }catch(error){setSource(state,{name:'官方事件自动同步',status:'delayed',message:error instanceof Error?error.message:'同步暂不可用'});}
 }
-export async function refreshNews(previous:EventIntelligence,now:Date){const result=await cached('news-native',5*60_000,async()=>{const next=await fetchIntelligence(previous,now);if(next.sources.every(s=>s.status==='error'))throw Error('全部新闻来源获取失败');return next;},previous,now);return result.error?{sources:result.body.sources.map(s=>({...s,status:'error' as const,attemptedAt:result.attemptedAt,message:result.error!,items:s.items.filter(item=>item.endAt?item.endAt>now.toISOString():Boolean(item.publishedAt&&Date.parse(item.publishedAt)>+now-7*86400000))}))}:result.body;}
+export async function refreshNews(previous:EventIntelligence,now:Date){const result=await cached('news-native',NEWS_REFRESH_MS,async()=>{const next=await fetchIntelligence(previous,now);if(next.sources.every(s=>s.status==='error'))throw Error('全部新闻来源获取失败');return next;},previous,now);return result.error?{sources:result.body.sources.map(s=>({...s,status:'error' as const,attemptedAt:result.attemptedAt,message:result.error!,items:s.items.filter(item=>item.endAt?item.endAt>now.toISOString():Boolean(item.publishedAt&&Date.parse(item.publishedAt)>+now-7*86400000))}))}:result.body;}
 export async function refreshNewsIfDue(now:Date){const prior=(await database().query('SELECT body FROM quest_shared_data WHERE key=$1',['news-native'])).rows[0]?.body as Cached<EventIntelligence>|undefined;await refreshNews(prior?.body||{sources:[]},now);}
-export async function refreshEventValuesCache(now:Date){await cached('event-values-native',5*60_000,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined,now);}
+export async function refreshEventValuesCache(now:Date){await cached('event-values-native',VALUES_REFRESH_MS,async()=>parseEventValues(await text(EVENT_VALUES_URL),now.toISOString()),undefined,now);}

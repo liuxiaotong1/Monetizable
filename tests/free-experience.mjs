@@ -25,7 +25,7 @@ const billing=load('src/lib/account/billing.ts',{
 });
 let access=await billing.billingStatus();assert.equal(access.premium,true);assert.equal(access.signedIn,false);assert.equal(access.openExperience,true);assert.equal(legacyClaims,0);
 user={id:'free_user'};access=await billing.billingStatus();assert.equal(access.premium,true);assert.equal(access.signedIn,true);assert.equal(access.admin,false);assert.equal(access.hasSubscription,false);
-subscription=true;access=await billing.billingStatus();assert.equal(access.hasSubscription,true);assert.equal(access.configured,true);subscription=false;
+subscription=true;access=await billing.billingStatus({fresh:true});assert.equal(access.hasSubscription,true);assert.equal(access.configured,true);subscription=false;
 await assert.rejects(()=>billing.checkout('annual'),/Free practice/);assert.equal(stripeCalls,0);
 const checkout=load('src/app/api/billing/checkout/route.ts',{
  '@/lib/account/experience':experience,'@/lib/account/plans':{paidPlan:x=>x},'@/lib/account/billing':billing,
@@ -54,7 +54,10 @@ response=await review.POST(new Request('https://getmonetizable.com/api/predictio
 user=null;response=await review.POST(new Request('https://getmonetizable.com/api/prediction-review',{method:'POST',body:'{}'}));assert.equal(response.status,401);
 const reports=load('src/app/api/agent-reports/route.ts',{
  '@/lib/quest/public-source':{getPublicFeed:async()=>({reports:{reports:[{kind:'daily',body:'Complete brief',summary:'Full summary'}],schedule:{}}})},
- '@/lib/account/billing':billing,'@/lib/account/db':{database:()=>db},'@/lib/quest/agent-report':{},'node:crypto':crypto
+ '@/lib/account/billing':billing,'@/lib/account/db':{database:()=>db},
+ '@/lib/quest/domain':{sessionFor:()=>({openAt:new Date(Date.now()+3600000).toISOString()})},
+ '@/lib/quest/agent-report':{parisDate:()=>'2026-11-16',reportScheduleContext:()=>({date:'2026-11-16',weekStart:'2026-11-16'}),reportWeekStart:()=>'2026-11-16'},
+ 'node:crypto':crypto
 });
 response=await reports.GET();assert.equal((await response.json()).reports[0].body,'Complete brief');
 console.log('Passed: guest and signed-in free access, existing billing management, zero Stripe checkout calls, six card answers beyond old quotas, complete AI response and mentor follow-up, private-review authentication, and full daily briefs.');
