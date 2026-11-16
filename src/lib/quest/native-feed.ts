@@ -6,7 +6,7 @@ import {updateDailyContent} from './daily-content';
 import type {EventIntelligence} from './event-intelligence';
 import { createHash } from 'node:crypto';
 import { database } from '@/lib/account/db';
-import { toSnapshot } from './feed-snapshot';
+import { toSnapshot, type PublicFeedSnapshot } from './feed-snapshot';
 import { writeSnapshot } from './feed-store';
 import { parseFreeBars, freeBarsNeedRefresh } from './free-market';
 import { marketDate, nyTimeToUtc, sessionFor } from './domain';
@@ -21,6 +21,29 @@ async function saveIfChanged(key:string,body:Record<string,unknown>){
  const prior=await database().query("SELECT body->>'digest' AS digest FROM quest_shared_data WHERE key=$1",[key]);
  if(prior.rows[0]?.digest===digest)return;
  await save(key,{...body,digest});
+}
+/** Update stored daily bars without rebuilding calendars, news, histories or learning catalogs. */
+export async function refreshMarketBars():Promise<{updated:boolean}>{
+ const now=new Date();
+ let saved=await read<{fetchedAt:string;bars:PublicFeed['state']['bars']}>('market-bars');
+ if(!freeBarsNeedRefresh(saved,now))return {updated:false};
+ try{
+  const response=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QQQ?range=6mo&interval=1d&includePrePost=false',{cache:'no-store',signal:AbortSignal.timeout(12000)});
+  if(!response.ok)throw Error();
+  const bars=parseFreeBars(await response.json(),'QQQ',now);
+  saved={fetchedAt:now.toISOString(),bars};
+  await save('market-bars',saved);
+ }catch{return {updated:false};}
+ const snapshot=await read<PublicFeedSnapshot>('public-feed-snapshot');
+ if(!snapshot||snapshot.version!==1||!saved)return {updated:true};
+ const lastBar=saved.bars.filter(bar=>bar.symbol==='QQQ').at(-1);
+ const currentSession=sessionFor(now);
+ const expectedDate=currentSession.isTradingDay&&now.getTime()>=Date.parse(currentSession.closeAt)?currentSession.date:currentSession.previousDate;
+ const name='纳斯达克100 ETF 公开参考日线';
+ const sources=(snapshot.sources||[]).filter(source=>source.name!==name&&source.name!=='QQQ 公开参考日线');
+ sources.push({name,status:lastBar?.date===expectedDate?'ready':'delayed',message:lastBar?`已取得 ${lastBar.date} 日线；应有 ${expectedDate}。日线不是实时行情。`:'等待首次有效日线，上游失败会自动重试。',lastSuccess:lastBar?.fetchedAt});
+ await writeSnapshot({...snapshot,bars:saved.bars,exportedAt:now.toISOString(),sources});
+ return {updated:true};
 }
 export async function refreshNative(feed:PublicFeed,force=false,strict=false):Promise<PublicFeed>{
  const now=new Date(),state=feed.state,baseline={events:structuredClone(state.events),bars:structuredClone(state.bars)};

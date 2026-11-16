@@ -5,8 +5,9 @@ Production: https://getmonetizable.com, Vercel project `monetizable` in
 
 | Work | Cloud owner | Cadence / record |
 | --- | --- | --- |
-| QQQ completed daily bars | Supabase pg_cron → Vercel `/api/refresh` | Every 5 minutes, all days. Source TTL 15 minutes with immediate close-boundary retry. |
-| Calendar, actual/prior/consensus, histories, news/sentiment | Same refresh | Independent source caches/retry clocks. Official release failures retain prior verified values. |
+| QQQ completed daily bars | Supabase pg_cron → Vercel `/api/refresh` | The cron still calls every 5 minutes. The handler fetches bars when the 15-minute source TTL expires or the close boundary is open. Calendars, news and learning catalogs stay on the hourly assemble. |
+| Calendar, actual/prior/consensus, histories | Same refresh | Full assemble at most hourly, or 15 minutes after an unconfirmed release from the last 6 hours when its cache is due. Official release failures retain prior verified values. |
+| News and event intelligence | Same refresh, read by `/api/event-intelligence` | Precomputed at most hourly. Page loads read the stored snapshot. |
 | Daily contextual learning cards | Supabase refresh + independent weekday GitHub Actions | Calendar preparation, verified releases and retrieved financial headlines from the last 72 hours; stored under `learning:YYYY-MM-DD`. Stable source identities prevent polling duplicates. Static concept cards are not relabeled as new. |
 | Closed prediction results | Same refresh | First verified result under private `review:<user-id>:<judgment-id>`. Original judgments are never edited. |
 | Data-only report fallback | Same refresh | Trading days from one hour before the actual Eastern Time market open; Sunday after Paris 19:00. |
@@ -86,7 +87,7 @@ Verification on 2026-10-18: Vercel reported SUCCESS for the deployed commit; clo
 
 - Eligibility starts at the exchange close from `sessionFor`, including DST and early closes. The former fixed twenty-minute hold has been removed from the parser, scoring gate and cache boundary.
 - A same-day Yahoo daily candle is held back when its last regular-session tick still precedes the close. Missing completed candles retry after fifteen seconds; the first successful closing candle unlocks scoring.
-- Visible workspaces wake at the actual close and refresh every fifteen seconds for the first half hour. Pending AI jobs poll automatically; concurrent requests share a database lease and per-user evidence cache.
+- Visible workspaces wake at the actual close and refresh once a minute for the first half hour, and only while the tab is visible. Pending AI jobs poll automatically; concurrent requests share a database lease and per-user evidence cache.
 - `/api/refresh` idempotently installs `monetizable-after-close` in Supabase pg_cron. It checks `/api/after-close` each minute during UTC 17–22 on weekdays. The worker applies the actual New York trading calendar and generates saved-account debriefs during the first two hours after close. The scheduler references an encrypted Supabase Vault secret; cron SQL contains the Vault reference only.
 - `closing-review-health` records aggregate ready/pending counts and safe error codes. Private debriefs stay in service-role-only `quest_shared_data` keys. `/api/after-close` requires the existing cron bearer authorization.
 - Quote provider publication latency and AI request time still apply. Verify a completed scheduler HTTP response and saved debrief, rather than treating an enqueued wake-up as generation success.

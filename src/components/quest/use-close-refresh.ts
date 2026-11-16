@@ -10,7 +10,7 @@ export function useCloseRefresh(session:Session|undefined,refresh:()=>Promise<vo
   const close=Date.parse(closeAt),end=close+30*60_000;
   if(Date.now()>end)return;
   const check=async()=>{if(Date.now()>end){clearInterval(timer);return;}if(!active||document.hidden||running||Date.now()<close||Date.now()>end)return;running=true;try{await refresh();}finally{running=false;}};
-  const start=()=>{void check();timer=window.setInterval(()=>void check(),15000);};
+  const start=()=>{void check();timer=window.setInterval(()=>void check(),60_000);};
   const boundary=window.setTimeout(start,Math.max(0,close-Date.now()));
   document.addEventListener('visibilitychange',check);window.addEventListener('focus',check);
   return()=>{active=false;clearTimeout(boundary);clearInterval(timer);document.removeEventListener('visibilitychange',check);window.removeEventListener('focus',check);};
